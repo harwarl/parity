@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  /* Locked palette — see config/theme.ts. Single dark theme, no light variant. */
+  --color-void: #070807; /* page */
+  --color-panel: #101110; /* tape window, cards */
+  --color-line: #1c1f1c; /* hairlines */
+  --color-paper: #f4f7f2; /* headlines, primary text */
+  --color-mute: #8b9188; /* subcopy, labels */
+  --color-gap: #b8f53a; /* cheap basis, live chip, "Do it" — the only accent */
+  --color-rich: #e07a6a; /* token rich (rare) */
+  --color-halt: #5a5e58; /* frozen row */
+
+  --radius-window: 18px;
+  --radius-chip: 8px;
+}
+
+@theme inline {
+  --color-void: var(--color-void);
+  --color-panel: var(--color-panel);
+  --color-line: var(--color-line);
+  --color-paper: var(--color-paper);
+  --color-mute: var(--color-mute);
+  --color-gap: var(--color-gap);
+  --color-rich: var(--color-rich);
+  --color-halt: var(--color-halt);
+  --color-floor: var(--color-floor);
+
+  --radius-window: var(--radius-window);
+  --radius-chip: var(--radius-chip);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background: var(--color-void);
+  color: var(--color-paper);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
