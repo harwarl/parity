@@ -16,6 +16,7 @@ export const colors = {
   gap: "var(--color-gap)", // cheap basis, live chip, "Do it" — the only accent
   rich: "var(--color-rich)", // token rich (rare)
   halt: "var(--color-halt)", // frozen row (CLOSED / STALE)
+  floor: "var(--color-floor)", // full-bleed floor beneath void — safety strip
 } as const;
 
 export const radius = {

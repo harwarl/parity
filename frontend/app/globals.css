@@ -10,6 +10,7 @@
   --color-gap: #b8f53a; /* cheap basis, live chip, "Do it" — the only accent */
   --color-rich: #e07a6a; /* token rich (rare) */
   --color-halt: #5a5e58; /* frozen row */
+  --color-floor: #050605; /* full-bleed floor beneath void — safety strip */
 
   --radius-window: 18px;
   --radius-chip: 8px;
