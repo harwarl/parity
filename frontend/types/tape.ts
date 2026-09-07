@@ -4,6 +4,7 @@ export type HaltReason = "STALE" | "CLOSED" | "THIN" | "DUST";
 
 export interface TapeRow {
   ticker: string;
+  name: string;
   cash: number;
   token: number;
   bps: number;
@@ -19,6 +20,13 @@ export interface TapeRow {
   live: boolean;
   /** Last time this row's prices were refreshed, e.g. "10:41:03". */
   updatedAt: string;
+  /** Cash-vs-token leg attribution for the basis breakdown below the tape. */
+  legs?: {
+    cashBps: number;
+    cashSpark: number[];
+    tokenBps: number;
+    tokenSpark: number[];
+  };
 }
 
 export type DashboardTab = "tape" | "cards" | "log" | "policy" | "account";

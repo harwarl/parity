@@ -6,6 +6,7 @@ import type { TapeRow } from "@/types/tape";
 export const heroTape: TapeRow[] = [
   {
     ticker: "HOOD",
+    name: "Robinhood Markets",
     cash: 28.4,
     token: 28.03,
     bps: -130,
@@ -16,9 +17,16 @@ export const heroTape: TapeRow[] = [
     sparkline: [-40, -55, -62, -58, -70, -84, -91, -102, -96, -110, -121, -130],
     live: true,
     updatedAt: "10:42:07",
+    legs: {
+      cashBps: -76,
+      cashSpark: [-10, -18, -22, -30, -34, -41, -48, -55, -60, -66, -71, -76],
+      tokenBps: 54,
+      tokenSpark: [8, 14, 16, 22, 20, 28, 33, 30, 38, 42, 47, 54],
+    },
   },
   {
     ticker: "NVDA",
+    name: "NVIDIA Corporation",
     cash: 187.62,
     token: 191.65,
     bps: 215,
@@ -29,6 +37,7 @@ export const heroTape: TapeRow[] = [
   },
   {
     ticker: "COIN",
+    name: "Coinbase Global",
     cash: 312.18,
     token: 311.93,
     bps: -8,
@@ -39,6 +48,7 @@ export const heroTape: TapeRow[] = [
   },
   {
     ticker: "TSLA",
+    name: "Tesla, Inc.",
     cash: 441.05,
     token: 441.4,
     bps: 8,
@@ -49,6 +59,7 @@ export const heroTape: TapeRow[] = [
   },
   {
     ticker: "GOOGL",
+    name: "Alphabet Inc.",
     cash: 285.77,
     token: 286.09,
     bps: 11,
@@ -59,6 +70,7 @@ export const heroTape: TapeRow[] = [
   },
   {
     ticker: "MSTR",
+    name: "MicroStrategy Inc.",
     cash: 402.5,
     token: 402.5,
     bps: 0,
@@ -70,6 +82,7 @@ export const heroTape: TapeRow[] = [
   },
   {
     ticker: "AAPL",
+    name: "Apple Inc.",
     cash: 271.14,
     token: 271.02,
     bps: -4,
