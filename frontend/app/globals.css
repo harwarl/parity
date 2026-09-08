@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  /* PARITY design tokens — see CLAUDE.md §2. Exact hexes, not approximations. */
+  --background: #070807; /* Void */
+  --surface: #101110; /* Panel */
+  --surface-raised: #161815; /* Panel, raised */
+  --foreground: #f4f7f2; /* Paper */
+  --muted: #8b9188; /* Mute */
+  --muted-dim: #5c6159;
+  --accent: #b8f53a; /* Gap — live gap, primary CTA. Use sparingly. */
+  --accent-strong: #a2db2c;
+  --accent-dim: rgba(184, 245, 58, 0.12);
+  --danger: #e07a6a; /* Rich — expensive/negative side, warnings */
+  --danger-dim: rgba(224, 122, 106, 0.12);
+  --halt: #5a5e58; /* Halt — halted/disabled state, not "bad price" */
+  --halt-dim: rgba(90, 94, 88, 0.18);
+  --border: rgba(139, 145, 136, 0.14);
+  --border-strong: rgba(139, 145, 136, 0.26);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-dim: var(--muted-dim);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-dim: var(--accent-dim);
+  --color-danger: var(--danger);
+  --color-danger-dim: var(--danger-dim);
+  --color-halt: var(--halt);
+  --color-halt-dim: var(--halt-dim);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  background: var(--background);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(184, 245, 58, 0.35) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
