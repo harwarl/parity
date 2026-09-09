@@ -1,35 +1,48 @@
-import type { Metadata } from "next";
-import { Geist, JetBrains_Mono } from "next/font/google";
-import { Footer } from "@/components/layout/Footer";
-import { Navbar } from "@/components/layout/Navbar";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import SmoothScroll from "@/components/providers/SmoothScroll";
 import "./globals.css";
 
-const geistSans = Geist({
+const sans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const mono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
+
+const description =
+  "A basis tape for Robinhood cash equities vs Robinhood Chain stock tokens. PARITY measures the gap, haircuts fees and slippage, and emits a confirm-gated card. PARITY does not place.";
 
 export const metadata: Metadata = {
-  title: "PARITY — Two prices. One gap. You tap.",
-  description:
-    "PARITY measures the gap between a stock and its Robinhood Chain token, haircuts fees and slip, and only then sends a card. No gap, no card.",
+  metadataBase: new URL("https://parity.example"),
+  title: {
+    default: "PARITY · Two prices for the same name. One gap. You tap.",
+    template: "%s · PARITY",
+  },
+  description,
+  openGraph: {
+    title: "PARITY · Two prices. One tape.",
+    description,
+    type: "website",
+  },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0a0a",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body>
+        <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>
   );

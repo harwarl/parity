@@ -1,68 +1,172 @@
 @import "tailwindcss";
 
+/*
+ * PARITY — design tokens. See CLAUDE.md "Design DNA".
+ * Ground: near-black, dense not airy. One green accent, used sparingly:
+ * status pills, primary action, the gap number. Numerals are always mono.
+ * Separation is hairline 1px borders, never shadows.
+ */
 :root {
-  /* PARITY design tokens — see CLAUDE.md §2. Exact hexes, not approximations. */
-  --background: #070807; /* Void */
-  --surface: #101110; /* Panel */
-  --surface-raised: #161815; /* Panel, raised */
-  --foreground: #f4f7f2; /* Paper */
-  --muted: #8b9188; /* Mute */
-  --muted-dim: #5c6159;
-  --accent: #b8f53a; /* Gap — live gap, primary CTA. Use sparingly. */
-  --accent-strong: #a2db2c;
-  --accent-dim: rgba(184, 245, 58, 0.12);
-  --danger: #e07a6a; /* Rich — expensive/negative side, warnings */
-  --danger-dim: rgba(224, 122, 106, 0.12);
-  --halt: #5a5e58; /* Halt — halted/disabled state, not "bad price" */
-  --halt-dim: rgba(90, 94, 88, 0.18);
-  --border: rgba(139, 145, 136, 0.14);
-  --border-strong: rgba(139, 145, 136, 0.26);
+  --ground: #0a0a0a; /* page background — near-black, not pure */
+  --surface: #101010; /* panels */
+  --surface-2: #161616; /* raised panels / card face */
+  --line: color-mix(in oklab, #ffffff 9%, transparent); /* hairline border */
+  --line-strong: color-mix(in oklab, #ffffff 16%, transparent);
+
+  --text: #f4f4f3; /* headlines, primary */
+  --text-dim: #a6a6a3; /* body copy — ~7:1 on ground */
+  --text-mute: #6f6f6c; /* timestamps, meta, session state */
+
+  --green: #00dc7a; /* the one accent */
+  --green-ink: #04140c; /* text/icons on a green fill */
+  --green-soft: color-mix(in oklab, #00dc7a 14%, transparent);
+
+  --halt: #5b5b58; /* halted / stale / disabled — desaturated, "no data" */
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-ground: var(--ground);
   --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-muted-dim: var(--muted-dim);
-  --color-accent: var(--accent);
-  --color-accent-strong: var(--accent-strong);
-  --color-accent-dim: var(--accent-dim);
-  --color-danger: var(--danger);
-  --color-danger-dim: var(--danger-dim);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-text-mute: var(--text-mute);
+  --color-green: var(--green);
+  --color-green-ink: var(--green-ink);
+  --color-green-soft: var(--green-soft);
   --color-halt: var(--halt);
-  --color-halt-dim: var(--halt-dim);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-jetbrains-mono);
-}
 
-* {
-  border-color: var(--border);
+  --color-background: var(--ground);
+  --color-foreground: var(--text);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  --default-font-family: var(--font-sans);
 }
 
 html {
-  background: var(--background);
   color-scheme: dark;
+  background: var(--ground);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* own stacking context so the fixed -z background layer paints above the
+     body fill instead of being hidden behind it */
+  isolation: isolate;
 }
 
-.font-mono {
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+/* Numerals — prices, bps, TTL, timestamps, multipliers. Always mono, tabular. */
+.tnum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  letter-spacing: -0.01em;
 }
 
-.bg-dot-grid {
-  background-image: radial-gradient(rgba(184, 245, 58, 0.35) 1px, transparent 1px);
-  background-size: 28px 28px;
+/* Tiny tracked ALL-CAPS eyebrow above a section. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-mute);
 }
 
-.text-balance {
-  text-wrap: balance;
+/* Faint grid texture on featured panels (PARE hero cue). */
+.grid-texture {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-position: center;
+}
+
+/* Browser surfaces — themed, not defaults. */
+::selection {
+  background: var(--green);
+  color: var(--green-ink);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+}
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Motion vocabulary — fast, physical, no bounce. */
+@keyframes num-pop {
+  0% {
+    opacity: 0.3;
+    transform: translateY(-0.14em);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.num-pop {
+  animation: num-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tick-flash {
+  0% {
+    color: var(--green);
+  }
+  100% {
+    color: inherit;
+  }
+}
+.tick-flash {
+  animation: tick-flash 0.9s ease-out;
+}
+
+@keyframes strike {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

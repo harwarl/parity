@@ -1,40 +1,46 @@
-import Link from "next/link";
-import { Container } from "@/components/layout/Container";
-import { footerLinks } from "@/config/nav";
+import Container from "./Container";
 
-export function Footer() {
+const disclaimers = [
+  "signals, not advice",
+  "token ≠ share",
+  "basis can persist",
+  "overnight is not free money",
+  "paper is not live",
+  "not available where Robinhood Stock Tokens are not",
+];
+
+export default function Footer() {
   return (
-    <footer className="border-t border-border py-12">
-      <Container>
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-accent text-[10px] font-bold text-background">
-              P
-            </span>
-            Parity
-          </div>
-
-          <p className="max-w-2xl text-xs leading-relaxed text-muted-dim">
-            PARITY is software and signals, not investment advice. Every trade
-            is self-directed and confirmed by you. Paper mode is the default
-            for new accounts. A token is exposure, not a share of the
-            underlying company. Overnight and weekend gaps are not free
-            money — they can persist, widen, or disappear before the cash
-            market reopens.
-          </p>
-
-          <div className="flex gap-6">
-            {footerLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="text-xs text-muted transition-colors hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
+    <footer className="border-t border-line py-12">
+      <Container className="flex flex-col gap-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="text-[0.95rem] font-semibold tracking-[0.14em] text-text">
+            PARITY
+          </span>
+          <span className="text-text-mute">·</span>
+          <span className="tnum text-[0.8rem] text-text-mute">
+            Robinhood Chain
+          </span>
         </div>
+
+        <p className="flex flex-wrap gap-x-2 gap-y-1 text-[0.78rem] leading-relaxed text-text-mute">
+          {disclaimers.map((d, i) => (
+            <span key={d} className="whitespace-nowrap">
+              {d}
+              {i < disclaimers.length - 1 ? (
+                <span aria-hidden className="ml-2 text-text-mute/50">
+                  ·
+                </span>
+              ) : null}
+            </span>
+          ))}
+        </p>
+
+        <p className="text-[0.78rem] text-text-mute">
+          PARITY is self-directed signalling software. It measures a published
+          basis and shows a card. It never places, never holds funds, and never
+          holds your keys. © {new Date().getFullYear()} PARITY.
+        </p>
       </Container>
     </footer>
   );

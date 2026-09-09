@@ -1,13 +1,16 @@
-import type { HTMLAttributes } from "react";
+import type { ReactNode } from "react";
 
-export function Container({
+/** Centered column with responsive gutters. Dense, not airy. */
+export default function Container({
+  children,
   className = "",
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div
-      className={`mx-auto w-full max-w-[1400px] px-6 sm:px-8 lg:px-12 ${className}`}
-      {...props}
-    />
+    <div className={`mx-auto w-full max-w-[84rem] px-6 sm:px-10 ${className}`}>
+      {children}
+    </div>
   );
 }

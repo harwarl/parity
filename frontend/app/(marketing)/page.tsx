@@ -1,23 +1,31 @@
-import { Hero } from "@/components/sections/Hero";
-import { HowItWorks } from "@/components/sections/HowItWorks";
-import { History } from "@/components/sections/History";
-import { OfficialRails } from "@/components/sections/OfficialRails";
-import { RejectStamp } from "@/components/sections/RejectStamp";
-import { RejectsCompound } from "@/components/sections/RejectsCompound";
-import { Tape } from "@/components/sections/Tape";
-import { TwoPrices } from "@/components/sections/TwoPrices";
+import TickerStrip from "@/components/parity/TickerStrip";
+import CashTokenPanels from "@/components/sections/CashTokenPanels";
+import ClosingLine from "@/components/sections/ClosingLine";
+import Hero from "@/components/sections/Hero";
+import OneNameTwoPrices from "@/components/sections/OneNameTwoPrices";
+import RailsBand from "@/components/sections/RailsBand";
+import RejectSection from "@/components/sections/RejectSection";
+import StatTriplet from "@/components/sections/StatTriplet";
+import Steps from "@/components/sections/Steps";
+import TapeSection from "@/components/sections/TapeSection";
+import TimelineSection from "@/components/sections/TimelineSection";
+import Waitlist from "@/components/sections/Waitlist";
 
-export default function Home() {
+export default function Page() {
   return (
-    <>
+    <main>
       <Hero />
-      <RejectStamp />
-      <Tape />
-      <TwoPrices />
-      <HowItWorks />
-      <History />
-      <RejectsCompound />
-      <OfficialRails />
-    </>
+      <TickerStrip />
+      <StatTriplet />
+      <TapeSection />
+      <OneNameTwoPrices />
+      <CashTokenPanels />
+      <Steps />
+      <TimelineSection />
+      <RejectSection />
+      <RailsBand />
+      <Waitlist />
+      <ClosingLine />
+    </main>
   );
 }
