@@ -1,4 +1,5 @@
 import Section from "@/components/layout/Section";
+import RefusalFeed from "@/components/parity/RefusalFeed";
 import Reveal from "@/components/shared/Reveal";
 
 const codes = [
@@ -16,6 +17,10 @@ export default function RejectSection() {
       heading="No card beats a wrong card."
       lede="Most ticks do not become a card. Each refusal has a short, stamped reason. This is the point of the product, not a limitation of it."
     >
+      <div className="mb-10">
+        <RefusalFeed />
+      </div>
+
       <div className="grid gap-x-12 gap-y-8 sm:grid-cols-2">
         {codes.map((c, i) => (
           <div

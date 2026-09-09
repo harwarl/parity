@@ -1,5 +1,6 @@
 import Section from "@/components/layout/Section";
 import Reveal from "@/components/shared/Reveal";
+import Icon from "@/components/ui/Icon";
 
 const steps = [
   {
@@ -28,20 +29,20 @@ export default function Steps() {
           <Reveal key={s.n} delay={i * 90}>
             <li>
               <div className="flex items-center gap-3">
-                <span className="tnum text-2xl font-medium text-green">
-                  {s.n}
-                </span>
+                <span className="tnum text-2xl font-medium text-green">{s.n}</span>
                 <span
                   aria-hidden
-                  className={`h-px flex-1 ${s.payoff ? "bg-green/40" : "bg-line"}`}
-                />
-                {i < steps.length - 1 ? (
+                  className={`relative h-px flex-1 overflow-hidden ${
+                    s.payoff ? "bg-green/40" : "bg-line"
+                  }`}
+                >
                   <span
-                    aria-hidden
-                    className="hidden text-text-mute sm:block"
-                  >
-                    →
-                  </span>
+                    className="absolute top-1/2 size-1 -translate-y-1/2 rounded-full bg-green [animation:rail-run_6s_ease-in-out_infinite]"
+                    style={{ animationDelay: `${i * 1.8}s` }}
+                  />
+                </span>
+                {i < steps.length - 1 ? (
+                  <Icon name="arrow" size={13} className="hidden text-text-mute sm:block" />
                 ) : null}
               </div>
               <h3

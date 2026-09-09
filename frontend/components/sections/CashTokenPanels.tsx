@@ -1,9 +1,12 @@
 import Container from "@/components/layout/Container";
 import Reveal from "@/components/shared/Reveal";
+import Icon from "@/components/ui/Icon";
 
 const panels = [
   {
     tag: "CASH",
+    icon: "clock" as const,
+    status: "prints in RTH",
     title: "The exchange price.",
     body: "Prints during regular trading hours and stops at the bell. This is the RHJ feed. The uiMultiplier never touches it.",
     rows: [
@@ -15,6 +18,8 @@ const panels = [
   },
   {
     tag: "TOKEN",
+    icon: "infinity" as const,
+    status: "moves 24/7",
     title: "The chain price.",
     body: "Chainlink oracle, already scaled by uiMultiplier / 1e18. Trades around the clock and moves while the cash market sleeps.",
     rows: [
@@ -38,9 +43,20 @@ export default function CashTokenPanels() {
               delay={i * 90}
               className={i === 1 ? "md:border-l md:border-line md:pl-16" : ""}
             >
-              <p className="tnum text-[0.7rem] tracking-[0.24em] text-green">
-                {p.tag}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="tnum flex items-center gap-2 text-[0.7rem] tracking-[0.24em] text-green">
+                  <Icon name={p.icon} size={13} />
+                  {p.tag}
+                </p>
+                <span className="tnum flex items-center gap-1.5 text-[0.68rem] uppercase tracking-widest text-text-mute">
+                  <span
+                    className={`size-1.5 rounded-full ${
+                      p.tag === "TOKEN" ? "animate-pulse bg-green" : "bg-text-mute"
+                    }`}
+                  />
+                  {p.status}
+                </span>
+              </div>
               <h3 className="mt-3 text-xl font-medium tracking-tight text-text">
                 {p.title}
               </h3>
