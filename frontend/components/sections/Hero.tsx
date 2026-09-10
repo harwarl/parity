@@ -3,6 +3,7 @@
 import Container from "@/components/layout/Container";
 import Card from "@/components/parity/Card";
 import LiveClock from "@/components/parity/LiveClock";
+import Tilt from "@/components/shared/Tilt";
 import { useInView } from "@/hooks/useInView";
 import { FEATURED } from "@/lib/parity/universe";
 
@@ -64,12 +65,9 @@ export default function Hero() {
         </div>
 
         <div className="w-full lg:justify-self-end">
-          <Card
-            data={card}
-            loop
-            active={inView}
-            className="mx-auto max-w-[650px]"
-          />
+          <Tilt className="mx-auto max-w-[650px]">
+            <Card data={card} loop active={inView} className="w-full" />
+          </Tilt>
         </div>
       </Container>
     </section>
