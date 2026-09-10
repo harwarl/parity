@@ -376,7 +376,7 @@ const OUTCOME: Record<
   { line: string; tone: "mute" | "green" }
 > = {
   confirmed: {
-    line: "Confirmed. PARITY hands off to review, then place. You confirm the place.",
+    line: "Confirmed. TAPE hands off to review, then place. You confirm the place.",
     tone: "green",
   },
   rejected: { line: "Skipped. This tick will not be retried.", tone: "mute" },

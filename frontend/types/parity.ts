@@ -1,5 +1,5 @@
 /**
- * PARITY domain types. Vocabulary is fixed by the PRD and CLAUDE.md — do not
+ * TAPE domain types. Vocabulary is fixed by the PRD and CLAUDE.md — do not
  * invent alternates. A "card" is never an "order", "trade", or "position".
  */
 

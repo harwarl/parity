@@ -5,7 +5,7 @@ import Eyebrow from "@/components/ui/Eyebrow";
 export const metadata: Metadata = {
   title: "App",
   description:
-    "The PARITY app: the same card, live. Paper by default, confirm-gated always, execution on the official rails.",
+    "The TAPE app: the same card, live. Paper by default, confirm-gated always, execution on the official rails.",
 };
 
 const notes = [
@@ -23,7 +23,7 @@ const notes = [
   },
   {
     h: "It holds nothing",
-    p: "No deposits, no custody, no keys. PARITY measures a published basis and shows a card. It does not place.",
+    p: "No deposits, no custody, no keys. TAPE measures a published basis and shows a card. It does not place.",
   },
 ];
 
@@ -35,7 +35,8 @@ export default function AppPage() {
         The same card. Live.
       </h1>
       <p className="mt-5 max-w-xl text-pretty text-[0.98rem] leading-relaxed text-text-dim">
-        The PARITY app is the card widget, wired to the tape. It is not live yet.
+        The TAPE app is the card widget, wired to the live basis. It is not live
+        yet.
         Join the waitlist and you get the paper build first.
       </p>
 

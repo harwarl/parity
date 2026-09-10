@@ -13,7 +13,7 @@ export default function ClosingLine() {
         <Reveal>
           <p className="max-w-4xl text-balance text-[1.9rem] font-medium leading-[1.12] tracking-[-0.03em] text-text sm:text-[2.9rem]">
             If you cannot point at two prices,{" "}
-            <span className="text-text-mute">PARITY does not trade.</span>
+            <span className="text-text-mute">TAPE does not trade.</span>
           </p>
           <p className="tnum mt-6 text-[0.8rem] tracking-widest text-text-mute">
             SIGNALS, NOT ADVICE · TOKEN ≠ SHARE · PAPER IS NOT LIVE

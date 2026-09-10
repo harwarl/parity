@@ -15,7 +15,7 @@ const steps = [
   },
   {
     n: "03",
-    h: "You tap. Never PARITY.",
+    h: "You tap. Never TAPE.",
     p: "A card is a suggestion with a 75-second life. Do it, take it smaller, or Skip. On live, your tap runs a review, then you confirm the place yourself.",
     payoff: true,
   },

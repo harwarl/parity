@@ -1,5 +1,5 @@
 /**
- * PARITY palette mirror for TS-land (WebGL materials, canvas, charts).
+ * TAPE palette mirror for TS-land (WebGL materials, canvas, charts).
  * The canonical source is app/globals.css. One green accent, used sparingly.
  */
 export const palette = {

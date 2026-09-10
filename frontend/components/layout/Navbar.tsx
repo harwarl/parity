@@ -17,10 +17,10 @@ export default function Navbar() {
         <Link
           href="/"
           className="flex items-baseline gap-2 text-text"
-          aria-label="PARITY home"
+          aria-label="TAPE home"
         >
           <span className="text-[1.1rem] font-semibold tracking-[0.14em] md:text-[0.95rem]">
-            PARITY
+            TAPE
           </span>
           <span className="tnum hidden text-[10px] text-text-mute sm:inline">
             v1

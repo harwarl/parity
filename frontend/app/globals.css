@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * PARITY — design tokens. See CLAUDE.md "Design DNA".
+ * TAPE — design tokens. See CLAUDE.md "Design DNA".
  * Ground: near-black, dense not airy. One green accent, used sparingly:
  * status pills, primary action, the gap number. Numerals are always mono.
  * Separation is hairline 1px borders, never shadows.

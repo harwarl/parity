@@ -15,7 +15,7 @@ export default function Footer() {
       <Container className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="text-[0.95rem] font-semibold tracking-[0.14em] text-text">
-            PARITY
+            TAPE
           </span>
           <span className="text-text-mute">·</span>
           <span className="tnum text-[0.8rem] text-text-mute">
@@ -37,9 +37,9 @@ export default function Footer() {
         </p>
 
         <p className="text-[0.78rem] text-text-mute">
-          PARITY is self-directed signalling software. It measures a published
+          TAPE is self-directed signalling software. It measures a published
           basis and shows a card. It never places, never holds funds, and never
-          holds your keys. © {new Date().getFullYear()} PARITY.
+          holds your keys. © {new Date().getFullYear()} TAPE.
         </p>
       </Container>
     </footer>

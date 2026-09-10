@@ -4,21 +4,21 @@ import Eyebrow from "@/components/ui/Eyebrow";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "What PARITY is, what it refuses to be, and the rules it runs under.",
+    "What TAPE is, what it refuses to be, and the rules it runs under.",
 };
 
 const principles = [
   {
     h: "It measures. You decide.",
-    p: "PARITY joins the cash mid and the multiplier-adjusted chain price, subtracts the cost of closing the gap, and shows a card. The card is a suggestion with a 75-second life. Every tap is yours.",
+    p: "TAPE joins the cash mid and the multiplier-adjusted chain price, subtracts the cost of closing the gap, and shows a card. The card is a suggestion with a 75-second life. Every tap is yours.",
   },
   {
     h: "It never places.",
-    p: "On live, a tap runs a review through the official Trading MCP, then you confirm the place yourself. There is no mode, no setting, and no upsell that lets PARITY trade on its own.",
+    p: "On live, a tap runs a review through the official Trading MCP, then you confirm the place yourself. There is no mode, no setting, and no upsell that lets TAPE trade on its own.",
   },
   {
     h: "It holds nothing.",
-    p: "No deposits, no custody, no keys. Execution runs in your Agentic Account through the official rails. PARITY never depicts holding a balance because it never does.",
+    p: "No deposits, no custody, no keys. Execution runs in your Agentic Account through the official rails. TAPE never depicts holding a balance because it never does.",
   },
   {
     h: "token is not share.",
@@ -38,7 +38,7 @@ export default function AboutPage() {
         Two prices for the same name. One gap. You tap.
       </h1>
       <p className="mt-5 max-w-xl text-pretty text-[0.98rem] leading-relaxed text-text-dim">
-        PARITY is a basis tape for Robinhood cash equities and Robinhood Chain
+        TAPE reads the basis between Robinhood cash equities and Robinhood Chain
         stock tokens. It is signalling software for a self-directed user. It is
         not a fund, a bot, or a broker.
       </p>

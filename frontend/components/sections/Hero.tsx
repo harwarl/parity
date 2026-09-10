@@ -58,7 +58,7 @@ export default function Hero() {
 
           <p className="mt-6 max-w-lg text-pretty text-[1rem] leading-relaxed text-text-dim">
             A basis tape for Robinhood cash equities and Robinhood Chain stock
-            tokens. PARITY measures the gap, haircuts fees and slippage, and
+            tokens. TAPE measures the gap, haircuts fees and slippage, and
             shows a card. It does not place.
           </p>
 
