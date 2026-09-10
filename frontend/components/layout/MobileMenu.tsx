@@ -17,6 +17,16 @@ export default function MobileMenu({
     };
   }, [open]);
 
+  // close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <div className="md:hidden">
       <button
@@ -24,7 +34,7 @@ export default function MobileMenu({
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex size-9 items-center justify-center rounded-md border border-line-strong text-text"
+        className="relative z-50 flex size-9 items-center justify-center rounded-md border border-line-strong text-text"
       >
         <span className="relative block h-3 w-4">
           <span
@@ -45,29 +55,44 @@ export default function MobileMenu({
         </span>
       </button>
 
-      {open ? (
-        <div className="fixed inset-x-0 top-14 bottom-0 z-40 border-t border-line bg-ground">
-          <nav className="flex flex-col divide-y divide-line">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="px-6 py-4 text-[0.95rem] text-text-dim transition-colors hover:text-text"
-              >
-                {l.label}
-              </Link>
-            ))}
+      <div
+        className={`fixed inset-0 top-14 z-40 flex flex-col transition-opacity duration-200 ${
+          open
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+        style={{ background: "var(--ground)" }}
+        aria-hidden={!open}
+      >
+        <nav className="flex flex-col divide-y divide-line border-t border-line">
+          {links.map((l, i) => (
             <Link
-              href="/#waitlist"
+              key={l.href}
+              href={l.href}
               onClick={() => setOpen(false)}
-              className="m-6 mt-8 inline-flex h-11 items-center justify-center rounded-md bg-green px-5 text-sm font-medium text-green-ink"
+              style={{ transitionDelay: open ? `${60 + i * 35}ms` : "0ms" }}
+              className={`px-6 py-4 text-[1rem] text-text-dim transition-all duration-300 hover:text-text ${
+                open ? "translate-x-0 opacity-100" : "translate-x-2 opacity-0"
+              }`}
             >
-              Join the waitlist
+              {l.label}
             </Link>
-          </nav>
+          ))}
+        </nav>
+
+        <div className="mt-auto border-t border-line p-6">
+          <Link
+            href="/#waitlist"
+            onClick={() => setOpen(false)}
+            className="flex h-12 items-center justify-center rounded-md bg-green px-5 text-sm font-medium text-green-ink"
+          >
+            Join the waitlist
+          </Link>
+          <p className="tnum mt-4 text-[0.7rem] leading-relaxed text-text-mute">
+            Signals, not advice. Paper is the default. PARITY does not place.
+          </p>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }

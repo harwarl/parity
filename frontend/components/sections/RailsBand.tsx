@@ -28,8 +28,14 @@ export default function RailsBand() {
             <Reveal
               key={r.k}
               delay={(i % 3) * 70}
-              className="group border-t border-line pt-4"
+              className="group relative overflow-hidden border-t border-line pt-4"
             >
+              {/* a signal pulse runs the rail, staggered per item */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute top-0 left-0 h-px w-12 opacity-0 bg-linear-to-r from-transparent via-green to-transparent motion-safe:animate-[rail-run_5.5s_ease-in-out_infinite] motion-safe:group-hover:[animation-duration:2s]"
+                style={{ left: "-8%", animationDelay: `${i * 820}ms` }}
+              />
               <dt className="flex items-center gap-2.5 text-[0.9rem] font-medium tracking-tight text-text">
                 <span className="text-green transition-transform duration-300 group-hover:-translate-y-0.5">
                   <Icon name={r.icon} size={15} />

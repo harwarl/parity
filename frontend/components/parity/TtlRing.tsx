@@ -23,20 +23,24 @@ export default function TtlRing({
           cy="18"
           r={r}
           fill="none"
-          stroke="var(--line-strong)"
-          strokeWidth="2"
+          strokeWidth="2.5"
+          style={{ stroke: "var(--line-strong)" }}
         />
         <circle
           cx="18"
           cy="18"
           r={r}
           fill="none"
-          stroke={low ? "var(--halt)" : "var(--green)"}
-          strokeWidth="2"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - clamped)}
-          style={{ transition: stopped ? "none" : "stroke-dashoffset 0.25s linear" }}
+          style={{
+            stroke: low ? "var(--halt)" : "var(--green)",
+            transition: stopped
+              ? "none"
+              : "stroke-dashoffset 0.25s linear, stroke 0.3s linear",
+          }}
         />
       </svg>
       <span className="tnum absolute inset-0 grid place-items-center text-[10px] text-text-dim">

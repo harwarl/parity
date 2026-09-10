@@ -5,8 +5,7 @@ import { type ReactNode, useEffect, useRef } from "react";
 /**
  * Pointer-parallax tilt — the hover feel the WebGL hero slab had, on a plain
  * element. The card leans toward the cursor with damping, drifts slowly at
- * rest, and eases back on leave. A faint sheen tracks the pointer. Inert under
- * prefers-reduced-motion.
+ * rest, and eases back on leave. Inert under prefers-reduced-motion.
  */
 export default function Tilt({
   children,
@@ -19,7 +18,6 @@ export default function Tilt({
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
-  const sheen = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const w = wrap.current;
@@ -41,17 +39,11 @@ export default function Tilt({
       target.x = -py * 2;
       target.y = px * 2;
       hovering = true;
-      if (sheen.current) {
-        sheen.current.style.opacity = "0.6";
-        sheen.current.style.setProperty("--mx", `${(px + 0.5) * 100}%`);
-        sheen.current.style.setProperty("--my", `${(py + 0.5) * 100}%`);
-      }
     };
     const onLeave = () => {
       hovering = false;
       target.x = 0;
       target.y = 0;
-      if (sheen.current) sheen.current.style.opacity = "0";
     };
 
     const tick = () => {
@@ -85,15 +77,6 @@ export default function Tilt({
         className="relative transition-transform duration-500 ease-out [transform-style:preserve-3d] will-change-transform"
       >
         {children}
-        <div
-          ref={sheen}
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300"
-          style={{
-            background:
-              "radial-gradient(260px circle at var(--mx,50%) var(--my,50%), color-mix(in oklab, #00dc7a 6%, transparent), transparent 62%)",
-          }}
-        />
       </div>
     </div>
   );

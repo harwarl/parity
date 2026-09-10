@@ -114,11 +114,11 @@ function HeroStat({
   label: string;
 }) {
   return (
-    <div className="px-4 first:pl-0 last:pr-0">
-      <dd className="tnum text-[1.7rem] font-medium leading-none tracking-tight text-text sm:text-[2.05rem]">
+    <div className="px-3 first:pl-0 last:pr-0 sm:px-4">
+      <dd className="tnum text-2xl font-medium leading-none tracking-tight text-text sm:text-[2.05rem]">
         {children}
       </dd>
-      <dt className="mt-2 text-[0.72rem] leading-snug text-text-mute">
+      <dt className="mt-2 text-[0.68rem] leading-snug text-text-mute sm:text-[0.72rem]">
         {label}
       </dt>
     </div>

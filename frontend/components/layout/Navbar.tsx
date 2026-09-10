@@ -7,6 +7,7 @@ const links = [
   { label: "How it works", href: "/#how" },
   { label: "Refusals", href: "/#refusals" },
   { label: "Rails", href: "/#rails" },
+  { label: "App", href: "/app" },
   { label: "About", href: "/about" },
 ];
 
@@ -27,7 +28,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-[0.8rem] text-text-dim md:flex">
+        <nav className="hidden items-center gap-4 text-[0.8rem] text-text-dim md:flex lg:gap-7">
           {links.map((l) => (
             <Link
               key={l.href}

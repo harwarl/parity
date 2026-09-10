@@ -228,9 +228,9 @@ export default function Card({
 
       {/* faded divider with a centred label */}
       <div className="my-3 flex items-center gap-3 text-text-mute">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent to-line-strong" />
+        <span className="h-px flex-1 bg-linear-to-r from-transparent to-line-strong" />
         <span className="text-[9px] uppercase tracking-[0.22em]">two prices</span>
-        <span className="h-px flex-1 bg-gradient-to-l from-transparent to-line-strong" />
+        <span className="h-px flex-1 bg-linear-to-l from-transparent to-line-strong" />
       </div>
 
       {/* cash vs token — two feed rows */}
@@ -239,14 +239,14 @@ export default function Card({
           tone="cash"
           tag="CASH"
           title="The exchange price"
-          sub={`${view.symbol} · prints stop at the bell`}
+          sub={`${view.symbol} · RTH only`}
           price={view.cashPrice}
         />
         <FeedRow
           tone="token"
           tag="TOKEN"
           title="The chain price"
-          sub={`${view.symbol}x · moves 24/7`}
+          sub={`${view.symbol}x · 24/7`}
           price={view.tokenPrice}
         />
       </div>

@@ -51,7 +51,7 @@ export default function TimelineSection() {
         {/* desktop rail — hairline that resolves to green at "Now" */}
         <span
           aria-hidden
-          className="absolute inset-x-0 top-[3px] hidden h-px bg-gradient-to-r from-line-strong via-line-strong to-green lg:block"
+          className="absolute inset-x-0 top-[3px] hidden h-px bg-linear-to-r from-line-strong via-line-strong to-green lg:block"
         />
 
         <ol className="grid gap-4 lg:grid-cols-4">
