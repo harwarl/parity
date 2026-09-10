@@ -36,7 +36,7 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden">
-      <Container className="grid min-h-184 content-center gap-10 sm:gap-2 py-28 pt-32 sm:min-h-208 sm:py-32 lg:min-h-210 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16 lg:py-40">
+      <Container className="grid min-h-184 content-center gap-10 py-28 pt-32 sm:min-h-208 sm:gap-2 sm:py-32 lg:min-h-210 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16 lg:py-40">
         <div ref={ref}>
           <p className="tnum flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] tracking-[0.15em] text-text-mute">
             <span className="inline-flex items-center gap-1.5 text-green">
@@ -58,8 +58,8 @@ export default function Hero() {
 
           <p className="mt-6 max-w-lg text-pretty text-[1rem] leading-relaxed text-text-dim">
             A basis tape for Robinhood cash equities and Robinhood Chain stock
-            tokens. TAPE measures the gap, haircuts fees and slippage, and
-            shows a card. It does not place.
+            tokens. TAPE measures the gap, haircuts fees and slippage, and shows
+            a card. It does not place.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">

@@ -176,6 +176,16 @@ body {
   }
 }
 
+/* line-draw for the hero basis sparkline (path uses pathLength=1) */
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 @keyframes caret {
   0%,
   100% {
