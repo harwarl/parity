@@ -13,7 +13,7 @@ const rails = [
 
 export default function RailsBand() {
   return (
-    <section id="rails" className="relative border-t border-line py-20 sm:py-28">
+    <section id="rails" className="relative border-t border-line py-14 sm:py-20">
       <span aria-hidden className="absolute -top-px left-0 h-px w-16 bg-green/70" />
       <Container>
         <Reveal className="max-w-2xl">

@@ -27,7 +27,7 @@ export default function Waitlist() {
   }
 
   return (
-    <section id="waitlist" className="border-t border-line py-20 sm:py-28">
+    <section id="waitlist" className="border-t border-line py-14 sm:py-20">
       <Container>
         <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-14">
           <div>

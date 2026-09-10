@@ -4,7 +4,7 @@ import Reveal from "@/components/shared/Reveal";
 /** Full-width closing line, PARE cadence. */
 export default function ClosingLine() {
   return (
-    <section className="relative overflow-hidden border-t border-line py-28 sm:py-40">
+    <section className="relative overflow-hidden border-t border-line py-20 sm:py-28">
       <span
         aria-hidden
         className="absolute inset-y-0 left-1/2 hidden w-px -translate-x-1/2 bg-linear-to-b from-transparent via-green/40 to-transparent sm:block"

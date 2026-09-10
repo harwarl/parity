@@ -26,7 +26,7 @@ export default function Section({
   return (
     <section
       id={id}
-      className={`relative scroll-mt-24 border-t border-line py-20 sm:py-28 ${
+      className={`relative scroll-mt-24 border-t border-line py-14 sm:py-20 ${
         surface ? "bg-surface" : ""
       } ${className}`}
     >
