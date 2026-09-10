@@ -1,7 +1,15 @@
 import Section from "@/components/layout/Section";
 import FeaturedGap from "@/components/parity/FeaturedGap";
 import Reveal from "@/components/shared/Reveal";
+import Typewriter from "@/components/shared/Typewriter";
 import { FEATURED } from "@/lib/parity/universe";
+
+const MATH = `token_per_share = chainlink_usd / (uiMultiplier / 1e18)
+
+basis_bps = (token_per_share − share_mid)
+            / share_mid × 10_000
+
+net_bps = |basis_bps| − fee − slip(clip) − buffer`;
 
 const points = [
   {
@@ -50,19 +58,43 @@ export default function OneNameTwoPrices() {
           ))}
         </ol>
 
-        <div className="lg:pt-1">
-          <p className="eyebrow">The math on this page</p>
-          <pre className="tnum mt-3 overflow-x-auto rounded-lg border border-line bg-surface-2 p-5 text-[0.78rem] leading-[1.9] text-text-dim">
-            <code>{`token_per_share = chainlink_usd / (uiMultiplier / 1e18)
+        <div className="flex flex-col lg:pt-1">
+          <div className="flex grow flex-col overflow-hidden rounded-xl border border-line-strong bg-surface-2">
+            <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
+              <span className="tnum flex items-center gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-text-mute">
+                <span className="size-1.5 rounded-full bg-green" />
+                from feed to net
+              </span>
+              <span className="tnum text-[0.68rem] uppercase tracking-[0.2em] text-text-mute">
+                3 defs
+              </span>
+            </div>
 
-basis_bps = (token_per_share − share_mid)
-            / share_mid × 10_000
+            <div className="flex grow text-[0.8rem] leading-[2.2]">
+              <div
+                aria-hidden
+                className="tnum shrink-0 select-none border-r border-line bg-surface px-3.5 py-7 text-right text-text-mute/60"
+              >
+                {MATH.split("\n").map((_, i) => (
+                  <div key={i}>
+                    {String(i + 1).padStart(2, "0")}
+                  </div>
+                ))}
+              </div>
+              <div className="tnum grow overflow-x-auto px-5 py-7 text-text-dim">
+                <Typewriter text={MATH} pre trigger="inView" speed={16} />
+              </div>
+            </div>
 
-net_bps = |basis_bps| − fee − slip(clip) − buffer`}</code>
-          </pre>
-          <p className="mt-3 text-[0.8rem] leading-relaxed text-text-mute">
-            Cards and the tape speak only in net. A multiplier jump above
-            threshold, or an oracle pause, is a HALT. Not a 10× gap.
+            <div className="tnum flex items-center gap-2 border-t border-line px-5 py-3 text-[0.72rem] text-text-mute">
+              <span className="text-green">›</span>
+              net is the only number a card ever shows
+            </div>
+          </div>
+
+          <p className="mt-4 text-[0.8rem] leading-relaxed text-text-mute">
+            A multiplier jump above threshold, or an oracle pause, is a HALT. Not
+            a 10× gap.
           </p>
         </div>
       </div>

@@ -38,6 +38,8 @@ interface State {
   remaining: number;
   skip: SkipCode | null;
   running: boolean;
+  /** index into the marketing rotation */
+  idx: number;
 }
 
 type Action =
@@ -46,8 +48,10 @@ type Action =
   | { type: "smaller" }
   | { type: "confirm" }
   | { type: "skip"; code: SkipCode }
-  | { type: "reset" }
+  | { type: "reset"; nextIdx: number }
   | { type: "setRunning"; running: boolean };
+
+const SKIP_CYCLE: SkipCode[] = ["THIN", "STALE", "DUST", "CLOSED"];
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -81,7 +85,8 @@ function reducer(state: State, action: Action): State {
         clip: 15,
         remaining: TTL_SECONDS,
         skip: null,
-        running: state.running,
+        running: true,
+        idx: action.nextIdx,
       };
     case "setRunning":
       return { ...state, running: action.running };
@@ -92,12 +97,14 @@ function reducer(state: State, action: Action): State {
 
 export default function Card({
   data,
+  rotation,
   loop = true,
   active = true,
-  className = "max-w-[4400px]",
+  className = "max-w-[440px]",
 }: {
   data: CardData;
-  /** Marketing loop mode. */
+  /** Marketing loop mode: cycle through these names, one per TTL cycle. */
+  rotation?: CardData[];
   loop?: boolean;
   /** Whether the card is on-screen — drives pause/resume of the TTL. */
   active?: boolean;
@@ -109,10 +116,15 @@ export default function Card({
     remaining: TTL_SECONDS,
     skip: null,
     running: false,
+    idx: 0,
   });
 
   const raf = useRef<number>(0);
   const last = useRef<number>(0);
+
+  const cycle =
+    loop && rotation && rotation.length > 0 ? rotation : null;
+  const view = cycle ? cycle[state.idx % cycle.length] : data;
 
   // TTL clock — only runs while the card is open, in loop mode, and on-screen.
   useEffect(() => {
@@ -123,7 +135,8 @@ export default function Card({
     if (state.status !== "open" || !state.running) return;
     const step = (now: number) => {
       if (!last.current) last.current = now;
-      const dt = (now - last.current) / 1000;
+      // marketing loop drains a little faster than the real 75s
+      const dt = ((now - last.current) / 1000) * (loop ? 2.4 : 1);
       last.current = now;
       dispatch({ type: "tick", dt });
       raf.current = requestAnimationFrame(step);
@@ -133,35 +146,50 @@ export default function Card({
       cancelAnimationFrame(raf.current);
       last.current = 0;
     };
-  }, [state.status, state.running]);
+  }, [state.status, state.running, loop]);
 
-  // Loop: after a terminal state, pause, then reset.
+  // Loop: after a terminal state, pause, then reset onto the next name.
   useEffect(() => {
     if (!loop) return;
     if (state.status === "open") return;
-    const t = setTimeout(() => dispatch({ type: "reset" }), 2600);
+    const t = setTimeout(
+      () => dispatch({ type: "reset", nextIdx: state.idx + 1 }),
+      2400,
+    );
     return () => clearTimeout(t);
-  }, [state.status, loop]);
+  }, [state.status, state.idx, loop]);
 
-  const cut = netBps({ gapBps: data.gapBps, clipUsd: state.clip });
+  const cut = netBps({ gapBps: view.gapBps, clipUsd: state.clip });
   const progress = state.remaining / TTL_SECONDS;
 
   const onConfirm = useCallback(() => dispatch({ type: "confirm" }), []);
+  const onSkip = useCallback(
+    () =>
+      dispatch({
+        type: "skip",
+        code: SKIP_CYCLE[Math.abs(state.idx) % SKIP_CYCLE.length],
+      }),
+    [state.idx],
+  );
 
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-xl border border-line-strong bg-surface-2 ${className}`}
+      className={`relative w-full rounded-[1.75rem] border border-line bg-surface-2 p-4 sm:p-6 ${className}`}
     >
-      {/* header */}
-      <div className="grid-texture flex items-center justify-between border-b border-line px-5 py-3.5">
-        <div className="flex items-baseline gap-2">
-          <span className="text-[0.95rem] font-semibold tracking-tight text-text">
-            {data.symbol}
+      {/* top line — small, muted, like a live-status readout */}
+      <div className="flex items-center justify-between">
+        <span className="tnum flex items-baseline gap-2 tracking-wide">
+          <span
+            key={view.symbol}
+            className="num-pop text-[15px] font-semibold text-text"
+          >
+            {view.symbol}
           </span>
-          <span className="tnum rounded-sm border border-line-strong px-1 py-px text-[9px] tracking-widest text-text-mute">
-            SAMPLE
+          <span className="flex items-center gap-1.5 text-[11px] text-text-mute">
+            <span className="size-1.5 rounded-full bg-green" />
+            sample
           </span>
-        </div>
+        </span>
         <TtlRing
           progress={progress}
           seconds={state.remaining}
@@ -169,37 +197,21 @@ export default function Card({
         />
       </div>
 
-      <div className="space-y-4 p-5">
-        {/* the single number */}
-        <div>
-          <p className="eyebrow">Net basis</p>
-          <div className="mt-1.5 flex items-end gap-2">
-            <span
-              key={cut.net}
-              className="tnum num-pop text-[3.25rem] font-medium leading-none text-green"
-            >
-              {cut.net}
-            </span>
-            <span className="tnum pb-1.5 text-sm text-text-mute">bps</span>
-          </div>
-        </div>
-
-        {/* cash vs token */}
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line">
-          <Pane
-            label="Cash"
-            price={data.cashPrice}
-            sub={`${data.symbol} · exchange · RTH`}
-          />
-          <Pane
-            label="Token"
-            price={data.tokenPrice}
-            sub={`${data.symbol}x · chain · 24/7`}
-          />
+      {/* net basis — the single number, in its own nested panel */}
+      <div className="mt-4 rounded-2xl bg-surface p-4 sm:p-5">
+        <p className="eyebrow">Net basis</p>
+        <div className="mt-2 flex items-end gap-2">
+          <span
+            key={cut.net}
+            className="tnum num-pop text-[2.75rem] font-medium leading-none text-green"
+          >
+            {cut.net}
+          </span>
+          <span className="tnum pb-1 text-sm text-text-mute">bps</span>
         </div>
 
         {/* haircut line — the subtracted terms strike through */}
-        <p className="tnum flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-text-mute">
+        <p className="tnum mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-text-mute">
           <span className="text-text-dim">gap {cut.gap}</span>
           <span aria-hidden>−</span>
           <StrikeTerm delay={80}>fee {cut.fee}</StrikeTerm>
@@ -212,61 +224,90 @@ export default function Card({
             net {cut.net}
           </span>
         </p>
+      </div>
 
-        {/* clip selector */}
-        <div>
-          <p className="eyebrow mb-1.5">Clip</p>
-          <div className="grid grid-cols-3 gap-px overflow-hidden rounded-md border border-line-strong bg-line-strong">
-            {CLIPS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => dispatch({ type: "setClip", clip: c })}
-                aria-pressed={state.clip === c}
-                disabled={state.status !== "open"}
-                className={[
-                  "tnum py-1.5 text-xs transition-colors disabled:opacity-40",
-                  state.clip === c
-                    ? "bg-surface-2 text-text"
-                    : "bg-surface text-text-mute hover:text-text-dim",
-                ].join(" ")}
-              >
-                ${c}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* faded divider with a centred label */}
+      <div className="my-3 flex items-center gap-3 text-text-mute">
+        <span className="h-px flex-1 bg-gradient-to-r from-transparent to-line-strong" />
+        <span className="text-[9px] uppercase tracking-[0.22em]">two prices</span>
+        <span className="h-px flex-1 bg-gradient-to-l from-transparent to-line-strong" />
+      </div>
 
-        {/* actions / outcome */}
-        {state.status === "open" ? (
-          <div className="flex items-center gap-2">
+      {/* cash vs token — two feed rows */}
+      <div className="divide-y divide-line">
+        <FeedRow
+          tone="cash"
+          tag="CASH"
+          title="The exchange price"
+          sub={`${view.symbol} · prints stop at the bell`}
+          price={view.cashPrice}
+        />
+        <FeedRow
+          tone="token"
+          tag="TOKEN"
+          title="The chain price"
+          sub={`${view.symbol}x · moves 24/7`}
+          price={view.tokenPrice}
+        />
+      </div>
+
+      {/* clip selector */}
+      <div className="mt-4">
+        <p className="eyebrow mb-1.5">Clip</p>
+        <div className="grid grid-cols-3 gap-1 rounded-xl border border-line p-1">
+          {CLIPS.map((c) => (
             <button
+              key={c}
               type="button"
-              onClick={onConfirm}
-              className="h-10 flex-1 rounded-md bg-green text-sm font-medium text-green-ink transition-colors hover:bg-[#12e888]"
+              onClick={() => dispatch({ type: "setClip", clip: c })}
+              aria-pressed={state.clip === c}
+              disabled={state.status !== "open"}
+              className={[
+                "tnum rounded-lg py-2 text-xs transition-colors disabled:opacity-40",
+                state.clip === c
+                  ? "bg-surface text-text"
+                  : "text-text-mute hover:text-text-dim",
+              ].join(" ")}
             >
-              Gap fill
+              ${c}
             </button>
+          ))}
+        </div>
+      </div>
+
+      {/* actions / outcome */}
+      {state.status === "open" ? (
+        <div className="mt-4 space-y-2">
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="h-12 w-full rounded-xl bg-green text-sm font-semibold text-green-ink transition-colors hover:bg-[#12e888]"
+          >
+            Gap fill
+          </button>
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={() => dispatch({ type: "smaller" })}
               disabled={state.clip === CLIPS[0]}
-              className="h-10 rounded-md border border-line-strong px-3 text-sm text-text-dim transition-colors hover:text-text disabled:opacity-40"
+              className="h-10 flex-1 rounded-xl border border-line text-sm text-text-dim transition-colors hover:border-line-strong hover:text-text disabled:opacity-40"
             >
               smaller
             </button>
             <button
               type="button"
-              onClick={() => dispatch({ type: "skip", code: "THIN" })}
-              className="h-10 rounded-md border border-line-strong px-3 text-sm text-text-dim transition-colors hover:text-text"
+              onClick={onSkip}
+              className="h-10 flex-1 rounded-xl border border-line text-sm text-text-dim transition-colors hover:border-line-strong hover:text-text"
             >
               Skip
             </button>
           </div>
-        ) : (
+        </div>
+      ) : (
+        <div className="mt-4">
           <Outcome status={state.status} skip={state.skip} />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -292,22 +333,40 @@ function StrikeTerm({
   );
 }
 
-function Pane({
-  label,
-  price,
+function FeedRow({
+  tone,
+  tag,
+  title,
   sub,
+  price,
 }: {
-  label: string;
-  price: number;
+  tone: "cash" | "token";
+  tag: string;
+  title: string;
   sub: string;
+  price: number;
 }) {
   return (
-    <div className="bg-surface-2 p-3">
-      <p className="eyebrow">{label}</p>
-      <p className="tnum mt-1 text-lg text-text">{fmtPrice(price)}</p>
-      <p className="tnum mt-0.5 text-[10px] leading-tight text-text-mute">
-        {sub}
-      </p>
+    <div className="flex items-center gap-3 py-3.5">
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 py-1">
+        <span
+          className={`size-1.5 rounded-full ${
+            tone === "token" ? "bg-green" : "bg-text-dim"
+          }`}
+        />
+        <span className="tnum text-[10px] tracking-[0.15em] text-text-dim">
+          {tag}
+        </span>
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] leading-tight text-text">{title}</p>
+        <p className="tnum mt-0.5 truncate text-[11px] leading-tight text-text-mute">
+          {sub}
+        </p>
+      </div>
+      <span key={price} className="tnum num-pop shrink-0 text-[15px] text-text">
+        {fmtPrice(price)}
+      </span>
     </div>
   );
 }
@@ -340,10 +399,10 @@ function Outcome({
 }) {
   const o = OUTCOME[status];
   return (
-    <div className="flex items-start gap-3 rounded-md border border-line bg-surface px-3 py-3">
+    <div className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4">
       <span
         className={[
-          "tnum mt-px shrink-0 rounded-sm border px-1.5 py-0.5 text-[10px] tracking-widest",
+          "tnum mt-px shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] tracking-widest",
           o.tone === "green"
             ? "border-green/30 text-green"
             : "border-halt/40 text-halt",

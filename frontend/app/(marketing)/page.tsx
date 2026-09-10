@@ -5,7 +5,6 @@ import Hero from "@/components/sections/Hero";
 import OneNameTwoPrices from "@/components/sections/OneNameTwoPrices";
 import RailsBand from "@/components/sections/RailsBand";
 import RejectSection from "@/components/sections/RejectSection";
-import StatTriplet from "@/components/sections/StatTriplet";
 import Steps from "@/components/sections/Steps";
 import TapeSection from "@/components/sections/TapeSection";
 import TimelineSection from "@/components/sections/TimelineSection";
@@ -16,7 +15,6 @@ export default function Page() {
     <main>
       <Hero />
       <TickerStrip />
-      <StatTriplet />
       <TapeSection />
       <OneNameTwoPrices />
       <CashTokenPanels />

@@ -1,11 +1,32 @@
 "use client";
 
+import type { ReactNode } from "react";
+import type { CardData } from "@/components/parity/Card";
 import Container from "@/components/layout/Container";
 import Card from "@/components/parity/Card";
 import LiveClock from "@/components/parity/LiveClock";
+import CountUp from "@/components/shared/CountUp";
 import Tilt from "@/components/shared/Tilt";
 import { useInView } from "@/hooks/useInView";
-import { FEATURED } from "@/lib/parity/universe";
+import { FEATURED, TAPE } from "@/lib/parity/universe";
+
+// the stat triplet, inlined under the hero copy — number, one line, green rule
+const STATS: { render: ReactNode; label: string }[] = [
+  { render: <CountUp value={10} />, label: "Names on the shared tape" },
+  { render: "1–2s", label: "Freshness in RTH" },
+  { render: <CountUp value={0} />, label: "Funds held. No custody" },
+];
+
+// the hero card cycles through the tradable names, one per TTL — featured first
+const ROTATION: CardData[] = [
+  FEATURED,
+  ...TAPE.filter((r) => r.state === "rth" && r.symbol !== FEATURED.symbol),
+].map((r) => ({
+  symbol: r.symbol,
+  cashPrice: r.shareMid,
+  tokenPrice: r.tokenPerShare,
+  gapBps: r.basisBps,
+}));
 
 export default function Hero() {
   const { ref, inView } = useInView<HTMLDivElement>({
@@ -13,16 +34,9 @@ export default function Hero() {
     threshold: 0.2,
   });
 
-  const card = {
-    symbol: FEATURED.symbol,
-    cashPrice: FEATURED.shareMid,
-    tokenPrice: FEATURED.tokenPerShare,
-    gapBps: FEATURED.basisBps,
-  };
-
   return (
     <section className="relative overflow-hidden">
-      <Container className="grid min-h-184 content-center gap-12 py-28 pt-32 sm:min-h-208 sm:py-32 lg:min-h-210 lg:grid-cols-[0.90fr_1.10fr] lg:items-center lg:gap-16 lg:py-40">
+      <Container className="grid min-h-184 content-center gap-2 py-28 pt-32 sm:min-h-208 sm:py-32 lg:min-h-210 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16 lg:py-40">
         <div ref={ref}>
           <p className="tnum flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] tracking-[0.15em] text-text-mute">
             <span className="inline-flex items-center gap-1.5 text-green">
@@ -62,14 +76,51 @@ export default function Hero() {
               See the tape
             </a>
           </div>
+
+          <dl className="relative mt-10 grid grid-cols-3 divide-x divide-line border-t border-line pt-6">
+            <span
+              aria-hidden
+              className="absolute -top-px left-0 h-px w-10 bg-green"
+            />
+            {STATS.map((s) => (
+              <HeroStat key={s.label} label={s.label}>
+                {s.render}
+              </HeroStat>
+            ))}
+          </dl>
         </div>
 
         <div className="w-full lg:justify-self-end">
           <Tilt className="mx-auto max-w-[650px]">
-            <Card data={card} loop active={inView} className="w-full" />
+            <Card
+              data={ROTATION[0]}
+              rotation={ROTATION}
+              loop
+              active={inView}
+              className="w-full"
+            />
           </Tilt>
         </div>
       </Container>
     </section>
+  );
+}
+
+function HeroStat({
+  children,
+  label,
+}: {
+  children: ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="px-4 first:pl-0 last:pr-0">
+      <dd className="tnum text-[1.7rem] font-medium leading-none tracking-tight text-text sm:text-[2.05rem]">
+        {children}
+      </dd>
+      <dt className="mt-2 text-[0.72rem] leading-snug text-text-mute">
+        {label}
+      </dt>
+    </div>
   );
 }
