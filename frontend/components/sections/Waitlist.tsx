@@ -51,7 +51,7 @@ export default function Waitlist() {
                 <label htmlFor="wl-email" className="eyebrow">
                   Email
                 </label>
-                <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="flex flex-col gap-2.5 sm:flex-row sm:gap-2">
                   <input
                     id="wl-email"
                     type="email"
@@ -59,12 +59,12 @@ export default function Waitlist() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@domain.com"
-                    className="tnum h-11 flex-1 rounded-md border border-line-strong bg-surface px-3 text-sm text-text outline-none transition-colors placeholder:text-text-mute focus:border-text-mute"
+                    className="tnum h-13 flex-1 rounded-md border border-line-strong bg-surface px-4 text-[0.95rem] text-text outline-none transition-colors placeholder:text-text-mute focus:border-text-mute sm:h-11 sm:px-3 sm:text-sm"
                   />
                   <button
                     type="submit"
                     disabled={status === "loading"}
-                    className="h-11 rounded-md bg-green px-5 text-sm font-medium text-green-ink transition-colors hover:bg-[#12e888] disabled:opacity-50"
+                    className="h-13 rounded-md bg-green px-5 text-[0.95rem] font-medium text-green-ink transition-colors hover:bg-[#12e888] disabled:opacity-50 sm:h-11 sm:text-sm"
                   >
                     {status === "loading" ? "Adding…" : "Join"}
                   </button>

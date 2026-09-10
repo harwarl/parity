@@ -14,13 +14,13 @@ const links = [
 export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-md">
-      <Container className="flex h-14 items-center justify-between">
+      <Container className="flex h-16 items-center justify-between md:h-14">
         <Link
           href="/"
           className="flex items-baseline gap-2 text-text"
           aria-label="PARITY home"
         >
-          <span className="text-[0.95rem] font-semibold tracking-[0.14em]">
+          <span className="text-[1.1rem] font-semibold tracking-[0.14em] md:text-[0.95rem]">
             PARITY
           </span>
           <span className="tnum hidden text-[10px] text-text-mute sm:inline">

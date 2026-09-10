@@ -58,8 +58,8 @@ export default function OneNameTwoPrices() {
           ))}
         </ol>
 
-        <div className="flex flex-col lg:pt-1">
-          <div className="flex grow flex-col overflow-hidden rounded-xl border border-line-strong bg-surface-2">
+        <div className="flex min-w-0 flex-col lg:pt-1">
+          <div className="flex min-w-0 grow flex-col overflow-hidden rounded-xl border border-line-strong bg-surface-2">
             <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
               <span className="tnum flex items-center gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-text-mute">
                 <span className="size-1.5 rounded-full bg-green" />
@@ -70,7 +70,7 @@ export default function OneNameTwoPrices() {
               </span>
             </div>
 
-            <div className="flex grow text-[0.8rem] leading-[2.2]">
+            <div className="flex min-w-0 grow text-[0.8rem] leading-[2.2]">
               <div
                 aria-hidden
                 className="tnum shrink-0 select-none border-r border-line bg-surface px-3.5 py-7 text-right text-text-mute/60"
@@ -81,7 +81,7 @@ export default function OneNameTwoPrices() {
                   </div>
                 ))}
               </div>
-              <div className="tnum grow overflow-x-auto px-5 py-7 text-text-dim">
+              <div className="tnum min-w-0 grow overflow-x-auto px-5 py-7 text-text-dim">
                 <Typewriter text={MATH} pre trigger="inView" speed={16} />
               </div>
             </div>

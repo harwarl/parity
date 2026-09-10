@@ -36,7 +36,7 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden">
-      <Container className="grid min-h-184 content-center gap-2 py-28 pt-32 sm:min-h-208 sm:py-32 lg:min-h-210 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16 lg:py-40">
+      <Container className="grid min-h-184 content-center gap-10 sm:gap-2 py-28 pt-32 sm:min-h-208 sm:py-32 lg:min-h-210 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16 lg:py-40">
         <div ref={ref}>
           <p className="tnum flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] tracking-[0.15em] text-text-mute">
             <span className="inline-flex items-center gap-1.5 text-green">
@@ -106,13 +106,7 @@ export default function Hero() {
   );
 }
 
-function HeroStat({
-  children,
-  label,
-}: {
-  children: ReactNode;
-  label: string;
-}) {
+function HeroStat({ children, label }: { children: ReactNode; label: string }) {
   return (
     <div className="px-3 first:pl-0 last:pr-0 sm:px-4">
       <dd className="tnum text-2xl font-medium leading-none tracking-tight text-text sm:text-[2.05rem]">

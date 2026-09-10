@@ -58,6 +58,10 @@ html {
 body {
   background: var(--ground);
   color: var(--text);
+  /* nothing on the page may push a horizontal scrollbar; wide content
+     scrolls inside its own overflow-x container (CLAUDE.md). clip keeps
+     position: sticky working, unlike overflow-x: hidden. */
+  overflow-x: clip;
   font-family: var(--font-sans);
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
