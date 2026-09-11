@@ -64,7 +64,7 @@ export default function MobileMenuOverlay({
         >
           Join the waitlist
         </Link>
-        <p className="tnum mt-4 text-[0.75rem] leading-relaxed text-text-mute">
+        <p className="mt-4 text-[0.75rem] leading-relaxed text-text-mute">
           Signals, not advice. Paper is the default. TAPE does not place.
         </p>
       </div>

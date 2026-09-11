@@ -18,7 +18,7 @@ export default function Footer() {
             TAPE
           </span>
           <span className="text-text-mute">·</span>
-          <span className="tnum text-[0.8rem] text-text-mute">
+          <span className="text-[0.8rem] text-text-mute">
             Robinhood Chain
           </span>
         </div>

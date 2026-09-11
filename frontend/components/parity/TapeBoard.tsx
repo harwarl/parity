@@ -36,7 +36,7 @@ function trail(symbol: string, points = 48): number[] {
 }
 
 const COLS =
-  "lg:grid-cols-[minmax(0,1.6fr)_0.8fr_0.8fr_1.15fr_0.55fr_auto_1.25rem]";
+  "lg:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1.15fr)_minmax(0,0.55fr)_auto_1.25rem]";
 
 // first tradable row from the static universe — SSR-safe seed for the open row
 const FIRST_TRADABLE = Math.max(
@@ -98,7 +98,7 @@ export default function TapeBoard() {
   return (
     <div
       ref={ref}
-      className="overflow-hidden rounded-2xl border border-line bg-surface-2"
+      className="overflow-hidden rounded-lg border border-line bg-surface-2"
     >
       {/* column heads — desktop only */}
       <div
@@ -127,7 +127,7 @@ export default function TapeBoard() {
         ))}
       </div>
 
-      <p className="tnum border-t border-line px-4 py-2.5 text-[10px] leading-relaxed text-text-mute sm:px-5">
+      <p className="border-t border-line px-4 py-2.5 text-[10px] leading-relaxed text-text-mute sm:px-5">
         Sample data, not a live quote. Net is the basis after fee, slip, and
         buffer. HALT and STALE names quote nothing. You tap. TAPE does not place.
       </p>
@@ -162,7 +162,7 @@ function TapeLine({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className={`grid w-full grid-cols-[1fr_auto] items-center gap-x-4 px-4 py-3.5 text-left sm:px-5 lg:grid ${COLS}`}
+        className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-4 py-3.5 text-left sm:px-5 lg:grid ${COLS}`}
       >
         {/* name */}
         <span className="flex min-w-0 items-center gap-3">
@@ -250,12 +250,12 @@ function Detail({
   const net = Math.round(row.netBps);
 
   return (
-    <div className="grid gap-3 px-4 pb-4 sm:px-5 lg:grid-cols-[1.2fr_1fr_0.9fr]">
+    <div className="border-t border-line bg-surface lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.9fr)] lg:divide-x lg:divide-line">
       {/* basis trail */}
-      <div className="rounded-xl border border-line bg-surface-2 p-4">
+      <div className="border-b border-line px-4 py-4 sm:px-5 lg:border-b-0">
         <p className="eyebrow">Basis over time · today</p>
         {dead ? (
-          <p className="tnum mt-6 text-xs text-halt">
+          <p className="mt-6 text-xs text-halt">
             Trail held. No trusted basis to plot.
           </p>
         ) : (
@@ -264,17 +264,19 @@ function Detail({
       </div>
 
       {/* provenance */}
-      <dl className="rounded-xl border border-line bg-surface-2 p-4 text-[0.8rem]">
+      <dl className="border-b border-line px-4 py-4 text-[0.8rem] sm:px-5 lg:border-b-0">
         {[
           ["Market", "US"],
           ["Feed", "RHJ · Chainlink"],
           ["Oracle", "Chainlink"],
           ["Confidence", dead ? "—" : "98%"],
           ["Updated", updated || "—"],
-        ].map(([k, v]) => (
+        ].map(([k, v], j) => (
           <div
             key={k}
-            className="flex items-center justify-between border-b border-line py-2 first:pt-0 last:border-0 last:pb-0"
+            className={`flex items-center justify-between py-2 first:pt-0 last:pb-0 ${
+              j < 4 ? "border-b border-line" : ""
+            }`}
           >
             <dt className="text-text-mute">{k}</dt>
             <dd className="tnum text-text-dim">{v}</dd>
@@ -284,7 +286,7 @@ function Detail({
 
       {/* confirm-gated card / refusal */}
       {tradable ? (
-        <div className="flex flex-col rounded-xl border border-green/25 bg-surface-2 p-4">
+        <div className="flex flex-col px-4 py-4 sm:px-5">
           <div className="flex items-baseline justify-between">
             <span className="eyebrow text-green">Gap is live</span>
             <span className="tnum text-lg font-medium text-green">
@@ -299,7 +301,7 @@ function Detail({
             <button
               type="button"
               onClick={onAdvance}
-              className="flex h-10 w-full items-center justify-between rounded-lg bg-green px-4 text-sm font-medium text-green-ink transition-colors hover:bg-[#12e888]"
+              className="flex h-10 w-full items-center justify-between rounded-md bg-green px-4 text-sm font-medium text-green-ink transition-colors hover:bg-[#12e888]"
             >
               <span>Do it</span>
               <span className="tnum text-green-ink/70">$15</span>
@@ -307,15 +309,15 @@ function Detail({
             <button
               type="button"
               onClick={onAdvance}
-              className="h-9 w-full rounded-lg border border-line text-sm text-text-dim transition-colors hover:border-line-strong hover:text-text"
+              className="h-9 w-full rounded-md border border-line-strong text-sm text-text-dim transition-colors hover:border-text-mute hover:text-text"
             >
               Skip
             </button>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col rounded-xl border border-halt/40 bg-surface-2 p-4">
-          <span className="tnum w-fit rounded-md border border-halt/50 bg-halt/5 px-2 py-0.5 text-[11px] tracking-[0.16em] text-halt">
+        <div className="flex flex-col px-4 py-4 sm:px-5">
+          <span className="w-fit rounded-sm border border-halt/50 bg-halt/5 px-2 py-0.5 text-[11px] tracking-[0.16em] text-halt">
             {dead ? row.state.toUpperCase() : "DUST"}
           </span>
           <p className="mt-3 text-[0.8rem] leading-relaxed text-text-dim">
@@ -325,7 +327,9 @@ function Detail({
                 : "The cash and chain join blew its freshness budget. No card until it recovers."
               : `Net ${net} after the haircut. Real, but below the bar. Not worth the tap.`}
           </p>
-          <p className="mt-3 text-[10px] text-text-mute">No card beats a wrong card.</p>
+          <p className="mt-3 text-[10px] text-text-mute">
+            No card beats a wrong card.
+          </p>
         </div>
       )}
     </div>

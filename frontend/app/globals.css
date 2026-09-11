@@ -51,6 +51,7 @@ html {
   color-scheme: dark;
   background: var(--ground);
   -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
   /* scale the whole type system down a notch — dense, terminal-ish */
   font-size: 15px;
 }
@@ -87,15 +88,6 @@ body {
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-mute);
-}
-
-/* Faint grid texture on featured panels (PARE hero cue). */
-.grid-texture {
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 44px 44px;
-  background-position: center;
 }
 
 /* Browser surfaces — themed, not defaults. */

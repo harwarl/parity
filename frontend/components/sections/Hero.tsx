@@ -36,8 +36,8 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden">
-      <Container className="grid min-h-184 content-center gap-10 py-28 pt-32 sm:min-h-208 sm:gap-2 sm:py-32 lg:min-h-210 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16 lg:py-40">
-        <div ref={ref}>
+      <Container className="flex flex-col justify-center gap-12 py-24 pt-28 sm:py-28 sm:pt-32 lg:grid lg:min-h-210 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-16 lg:py-40">
+        <div ref={ref} className="min-w-0">
           <p className="tnum flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] tracking-[0.15em] text-text-mute">
             <span className="inline-flex items-center gap-1.5 text-green">
               <span className="size-1 animate-pulse rounded-full bg-green" />
@@ -80,7 +80,7 @@ export default function Hero() {
           <dl className="relative mt-10 grid grid-cols-3 divide-x divide-line border-t border-line pt-6">
             <span
               aria-hidden
-              className="absolute -top-px left-0 h-px w-10 bg-green"
+              className="absolute -top-px left-0 h-px w-16 bg-green/70"
             />
             {STATS.map((s) => (
               <HeroStat key={s.label} label={s.label}>
@@ -90,8 +90,8 @@ export default function Hero() {
           </dl>
         </div>
 
-        <div className="w-full lg:justify-self-end">
-          <Tilt className="mx-auto max-w-[650px]">
+        <div className="w-full min-w-0 lg:justify-self-end">
+          <Tilt className="mx-auto w-full max-w-[560px]">
             <Card
               data={ROTATION[0]}
               rotation={ROTATION}

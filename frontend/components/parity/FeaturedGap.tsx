@@ -29,9 +29,9 @@ export default function FeaturedGap({ symbol }: { symbol: string }) {
       <div className="mt-4">
         <GapMeter bps={row.basisBps} scale={50} />
       </div>
-      <div className="tnum mt-3 flex justify-between text-[0.7rem] uppercase tracking-widest text-text-mute">
+      <div className="mt-3 flex justify-between text-[0.7rem] uppercase tracking-widest text-text-mute">
         <span>token cheap</span>
-        <span>parity</span>
+        <span>even</span>
         <span>token rich</span>
       </div>
     </>

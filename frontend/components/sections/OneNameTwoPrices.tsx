@@ -39,7 +39,7 @@ export default function OneNameTwoPrices() {
         <FeaturedGap symbol={FEATURED.symbol} />
       </Reveal>
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14">
         <ol className="divide-y divide-line border-y border-line">
           {points.map((pt, i) => (
             <li key={pt.h} className="flex gap-4 py-5">
@@ -59,7 +59,7 @@ export default function OneNameTwoPrices() {
         </ol>
 
         <div className="flex min-w-0 flex-col lg:pt-1">
-          <div className="flex min-w-0 grow flex-col overflow-hidden rounded-xl border border-line-strong bg-surface-2">
+          <div className="flex min-w-0 grow flex-col overflow-hidden rounded-lg border border-line-strong bg-surface-2">
             <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
               <span className="tnum flex items-center gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-text-mute">
                 <span className="size-1.5 rounded-full bg-green" />

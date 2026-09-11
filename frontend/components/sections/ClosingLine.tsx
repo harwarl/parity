@@ -4,19 +4,19 @@ import Reveal from "@/components/shared/Reveal";
 /** Full-width closing line, PARE cadence. */
 export default function ClosingLine() {
   return (
-    <section className="relative overflow-hidden border-t border-line py-20 sm:py-28">
+    <section className="relative flex min-h-[60vh] items-center border-t border-line py-24 sm:py-32">
       <span
         aria-hidden
-        className="absolute inset-y-0 left-1/2 hidden w-px -translate-x-1/2 bg-linear-to-b from-transparent via-green/40 to-transparent sm:block"
+        className="absolute left-0 top-0 h-px w-16 bg-green/70"
       />
       <Container>
         <Reveal>
-          <p className="max-w-4xl text-balance text-[1.9rem] font-medium leading-[1.12] tracking-[-0.03em] text-text sm:text-[2.9rem]">
+          <p className="max-w-5xl text-balance text-[2rem] font-medium leading-[1.1] tracking-[-0.03em] text-text sm:text-[3.1rem]">
             If you cannot point at two prices,{" "}
             <span className="text-text-mute">TAPE does not trade.</span>
           </p>
-          <p className="tnum mt-6 text-[0.8rem] tracking-widest text-text-mute">
-            SIGNALS, NOT ADVICE · TOKEN ≠ SHARE · PAPER IS NOT LIVE
+          <p className="mt-8 text-[0.8rem] uppercase tracking-[0.2em] text-text-mute">
+            Signals, not advice · Token ≠ share · Paper is not live
           </p>
         </Reveal>
       </Container>

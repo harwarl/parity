@@ -29,7 +29,7 @@ export default function Waitlist() {
   return (
     <section id="waitlist" className="border-t border-line py-14 sm:py-20">
       <Container>
-        <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-14">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-14">
           <div>
             <Eyebrow>Waitlist</Eyebrow>
             <h2 className="mt-4 max-w-md text-2xl font-medium leading-[1.12] tracking-[-0.02em] text-text sm:text-[2rem]">
@@ -43,7 +43,7 @@ export default function Waitlist() {
 
           <div>
             {status === "done" ? (
-              <p className="tnum rounded-lg border border-green/30 bg-green-soft p-5 text-sm text-text">
+              <p className="rounded-lg border border-green/30 bg-green-soft p-5 text-sm text-text">
                 On the list. We will only email about access.
               </p>
             ) : (

@@ -131,7 +131,10 @@ export default function SiteBackground() {
   }, []);
 
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-ground">
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-ground"
+    >
       <div
         ref={glowRef}
         className="absolute -right-40 -top-24 h-140 w-225"

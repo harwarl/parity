@@ -47,29 +47,33 @@ export default function TimelineSection() {
       heading="The basis is not new. Seeing it is."
       lede="Every version of this trade has been a professional's tool. The names changed. The shape did not."
     >
-      <div className="relative pt-7 lg:pt-9">
-        {/* desktop rail — hairline that resolves to green at "Now" */}
+      <div className="relative">
+        {/* desktop rail — one hairline across, greenward at the last leg */}
         <span
           aria-hidden
-          className="absolute inset-x-0 top-[3px] hidden h-px bg-linear-to-r from-line-strong via-line-strong to-green lg:block"
+          className="absolute inset-x-0 top-[3px] hidden h-px bg-line-strong lg:block"
+        />
+        <span
+          aria-hidden
+          className="absolute top-[3px] right-0 hidden h-px w-1/4 bg-linear-to-r from-line-strong to-green lg:block"
         />
 
-        <ol className="grid gap-4 lg:grid-cols-4">
+        <ol className="grid gap-x-6 gap-y-9 lg:grid-cols-4">
           {lineage.map((item, i) => {
             const active = lit === i || item.live;
             return (
-              <li key={item.h} className="relative pl-7 lg:pl-0">
+              <li key={item.h} className="relative pl-7 lg:pl-0 lg:pt-8">
                 {/* mobile rail segment — not on the last node */}
                 {i < lineage.length - 1 ? (
                   <span
                     aria-hidden
-                    className="absolute -bottom-4 left-[3px] top-3 w-px bg-line lg:hidden"
+                    className="absolute left-[3px] top-2 bottom-[-2.25rem] w-px bg-line lg:hidden"
                   />
                 ) : null}
-                {/* node */}
+                {/* node — on the rail */}
                 <span
                   aria-hidden
-                  className="absolute left-0 top-2 grid size-1.5 place-items-center lg:left-1/2 lg:top-[3px] lg:-translate-x-1/2 lg:-translate-y-1/2"
+                  className="absolute left-0 top-1.5 grid size-1.5 place-items-center lg:top-[3px] lg:-translate-y-1/2"
                 >
                   {active ? (
                     <span className="absolute inline-flex size-3.5 animate-ping rounded-full bg-green/40" />
@@ -82,33 +86,19 @@ export default function TimelineSection() {
                 </span>
 
                 <Reveal delay={i * 70}>
-                  <article
-                    className={`relative h-full overflow-hidden rounded-2xl border p-5 lg:mt-6 ${
-                      item.live
-                        ? "border-green/30 bg-surface-2"
-                        : "border-line bg-surface"
+                  <p
+                    className={`tnum text-[13px] tracking-[0.18em] ${
+                      item.live ? "text-green" : "text-text-mute"
                     }`}
                   >
-                    {item.live ? (
-                      <span
-                        aria-hidden
-                        className="grid-texture pointer-events-none absolute inset-0 opacity-[0.3]"
-                      />
-                    ) : null}
-                    <p
-                      className={`tnum relative text-[13px] tracking-[0.18em] ${
-                        item.live ? "text-green" : "text-text-mute"
-                      }`}
-                    >
-                      {item.era}
-                    </p>
-                    <h3 className="relative mt-2 text-[0.95rem] font-medium tracking-tight text-text">
-                      {item.h}
-                    </h3>
-                    <p className="relative mt-2 text-[0.83rem] leading-relaxed text-text-dim">
-                      {item.p}
-                    </p>
-                  </article>
+                    {item.era}
+                  </p>
+                  <h3 className="mt-2 text-[0.95rem] font-medium tracking-tight text-text">
+                    {item.h}
+                  </h3>
+                  <p className="mt-2 max-w-xs text-[0.83rem] leading-relaxed text-text-dim">
+                    {item.p}
+                  </p>
                 </Reveal>
               </li>
             );

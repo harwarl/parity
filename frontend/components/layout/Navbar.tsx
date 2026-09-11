@@ -41,7 +41,7 @@ export default function Navbar() {
 
         <Link
           href="/#waitlist"
-          className="tnum hidden rounded-md border border-line-strong px-3 py-1.5 text-[0.8rem] text-text transition-colors hover:border-text-mute md:inline-flex"
+          className="hidden rounded-md border border-line-strong px-3 py-1.5 text-[0.8rem] text-text transition-colors hover:border-text-mute md:inline-flex"
         >
           Join the waitlist
         </Link>

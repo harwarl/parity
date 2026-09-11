@@ -174,7 +174,7 @@ export default function Card({
 
   return (
     <div
-      className={`relative w-full rounded-[1.75rem] border border-line bg-surface-2 p-4 sm:p-6 ${className}`}
+      className={`relative w-full rounded-lg border border-line bg-surface-2 p-4 sm:p-6 ${className}`}
     >
       {/* top line — small, muted, like a live-status readout */}
       <div className="flex items-center justify-between">
@@ -198,7 +198,7 @@ export default function Card({
       </div>
 
       {/* net basis — the single number, in its own nested panel */}
-      <div className="mt-4 rounded-2xl bg-surface p-4 sm:p-5">
+      <div className="mt-4 rounded-lg bg-surface p-4 sm:p-5">
         <p className="eyebrow">Net basis</p>
         <div className="mt-2 flex items-end gap-2">
           <span
@@ -254,7 +254,7 @@ export default function Card({
       {/* clip selector */}
       <div className="mt-4">
         <p className="eyebrow mb-1.5">Clip</p>
-        <div className="grid grid-cols-3 gap-1 rounded-xl border border-line p-1">
+        <div className="grid grid-cols-3 gap-1 rounded-md border border-line p-1">
           {CLIPS.map((c) => (
             <button
               key={c}
@@ -263,7 +263,7 @@ export default function Card({
               aria-pressed={state.clip === c}
               disabled={state.status !== "open"}
               className={[
-                "tnum rounded-lg py-2 text-xs transition-colors disabled:opacity-40",
+                "tnum rounded-sm py-2 text-xs transition-colors disabled:opacity-40",
                 state.clip === c
                   ? "bg-surface text-text"
                   : "text-text-mute hover:text-text-dim",
@@ -281,7 +281,7 @@ export default function Card({
           <button
             type="button"
             onClick={onConfirm}
-            className="h-12 w-full rounded-xl bg-green text-sm font-semibold text-green-ink transition-colors hover:bg-[#12e888]"
+            className="h-12 w-full rounded-md bg-green text-sm font-semibold text-green-ink transition-colors hover:bg-[#12e888]"
           >
             Gap fill
           </button>
@@ -290,14 +290,14 @@ export default function Card({
               type="button"
               onClick={() => dispatch({ type: "smaller" })}
               disabled={state.clip === CLIPS[0]}
-              className="h-10 flex-1 rounded-xl border border-line text-sm text-text-dim transition-colors hover:border-line-strong hover:text-text disabled:opacity-40"
+              className="h-10 flex-1 rounded-md border border-line-strong text-sm text-text-dim transition-colors hover:border-text-mute hover:text-text disabled:opacity-40"
             >
               smaller
             </button>
             <button
               type="button"
               onClick={onSkip}
-              className="h-10 flex-1 rounded-xl border border-line text-sm text-text-dim transition-colors hover:border-line-strong hover:text-text"
+              className="h-10 flex-1 rounded-md border border-line-strong text-sm text-text-dim transition-colors hover:border-text-mute hover:text-text"
             >
               Skip
             </button>
@@ -399,7 +399,7 @@ function Outcome({
 }) {
   const o = OUTCOME[status];
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4">
+    <div className="flex items-start gap-3 rounded-lg border border-line bg-surface p-4">
       <span
         className={[
           "tnum mt-px shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] tracking-widest",

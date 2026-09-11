@@ -61,8 +61,9 @@ export default function Reveal({
 
   const hidden = armed && !shown;
   const hiddenTransform = scaleFrom ? `scale(${scaleFrom})` : `translateY(${y}px)`;
+  // exponential ease-out, no overshoot — motion is fast and physical, never springy
   const ease = scaleFrom
-    ? "cubic-bezier(0.34,1.4,0.64,1)"
+    ? "cubic-bezier(0.2,0.9,0.25,1)"
     : "cubic-bezier(0.16,1,0.3,1)";
 
   return (

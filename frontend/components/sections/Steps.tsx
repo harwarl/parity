@@ -32,17 +32,14 @@ export default function Steps() {
                 <span className="tnum text-2xl font-medium text-green">{s.n}</span>
                 <span
                   aria-hidden
-                  className={`relative h-px flex-1 overflow-hidden ${
-                    s.payoff ? "bg-green/40" : "bg-line"
-                  }`}
-                >
-                  <span
-                    className="absolute top-1/2 size-1 -translate-y-1/2 rounded-full bg-green [animation:rail-run_6s_ease-in-out_infinite]"
-                    style={{ animationDelay: `${i * 1.8}s` }}
-                  />
-                </span>
+                  className={`h-px flex-1 ${s.payoff ? "bg-green/50" : "bg-line"}`}
+                />
                 {i < steps.length - 1 ? (
-                  <Icon name="arrow" size={13} className="hidden text-text-mute sm:block" />
+                  <Icon
+                    name="arrow"
+                    size={13}
+                    className="hidden text-text-mute sm:block"
+                  />
                 ) : null}
               </div>
               <h3
