@@ -90,10 +90,10 @@ export default function SignalCard({ row }: { row: TapeRow }) {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-4">
-        <BrandMark symbol={row.symbol} className="size-14 rounded-xl text-text-dim" />
+        <BrandMark symbol={row.symbol} className="size-16 rounded-xl text-text-dim sm:size-18" />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-[1.4rem] font-semibold tracking-tight text-text sm:text-[1.5rem]">
+            <span className="text-[1.6rem] font-semibold tracking-tight text-text sm:text-[1.8rem]">
               {row.symbol}
             </span>
             {!dead ? (
