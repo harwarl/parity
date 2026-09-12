@@ -1,6 +1,6 @@
 import Link from "next/link";
+import ClassicMobileMenu from "./ClassicMobileMenu";
 import Container from "./Container";
-import MobileMenu from "./MobileMenu";
 
 const links = [
   { label: "The tape", href: "/#tape" },
@@ -10,18 +10,19 @@ const links = [
   { label: "About", href: "/about" },
 ];
 
-export default function Navbar() {
+/** Frozen copy of the pre-redesign Navbar, kept for /classic only. Do not edit. */
+export default function ClassicNavbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between md:h-14">
         <div className="flex items-center gap-8 lg:gap-10">
           <Link
-            href="/"
+            href="/classic"
             className="flex items-baseline gap-2 text-text"
-            aria-label="GAUGE home"
+            aria-label="TAPE home"
           >
             <span className="text-[1.1rem] font-semibold tracking-[0.14em] md:text-[0.95rem]">
-              GAUGE
+              TAPE
             </span>
             <span className="tnum hidden text-[10px] text-text-mute sm:inline">
               v1
@@ -45,10 +46,10 @@ export default function Navbar() {
           href="/#waitlist"
           className="hidden rounded-md border border-line-strong px-3 py-1.5 text-[0.8rem] text-text transition-colors hover:border-text-mute md:inline-flex"
         >
-          Check the Gauge
+          Check the Tape
         </Link>
 
-        <MobileMenu links={links} />
+        <ClassicMobileMenu links={links} />
       </Container>
     </header>
   );

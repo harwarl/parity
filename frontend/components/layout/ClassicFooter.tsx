@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Container from "./Container";
 
 const disclaimers = [
@@ -10,13 +9,14 @@ const disclaimers = [
   "not available where Robinhood Stock Tokens are not",
 ];
 
-export default function Footer() {
+/** Frozen copy of the pre-redesign Footer, kept for /classic only. Do not edit. */
+export default function ClassicFooter() {
   return (
     <footer className="border-t border-line py-12">
       <Container className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="text-[0.95rem] font-semibold tracking-[0.14em] text-text">
-            GAUGE
+            TAPE
           </span>
           <span className="text-text-mute">·</span>
           <span className="text-[0.8rem] text-text-mute">
@@ -38,12 +38,9 @@ export default function Footer() {
         </p>
 
         <p className="text-[0.78rem] text-text-mute">
-          GAUGE is self-directed signalling software. It measures a published
+          TAPE is self-directed signalling software. It measures a published
           basis and shows a card. It never places, never holds funds, and never
-          holds your keys. © {new Date().getFullYear()} GAUGE. ·{" "}
-          <Link href="/classic" className="underline decoration-line-strong underline-offset-2 transition-colors hover:text-text-dim">
-            Previous design
-          </Link>
+          holds your keys. © {new Date().getFullYear()} TAPE.
         </p>
       </Container>
     </footer>

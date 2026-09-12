@@ -16,17 +16,17 @@ const mono = Geist_Mono({
 });
 
 const description =
-  "A basis tape for Robinhood cash equities vs Robinhood Chain stock tokens. TAPE measures the gap, haircuts fees and slippage, and emits a confirm-gated card. TAPE does not place.";
+  "A basis tape for Robinhood cash equities vs Robinhood Chain stock tokens. GAUGE measures the gap, haircuts fees and slippage, and emits a confirm-gated card. GAUGE does not place.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tape.example"),
+  metadataBase: new URL("https://gauge.example"),
   title: {
-    default: "TAPE · Two prices for the same name. One gap. You tap.",
-    template: "%s · TAPE",
+    default: "GAUGE · Two prices for the same name. One gap. You tap.",
+    template: "%s · GAUGE",
   },
   description,
   openGraph: {
-    title: "TAPE · Two prices for the same name. One gap.",
+    title: "GAUGE · Two prices for the same name. One gap.",
     description,
     type: "website",
   },

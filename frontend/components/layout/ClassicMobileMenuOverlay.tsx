@@ -5,12 +5,10 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 /**
- * The full-screen mobile nav panel. Portaled to <body> so it escapes the
- * header's backdrop-filter containing block (which would otherwise clip a
- * fixed child to the 64px header). Loaded client-only via next/dynamic, so
- * document.body is always defined here.
+ * Frozen copy of the pre-redesign MobileMenuOverlay, kept for /classic only.
+ * Do not edit.
  */
-export default function MobileMenuOverlay({
+export default function ClassicMobileMenuOverlay({
   links,
   open,
   onClose,
@@ -62,10 +60,10 @@ export default function MobileMenuOverlay({
           onClick={onClose}
           className="flex h-12 items-center justify-center rounded-md bg-green px-5 text-[0.95rem] font-medium text-green-ink"
         >
-          Check the Gauge
+          Check the Tape
         </Link>
         <p className="mt-4 text-[0.75rem] leading-relaxed text-text-mute">
-          Signals, not advice. Paper is the default. GAUGE does not place.
+          Signals, not advice. Paper is the default. TAPE does not place.
         </p>
       </div>
     </div>,

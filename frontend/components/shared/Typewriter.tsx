@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ScrollTrigger } from "@/lib/gsap";
 
 /**
  * Types `text` out, then holds with a blinking caret. SSR renders the full
  * string, so no-JS, screen readers, and prefers-reduced-motion just get it
  * whole. A hidden copy reserves the final box so nothing reflows while typing.
  *
- * trigger="mount" starts on load; "inView" waits until it scrolls into view.
+ * trigger="mount" starts on load; "inView" waits until it scrolls into view;
+ * "scroll" scrubs the reveal directly to scroll position (no timers).
  * pre keeps whitespace and newlines (for code).
  */
 export default function Typewriter({
@@ -22,12 +24,12 @@ export default function Typewriter({
   className?: string;
   speed?: number;
   startDelay?: number;
-  trigger?: "mount" | "inView";
+  trigger?: "mount" | "inView" | "scroll";
   pre?: boolean;
 }) {
   const wrap = useRef<HTMLSpanElement | null>(null);
-  const [n, setN] = useState(text.length);
-  const [done, setDone] = useState(true);
+  const [n, setN] = useState(trigger === "scroll" ? 0 : text.length);
+  const [done, setDone] = useState(trigger !== "scroll");
   const started = useRef(false);
 
   useEffect(() => {
@@ -67,6 +69,22 @@ export default function Typewriter({
         cancelAnimationFrame(raf);
         window.clearTimeout(timer);
       };
+    }
+
+    if (trigger === "scroll") {
+      started.current = true;
+      const st = ScrollTrigger.create({
+        trigger: el,
+        start: "top 78%",
+        end: "top 30%",
+        scrub: 0.4,
+        onUpdate: (self) => {
+          const i = Math.round(self.progress * text.length);
+          setN(i);
+          setDone(self.progress >= 0.999);
+        },
+      });
+      return () => st.kill();
     }
 
     const io = new IntersectionObserver(

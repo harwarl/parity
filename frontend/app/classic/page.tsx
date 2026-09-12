@@ -10,7 +10,12 @@ import TapeSection from "@/components/sections/TapeSection";
 import TimelineSection from "@/components/sections/TimelineSection";
 import Waitlist from "@/components/sections/Waitlist";
 
-export default function Page() {
+/**
+ * Frozen snapshot of the pre-redesign landing page. Kept reachable at /classic
+ * so nothing that used to be at "/" is lost. Do not edit — build new work
+ * against "/" (app/(marketing)/page.tsx) instead.
+ */
+export default function ClassicPage() {
   return (
     <main>
       <Hero />
