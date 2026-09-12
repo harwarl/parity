@@ -62,7 +62,7 @@ export default function MobileMenuOverlay({
           onClick={onClose}
           className="flex h-12 items-center justify-center rounded-md bg-green px-5 text-[0.95rem] font-medium text-green-ink"
         >
-          Join the waitlist
+          Check the Tape
         </Link>
         <p className="mt-4 text-[0.75rem] leading-relaxed text-text-mute">
           Signals, not advice. Paper is the default. TAPE does not place.

@@ -59,7 +59,7 @@ export default function AppPage() {
           href="/#waitlist"
           className="inline-flex h-11 items-center justify-center rounded-md bg-green px-5 text-sm font-medium text-green-ink transition-colors hover:bg-[#12e888]"
         >
-          Join the waitlist
+          Check the Tape
         </Link>
         <Link
           href="/#tape"

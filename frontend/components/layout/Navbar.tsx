@@ -14,36 +14,38 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between md:h-14">
-        <Link
-          href="/"
-          className="flex items-baseline gap-2 text-text"
-          aria-label="TAPE home"
-        >
-          <span className="text-[1.1rem] font-semibold tracking-[0.14em] md:text-[0.95rem]">
-            TAPE
-          </span>
-          <span className="tnum hidden text-[10px] text-text-mute sm:inline">
-            v1
-          </span>
-        </Link>
+        <div className="flex items-center gap-8 lg:gap-10">
+          <Link
+            href="/"
+            className="flex items-baseline gap-2 text-text"
+            aria-label="TAPE home"
+          >
+            <span className="text-[1.1rem] font-semibold tracking-[0.14em] md:text-[0.95rem]">
+              TAPE
+            </span>
+            <span className="tnum hidden text-[10px] text-text-mute sm:inline">
+              v1
+            </span>
+          </Link>
 
-        <nav className="hidden items-center gap-4 text-[0.8rem] text-text-dim md:flex lg:gap-7">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="transition-colors hover:text-text"
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+          <nav className="hidden items-center gap-4 text-[0.8rem] text-text-dim md:flex lg:gap-6">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="transition-colors hover:text-text"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
         <Link
           href="/#waitlist"
           className="hidden rounded-md border border-line-strong px-3 py-1.5 text-[0.8rem] text-text transition-colors hover:border-text-mute md:inline-flex"
         >
-          Join the waitlist
+          Check the Tape
         </Link>
 
         <MobileMenu links={links} />

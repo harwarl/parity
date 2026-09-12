@@ -43,6 +43,7 @@ export default function Hero() {
               <span className="size-1 animate-pulse rounded-full bg-green" />
               TAPE
             </span>
+            <span aria-hidden>·</span>
             <span>10 NAMES</span>
             <span aria-hidden>·</span>
             <span>
@@ -67,7 +68,7 @@ export default function Hero() {
               href="#waitlist"
               className="inline-flex h-11 items-center justify-center rounded-md bg-green px-5 text-sm font-medium text-green-ink transition-colors hover:bg-[#12e888]"
             >
-              Join the waitlist
+              Check the Tape
             </a>
             <a
               href="#tape"
@@ -77,7 +78,7 @@ export default function Hero() {
             </a>
           </div>
 
-          <dl className="relative mt-10 grid grid-cols-3 divide-x divide-line border-t border-line pt-6">
+          <dl className="relative mt-10 grid grid-cols-3 gap-x-6 border-t border-line pt-6 sm:gap-x-10">
             <span
               aria-hidden
               className="absolute -top-px left-0 h-px w-16 bg-green/70"
@@ -108,7 +109,7 @@ export default function Hero() {
 
 function HeroStat({ children, label }: { children: ReactNode; label: string }) {
   return (
-    <div className="px-3 first:pl-0 last:pr-0 sm:px-4">
+    <div>
       <dd className="tnum text-2xl font-medium leading-none tracking-tight text-text sm:text-[2.05rem]">
         {children}
       </dd>
