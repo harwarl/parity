@@ -168,7 +168,7 @@ export default function CashTokenChart({ row }: { row: TapeRow }) {
           <div className="mt-4 flex gap-3">
             <div className="tnum flex w-14 shrink-0 flex-col justify-between py-1 text-right text-[10px] text-text-mute">
               {ticks.map((t, i) => (
-                <span key={i}>{fmtPrice(t)}</span>
+                <span key={i}>{fmtAxis(t)}</span>
               ))}
             </div>
 

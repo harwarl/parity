@@ -52,7 +52,7 @@ export default function SignalCard({ row }: { row: TapeRow }) {
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border p-6 sm:p-7 ${
+      className={`relative flex h-full flex-col overflow-hidden rounded-3xl border p-6 sm:p-7 ${
         tone === "green"
           ? "border-green/25"
           : tone === "halt"
