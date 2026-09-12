@@ -110,7 +110,7 @@ export default function SignalCard({ row }: { row: TapeRow }) {
         </div>
         <div className="ml-auto text-right">
           <p
-            className={`tnum text-[2.2rem] font-bold leading-none sm:text-[2.6rem] ${
+            className={`tnum text-[2.4rem] font-bold leading-none sm:text-[2.9rem] ${
               tone === "green" ? "text-green" : tone === "halt" ? "text-halt" : "text-text-mute"
             }`}
           >
@@ -175,12 +175,12 @@ export default function SignalCard({ row }: { row: TapeRow }) {
               Confirm &amp; Do It
             </button>
           </div>
-          <p className="mt-4 text-center text-[0.76rem] text-text-mute">
+          <p className="mt-auto pt-4 text-center text-[0.76rem] text-text-mute">
             Re-quotes at confirm. Valid for 75 seconds.
           </p>
         </>
       ) : (
-        <div className="mt-6 rounded-xl border border-line-strong/60 bg-ground/25 p-5">
+        <div className="mt-6 flex flex-1 flex-col justify-center rounded-xl border border-line-strong/60 bg-ground/25 p-5">
           <p className="text-[0.85rem] leading-relaxed text-text-dim">
             {dead
               ? row.state === "halt"

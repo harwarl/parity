@@ -12,22 +12,76 @@ import { useLiveTape } from "@/hooks/useLiveTape";
 const TAB_SYMBOLS = ["GOOGL", "HOOD", "AAPL", "TSLA", "NVDA"];
 
 const REJECT_CODES = [
-  { code: "STALE", when: "The cash/chain join blew its 8–15s budget. No trusted basis to quote." },
-  { code: "CLOSED", when: "Cash is not in RTH. The equity leg cannot trade, so no live card." },
-  { code: "THIN", when: "Book depth cannot fill the clip without moving price past the buffer." },
-  { code: "DUST", when: "Net is real but too small to matter after the haircut. Not worth the tap." },
+  {
+    code: "STALE",
+    when: "The cash/chain join blew its 8–15s budget. No trusted basis to quote.",
+  },
+  {
+    code: "CLOSED",
+    when: "Cash is not in RTH. The equity leg cannot trade, so no live card.",
+  },
+  {
+    code: "THIN",
+    when: "Book depth cannot fill the clip without moving price past the buffer.",
+  },
+  {
+    code: "DUST",
+    when: "Net is real but too small to matter after the haircut. Not worth the tap.",
+  },
 ] as const;
 
 const RECENT = [
-  { time: "10:14", symbol: "AAPL", net: "+42 bps", status: "Ready", tone: "green" as const },
-  { time: "09:47", symbol: "TSLA", net: "+36 bps", status: "Executed (Paper)", tone: "dim" as const },
-  { time: "08:12", symbol: "NVDA", net: "—", status: "HALT", tone: "halt" as const },
-  { time: "Jun 24", symbol: "AMZN", net: "—", status: "THIN", tone: "halt" as const },
-  { time: "Jun 24", symbol: "META", net: "+18 bps", status: "DUST", tone: "halt" as const },
-  { time: "Jun 23", symbol: "MSFT", net: "+27 bps", status: "Executed (Paper)", tone: "dim" as const },
+  {
+    time: "10:14",
+    symbol: "AAPL",
+    net: "+42 bps",
+    status: "Ready",
+    tone: "green" as const,
+  },
+  {
+    time: "09:47",
+    symbol: "TSLA",
+    net: "+36 bps",
+    status: "Executed (Paper)",
+    tone: "dim" as const,
+  },
+  {
+    time: "08:12",
+    symbol: "NVDA",
+    net: "—",
+    status: "HALT",
+    tone: "halt" as const,
+  },
+  {
+    time: "Jun 24",
+    symbol: "AMZN",
+    net: "—",
+    status: "THIN",
+    tone: "halt" as const,
+  },
+  {
+    time: "Jun 24",
+    symbol: "META",
+    net: "+18 bps",
+    status: "DUST",
+    tone: "halt" as const,
+  },
+  {
+    time: "Jun 23",
+    symbol: "MSFT",
+    net: "+27 bps",
+    status: "Executed (Paper)",
+    tone: "dim" as const,
+  },
 ];
 
-function PanelTitle({ children, info = false }: { children: string; info?: boolean }) {
+function PanelTitle({
+  children,
+  info = false,
+}: {
+  children: string;
+  info?: boolean;
+}) {
   return (
     <p className="flex items-center gap-1.5 text-[0.95rem] font-medium text-text">
       {children}
@@ -56,10 +110,12 @@ export default function CardsPanel() {
   return (
     <div className="space-y-6">
       {/* card + chart */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,460px)_1fr]">
-        <SignalCard key={row.symbol} row={row} />
+      <div className="grid gap-6 lg:grid-cols-10 lg:items-stretch">
+        <div className="lg:col-span-4">
+          <SignalCard key={row.symbol} row={row} />
+        </div>
 
-        <div className="min-w-0 rounded-2xl border border-line bg-surface p-5 sm:p-6">
+        <div className="flex h-full min-w-0 flex-col rounded-2xl border border-line bg-surface p-5 sm:p-6 lg:col-span-6">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap items-center gap-1">
               {TAB_SYMBOLS.map((s) => (
@@ -135,7 +191,9 @@ export default function CardsPanel() {
             <ChecklistItem
               pass={tradable}
               label="Net edge after costs"
-              value={dead ? "—" : `${fmtNet(row.netBps)} ${tradable ? "≥ 0" : "< 0"}`}
+              value={
+                dead ? "—" : `${fmtNet(row.netBps)} ${tradable ? "≥ 0" : "< 0"}`
+              }
             />
             <ChecklistItem pass label="Sufficient depth" value="1.2M shares" />
             <ChecklistItem pass label="Daily cap" value="1 / 3 used" />
@@ -145,17 +203,28 @@ export default function CardsPanel() {
             {REJECT_CODES.map((c) => {
               const live =
                 (c.code === "STALE" && row.state === "stale") ||
-                (c.code === "CLOSED" && row.state !== "rth" && row.state !== "stale" && row.state !== "halt") ||
+                (c.code === "CLOSED" &&
+                  row.state !== "rth" &&
+                  row.state !== "stale" &&
+                  row.state !== "halt") ||
                 (c.code === "DUST" && !tradable && !dead);
               return (
                 <div key={c.code} className="flex items-start gap-3">
                   <span
                     className={`mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full ${
-                      live ? "bg-halt/25 text-halt" : "bg-surface-2 text-text-mute"
+                      live
+                        ? "bg-halt/25 text-halt"
+                        : "bg-surface-2 text-text-mute"
                     }`}
                   >
                     <svg viewBox="0 0 16 16" className="size-2.5" aria-hidden>
-                      <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                      <path
+                        d="M4 4l8 8M12 4l-8 8"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </span>
                   <p className="text-[0.82rem] leading-snug text-text-dim">
@@ -177,7 +246,9 @@ export default function CardsPanel() {
               <CostRow k="Safety buffer" v="5 bps" />
             </dl>
             <div className="mt-3 flex items-center justify-between border-t border-line pt-3.5">
-              <span className="text-[0.85rem] font-medium text-text">Total haircut</span>
+              <span className="text-[0.85rem] font-medium text-text">
+                Total haircut
+              </span>
               <span className="tnum text-[0.9rem] font-semibold text-text">
                 {ROW_HAIRCUT} bps
               </span>
@@ -190,9 +261,9 @@ export default function CardsPanel() {
           <div className="flex flex-1 flex-col rounded-2xl border border-line bg-surface p-5 sm:p-6">
             <PanelTitle info>How you profit</PanelTitle>
             <p className="mt-4 text-[0.82rem] leading-relaxed text-text-dim">
-              You place a single-leg trade on the cash stock, betting the
-              price converges toward where the 24/7 token market already has
-              it priced.
+              You place a single-leg trade on the cash stock, betting the price
+              converges toward where the 24/7 token market already has it
+              priced.
             </p>
             <p className="mt-3 text-[0.82rem] leading-relaxed text-text-dim">
               This isn&apos;t arbitrage — it&apos;s a directional bet.
@@ -224,9 +295,13 @@ export default function CardsPanel() {
                 key={`${r.time}-${r.symbol}`}
                 className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 py-3 transition-colors hover:bg-surface-2/60"
               >
-                <span className="tnum text-[0.78rem] text-text-mute">{r.time}</span>
+                <span className="tnum text-[0.78rem] text-text-mute">
+                  {r.time}
+                </span>
                 <span className="min-w-0">
-                  <span className="text-[0.85rem] font-medium text-text">{r.symbol}</span>
+                  <span className="text-[0.85rem] font-medium text-text">
+                    {r.symbol}
+                  </span>
                   <span
                     className={`tnum ml-2 text-[0.8rem] ${r.tone === "green" ? "text-green" : "text-text-mute"}`}
                   >
@@ -259,37 +334,6 @@ export default function CardsPanel() {
   );
 }
 
-function FragmentRow({
-  r,
-}: {
-  r: (typeof RECENT)[number];
-}) {
-  return (
-    <>
-      <span className="tnum self-center text-[0.78rem] text-text-mute">{r.time}</span>
-      <span className="self-center">
-        <span className="text-[0.85rem] font-medium text-text">{r.symbol}</span>
-        <span
-          className={`tnum ml-2 text-[0.8rem] ${r.tone === "green" ? "text-green" : "text-text-mute"}`}
-        >
-          {r.net}
-        </span>
-      </span>
-      <span
-        className={`tnum self-center justify-self-end rounded-md border px-2 py-0.5 text-[9px] tracking-widest ${
-          r.tone === "green"
-            ? "border-green/40 text-green"
-            : r.tone === "halt"
-              ? "border-halt/40 text-halt"
-              : "border-line-strong text-text-dim"
-        }`}
-      >
-        {r.status.toUpperCase()}
-      </span>
-    </>
-  );
-}
-
 function ChecklistItem({
   pass,
   label,
@@ -309,9 +353,22 @@ function ChecklistItem({
         >
           <svg viewBox="0 0 16 16" className="size-2.5" aria-hidden>
             {pass ? (
-              <path d="M3 8.5 6.5 12 13 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M3 8.5 6.5 12 13 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             ) : (
-              <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              <path
+                d="M4 4l8 8M12 4l-8 8"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
             )}
           </svg>
         </span>

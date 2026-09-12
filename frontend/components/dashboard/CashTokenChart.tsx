@@ -37,8 +37,11 @@ function niceTicks(dataLo: number, dataHi: number, targetCount = 6) {
   const range = dataHi - dataLo || 1;
   const rawStep = range / (targetCount - 1);
   const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
-  const norm = rawStep / mag;
-  const step = (norm < 1.5 ? 1 : norm < 3.5 ? 2.5 : norm < 7.5 ? 5 : 10) * mag;
+  // round UP to the smallest of 1/2/5/10 × mag that still covers rawStep —
+  // this is what actually lands on clean numbers (…, 184.5, 185.0, 185.5, …)
+  // rather than the 2.5× step a nearest-bucket pick can produce
+  const step =
+    [1, 2, 5, 10].map((m) => m * mag).find((c) => c >= rawStep) ?? 10 * mag;
   const lo = Math.floor(dataLo / step) * step;
   const hi = Math.ceil(dataHi / step) * step;
   const values: number[] = [];
@@ -223,12 +226,7 @@ export default function CashTokenChart({ row }: { row: TapeRow }) {
                     <circle cx={hoverIdx * step} cy={y(cash[hoverIdx])} r="4" fill={CASH_BLUE} stroke="var(--surface)" strokeWidth="2" />
                     <circle cx={hoverIdx * step} cy={y(token[hoverIdx])} r="4" fill="var(--green)" stroke="var(--surface)" strokeWidth="2" />
                   </>
-                ) : (
-                  <>
-                    <circle cx={W} cy={y(lastCash)} r="4" fill={CASH_BLUE} stroke="var(--surface)" strokeWidth="2" />
-                    <circle cx={W} cy={y(lastToken)} r="4" fill="var(--green)" stroke="var(--surface)" strokeWidth="2" />
-                  </>
-                )}
+                ) : null}
               </svg>
 
               {/* floating end-value badges — positioned as a % of chart height so they track the responsive svg */}
