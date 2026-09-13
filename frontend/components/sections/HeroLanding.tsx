@@ -143,7 +143,12 @@ export default function HeroLanding() {
 
         <div data-hero-card className="w-full min-w-0">
           <Tilt max={4}>
-            <SignalCard key={symbol} row={row} onExpire={advance} />
+            <SignalCard
+              key={symbol}
+              row={row}
+              onExpire={advance}
+              confirmHref="/dashboard"
+            />
           </Tilt>
         </div>
       </Container>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import BrandMark from "@/components/shared/BrandMark";
 import Icon from "@/components/ui/Icon";
@@ -36,13 +37,17 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 /** The dashboard's signal card — a bespoke layout for this screen (not the
  * shared marketing/app Card), matching a supplied reference design exactly.
  * `onExpire` fires once, when the TTL clock reaches zero — callers that loop
- * through names (e.g. the landing hero) use it to advance to the next one. */
+ * through names (e.g. the landing hero) use it to advance to the next one.
+ * `confirmHref` makes "Confirm & Do It" a real link (the landing hero sends
+ * it to /dashboard); left unset, it's inert, same as before. */
 export default function SignalCard({
   row,
   onExpire,
+  confirmHref,
 }: {
   row: TapeRow;
   onExpire?: () => void;
+  confirmHref?: string;
 }) {
   const [remaining, setRemaining] = useState(TTL_SECONDS);
   const onExpireRef = useRef(onExpire);
@@ -189,12 +194,21 @@ export default function SignalCard({
             >
               View Details
             </button>
-            <button
-              type="button"
-              className="h-12 rounded-xl bg-green text-[0.9rem] font-bold text-green-ink transition-colors hover:bg-[#12e888]"
-            >
-              Confirm &amp; Do It
-            </button>
+            {confirmHref ? (
+              <Link
+                href={confirmHref}
+                className="flex h-12 items-center justify-center rounded-xl bg-green text-[0.9rem] font-bold text-green-ink transition-colors hover:bg-[#12e888]"
+              >
+                Confirm &amp; Do It
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="h-12 rounded-xl bg-green text-[0.9rem] font-bold text-green-ink transition-colors hover:bg-[#12e888]"
+              >
+                Confirm &amp; Do It
+              </button>
+            )}
           </div>
           <p className="mt-auto pt-4 text-center text-[0.76rem] text-text-mute">
             Re-quotes at confirm. Valid for 75 seconds.
