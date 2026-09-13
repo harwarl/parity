@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useLayoutEffect, useRef } from "react";
+import Container from "@/components/layout/Container";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 
@@ -42,7 +43,7 @@ export default function RailsIconBand() {
 
   return (
     <section ref={ref} id="rails" className="scroll-mt-24 border-t border-line py-16 sm:py-20">
-      <div className="mx-auto w-full max-w-360 px-6 sm:px-12 lg:px-16">
+      <Container>
         <div data-rib-head className="max-w-xl">
           <h2 className="text-2xl font-bold tracking-tight text-text sm:text-[2rem]">
             The guardrails are the product too.
@@ -68,7 +69,7 @@ export default function RailsIconBand() {
             </div>
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

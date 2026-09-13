@@ -1,20 +1,25 @@
 "use client";
 
-import { type ReactNode, useLayoutEffect, useRef } from "react";
+import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "react";
 import SignalCard from "@/components/dashboard/SignalCard";
+import Container from "@/components/layout/Container";
 import LiveClock from "@/components/parity/LiveClock";
 import Tilt from "@/components/shared/Tilt";
+import { useLiveTape } from "@/hooks/useLiveTape";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 import { TAPE } from "@/lib/parity/universe";
-
-const FEATURED_ROW = TAPE.find((r) => r.symbol === "HOOD")!;
 
 const FEATURES = [
   { icon: <BoltIcon />, label: "Real-time detection" },
   { icon: <BarsIcon />, label: "Costs & slippage built in" },
   { icon: <ShieldIcon />, label: "You're always in control" },
 ];
+
+// names worth featuring: in RTH and clearing the bar right now
+const ROTATION_SYMBOLS = TAPE.filter(
+  (r) => r.state === "rth" && r.netBps > 0,
+).map((r) => r.symbol);
 
 /**
  * Hero for the new "/" landing page. The right-side widget is the real
@@ -25,6 +30,14 @@ const FEATURES = [
 export default function HeroLanding() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const reduced = usePrefersReducedMotion();
+  const { rows } = useLiveTape(1800);
+  const [rotationIndex, setRotationIndex] = useState(0);
+  const symbol = ROTATION_SYMBOLS[rotationIndex % ROTATION_SYMBOLS.length];
+  const row = rows.find((r) => r.symbol === symbol) ?? rows[0];
+
+  const advance = useCallback(() => {
+    setRotationIndex((i) => i + 1);
+  }, []);
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -51,19 +64,22 @@ export default function HeroLanding() {
   }, [reduced]);
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden">
-      <div className="mx-auto grid w-full max-w-360 gap-12 px-6 py-16 sm:px-12 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:items-center lg:gap-14 lg:px-16 lg:py-24">
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden lg:min-h-[calc(80dvh-3.5rem)]"
+    >
+      <Container className="grid gap-12 py-16 sm:py-20 lg:min-h-[calc(95dvh-3.5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-14 lg:py-28">
         <div className="min-w-0">
-          <p
-            data-hero-pill
-            className="inline-flex items-center gap-2 rounded-full border border-green/30 bg-green-soft px-3 py-1 text-[0.75rem] font-medium text-green"
-          >
-            <span className="size-1.5 animate-pulse rounded-full bg-green" />
-            LIVE
-            <span className="text-text-dim">Watching market inefficiencies 24/7</span>
-            <span aria-hidden className="text-green/40">·</span>
-            <span className="tnum text-text-mute">
-              <LiveClock />
+          <p className="tnum flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] tracking-[0.15em] text-text-mute">
+            <span className="inline-flex items-center gap-1.5 text-green">
+              <span className="size-1 animate-pulse rounded-full bg-green" />
+              GUAGE
+            </span>
+            <span aria-hidden>·</span>
+            <span>Watching market inefficiencies 24/7</span>
+            <span aria-hidden>·</span>
+            <span>
+              RTH <LiveClock />
             </span>
           </p>
 
@@ -81,11 +97,14 @@ export default function HeroLanding() {
             GAUGE is a basis tape for Robinhood cash equities vs. Robinhood
             Chain stock tokens. It watches the same name trade at two prices —
             the exchange price (cash, RTH only) and the token&apos;s implied
-            per-share price (chain, 24/7) — and tells you when the gap is
-            real money after costs.
+            per-share price (chain, 24/7) — and tells you when the gap is real
+            money after costs.
           </p>
 
-          <div data-hero-line className="mt-8 flex flex-wrap items-center gap-3">
+          <div
+            data-hero-line
+            className="mt-8 flex flex-wrap items-center gap-3"
+          >
             <a
               href="#waitlist"
               className="inline-flex h-11 items-center justify-center rounded-md bg-green px-5 text-sm font-semibold text-green-ink transition-[background-color,transform] duration-200 hover:bg-[#12e888] active:scale-[0.97]"
@@ -103,7 +122,11 @@ export default function HeroLanding() {
 
           <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
             {FEATURES.map((f) => (
-              <div key={f.label} data-hero-feature className="flex items-center gap-2.5">
+              <div
+                key={f.label}
+                data-hero-feature
+                className="flex items-center gap-2.5"
+              >
                 <span className="flex size-8 items-center justify-center rounded-full border border-line-strong bg-surface text-green">
                   {f.icon}
                 </span>
@@ -115,38 +138,74 @@ export default function HeroLanding() {
 
         <div data-hero-card className="w-full min-w-0">
           <Tilt max={4}>
-            <SignalCard row={FEATURED_ROW} />
+            <SignalCard key={symbol} row={row} onExpire={advance} />
           </Tilt>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
 
 function BoltIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <path d="M9 1.5 3 9h4l-1 5.5 6-7.5H8l1-5.5Z" />
     </svg>
   );
 }
 function BarsIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <path d="M2.5 13.5v-4M7 13.5v-8M11.5 13.5v-6" />
     </svg>
   );
 }
 function ShieldIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <path d="M8 1.5 13.5 3.5v4c0 3.6-2.4 6-5.5 7-3.1-1-5.5-3.4-5.5-7v-4L8 1.5Z" />
     </svg>
   );
 }
 function PlayIcon(): ReactNode {
   return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden
+    >
       <path d="M4 2.5v11l10-5.5-10-5.5Z" />
     </svg>
   );

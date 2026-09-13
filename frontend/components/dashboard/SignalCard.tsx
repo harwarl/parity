@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BrandMark from "@/components/shared/BrandMark";
 import Icon from "@/components/ui/Icon";
 import { fmtBps, fmtPrice } from "@/lib/parity/format";
@@ -22,7 +22,10 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   return (
     <div>
       <p className="text-[0.72rem] text-text-mute">{label}</p>
-      <p className="tnum mt-1.5 text-[1.15rem] font-semibold text-text sm:text-[1.3rem]">
+      <p
+        key={value}
+        className="tnum tick-flash mt-1.5 text-[1.15rem] font-semibold text-text sm:text-[1.3rem]"
+      >
         {value}
       </p>
       {sub ? <p className="mt-0.5 text-[0.72rem] text-text-mute">{sub}</p> : null}
@@ -31,13 +34,30 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 }
 
 /** The dashboard's signal card — a bespoke layout for this screen (not the
- * shared marketing/app Card), matching a supplied reference design exactly. */
-export default function SignalCard({ row }: { row: TapeRow }) {
+ * shared marketing/app Card), matching a supplied reference design exactly.
+ * `onExpire` fires once, when the TTL clock reaches zero — callers that loop
+ * through names (e.g. the landing hero) use it to advance to the next one. */
+export default function SignalCard({
+  row,
+  onExpire,
+}: {
+  row: TapeRow;
+  onExpire?: () => void;
+}) {
   const [remaining, setRemaining] = useState(TTL_SECONDS);
+  const onExpireRef = useRef(onExpire);
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      setRemaining((r) => (r > 0 ? r - 1 : 0));
+      setRemaining((r) => {
+        if (r <= 0) return 0;
+        const next = r - 1;
+        if (next === 0) onExpireRef.current?.();
+        return next;
+      });
     }, 1000);
     return () => window.clearInterval(id);
   }, []);
@@ -110,7 +130,8 @@ export default function SignalCard({ row }: { row: TapeRow }) {
         </div>
         <div className="ml-auto text-right">
           <p
-            className={`tnum text-[2.4rem] font-bold leading-none sm:text-[2.9rem] ${
+            key={dead ? "dead" : row.netBps.toFixed(2)}
+            className={`tnum num-pop text-[2.4rem] font-bold leading-none sm:text-[2.9rem] ${
               tone === "green" ? "text-green" : tone === "halt" ? "text-halt" : "text-text-mute"
             }`}
           >

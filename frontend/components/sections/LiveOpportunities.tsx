@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import Container from "@/components/layout/Container";
 import RefusalFeed from "@/components/parity/RefusalFeed";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
@@ -70,7 +71,7 @@ export default function LiveOpportunities() {
 
   return (
     <section ref={ref} className="border-t border-line py-16 sm:py-20" id="tape">
-      <div className="mx-auto w-full max-w-360 px-6 sm:px-12 lg:px-16">
+      <Container>
         <div data-lo-head className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-[1.4rem] font-bold tracking-tight text-text sm:text-2xl">
             Live Opportunities (Paper Mode)
@@ -146,7 +147,7 @@ export default function LiveOpportunities() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

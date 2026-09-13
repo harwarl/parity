@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import Container from "@/components/layout/Container";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 
@@ -52,7 +53,7 @@ export default function DoesDoesnt() {
 
   return (
     <section ref={ref} className="border-t border-line py-16 sm:py-20">
-      <div className="mx-auto grid w-full max-w-360 gap-6 px-6 sm:px-12 lg:grid-cols-[1fr_1fr_0.9fr] lg:px-16">
+      <Container className="grid gap-6 lg:grid-cols-[1fr_1fr_0.9fr]">
         <div data-dd-card className="rounded-xl border border-line bg-surface p-6 sm:p-7">
           <h3 className="text-[1.05rem] font-semibold text-text">What GAUGE does</h3>
           <ul className="mt-5 space-y-3.5">
@@ -91,7 +92,7 @@ export default function DoesDoesnt() {
           </p>
           <p className="mt-6 text-[0.85rem] font-medium text-green">GAUGE</p>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

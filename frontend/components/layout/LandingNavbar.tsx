@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Container from "./Container";
 import MobileMenu from "./MobileMenu";
 
 const links = [
@@ -20,7 +21,7 @@ const links = [
 export default function LandingNavbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 w-full max-w-360 items-center justify-between px-6 sm:px-12 md:h-14 lg:px-16">
+      <Container className="flex h-16 items-center justify-between md:h-14">
         <div className="flex items-center gap-8 lg:gap-10">
           <Link href="/" className="flex items-center gap-2 text-text" aria-label="GAUGE home">
             <GaugeMark />
@@ -51,7 +52,7 @@ export default function LandingNavbar() {
         </div>
 
         <MobileMenu links={links} />
-      </div>
+      </Container>
     </header>
   );
 }

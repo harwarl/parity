@@ -325,8 +325,8 @@ export default function CardsPanel() {
 
           <p className="mt-auto border-t border-line pt-4 text-[0.72rem] leading-relaxed text-text-mute">
             Max 3 signals per day. Signals are informational and require your
-            confirmation. TAPE does not custody funds or place trades without
-            you.
+            confirmation. GAUGE does not custody funds or place trades
+            without you.
           </p>
         </div>
       </div>

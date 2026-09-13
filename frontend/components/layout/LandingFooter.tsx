@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Container from "./Container";
 
 const links = [
   { label: "App", href: "/app" },
@@ -33,7 +34,7 @@ const socials = [
 export default function LandingFooter() {
   return (
     <footer className="border-t border-line py-12">
-      <div className="mx-auto flex w-full max-w-360 flex-col gap-8 px-6 sm:px-12 lg:px-16">
+      <Container className="flex flex-col gap-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2 text-text">
@@ -85,7 +86,7 @@ export default function LandingFooter() {
             ))}
           </nav>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

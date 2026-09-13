@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import Container from "@/components/layout/Container";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 
@@ -65,7 +66,7 @@ export default function HowItWorksSteps() {
 
   return (
     <section ref={ref} id="how" className="scroll-mt-24 border-t border-line py-16 sm:py-20">
-      <div className="mx-auto w-full max-w-360 px-6 sm:px-12 lg:px-16">
+      <Container>
         <div data-hiw-head className="max-w-xl">
           <h2 className="text-2xl font-bold tracking-tight text-text sm:text-[2rem]">
             How it works
@@ -99,7 +100,7 @@ export default function HowItWorksSteps() {
             </div>
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

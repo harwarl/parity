@@ -209,7 +209,7 @@ export default function DashboardYouPage() {
               className="mt-3 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-line accent-green"
             />
             <p className="mt-3 text-[0.78rem] leading-relaxed text-text-mute">
-              Below this, TAPE logs a DUST skip instead of showing a card.
+              Below this, GAUGE logs a DUST skip instead of showing a card.
             </p>
           </Panel>
 

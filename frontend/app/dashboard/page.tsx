@@ -19,7 +19,7 @@ export default function DashboardPage() {
             Two prices. One opportunity.
           </h1>
           <p className="mt-2 max-w-xl text-[0.9rem] leading-relaxed text-text-dim">
-            TAPE compares Robinhood cash equities (RTH) and chain stock
+            GAUGE compares Robinhood cash equities (RTH) and chain stock
             tokens (24/7) to find real, net edges after costs.
           </p>
         </div>

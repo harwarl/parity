@@ -53,10 +53,10 @@ function Brand() {
     <Link
       href="/"
       className="flex shrink-0 items-baseline gap-2 text-text"
-      aria-label="TAPE home"
+      aria-label="GAUGE home"
     >
       <span className="text-[1.1rem] font-semibold tracking-[0.14em] md:text-[0.95rem]">
-        TAPE
+        GAUGE
       </span>
       <span className="tnum hidden text-[10px] text-text-mute sm:inline">
         v1
@@ -122,7 +122,7 @@ function CtaLink() {
       href="/dashboard"
       className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-green px-4 text-[0.8rem] font-medium text-green-ink transition-colors hover:bg-[#12e888]"
     >
-      Check the Tape
+      Check the Gauge
     </Link>
   );
 }

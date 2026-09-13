@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useLayoutEffect, useRef } from "react";
+import Container from "@/components/layout/Container";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 
@@ -33,9 +34,9 @@ export default function StatBar() {
 
   return (
     <section className="border-t border-line py-10">
-      <div
+      <Container
         ref={ref}
-        className="mx-auto grid w-full max-w-360 grid-cols-2 gap-x-6 gap-y-8 px-6 sm:px-12 md:grid-cols-4 lg:px-16"
+        className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4"
       >
         {STATS.map((s) => (
           <div key={s.label} data-stat-item className="group flex items-center gap-3">
@@ -48,7 +49,7 @@ export default function StatBar() {
             </div>
           </div>
         ))}
-      </div>
+      </Container>
     </section>
   );
 }

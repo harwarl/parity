@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import Container from "@/components/layout/Container";
 import Tilt from "@/components/shared/Tilt";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
@@ -66,7 +67,7 @@ export default function CashTokenExplainer() {
 
   return (
     <section ref={ref} className="border-t border-line py-16 sm:py-20">
-      <div className="mx-auto w-full max-w-360 px-6 sm:px-12 lg:px-16">
+      <Container>
         <div data-cte-head className="max-w-xl">
           <h2 className="text-2xl font-bold tracking-tight text-text sm:text-[2rem]">
             Two feeds for one name.
@@ -118,7 +119,7 @@ export default function CashTokenExplainer() {
             </div>
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

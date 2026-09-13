@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import Container from "@/components/layout/Container";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 
@@ -25,7 +26,7 @@ export default function CtaBanner() {
 
   return (
     <section id="waitlist" className="py-16 sm:py-20">
-      <div className="mx-auto w-full max-w-360 px-6 sm:px-12 lg:px-16">
+      <Container>
         <div
           ref={ref}
           className="flex flex-col items-start gap-6 rounded-2xl border border-green/25 p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10"
@@ -60,7 +61,7 @@ export default function CtaBanner() {
             </a>
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

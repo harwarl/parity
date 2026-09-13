@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
+import Container from "@/components/layout/Container";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 
@@ -53,7 +54,7 @@ export default function FaqAccordion() {
 
   return (
     <section ref={ref} className="border-t border-line py-16 sm:py-20">
-      <div className="mx-auto w-full max-w-360 px-6 sm:px-12 lg:px-16">
+      <Container>
         <div data-faq-head className="flex items-center justify-between gap-4">
           <h2 className="text-[1.4rem] font-bold tracking-tight text-text sm:text-2xl">
             Frequentty Asked Questions
@@ -102,7 +103,7 @@ export default function FaqAccordion() {
             );
           })}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
