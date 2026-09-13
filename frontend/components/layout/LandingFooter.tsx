@@ -2,11 +2,11 @@ import Link from "next/link";
 import Container from "./Container";
 
 const links = [
-  { label: "App", href: "/app" },
-  { label: "Lend", href: "#" },
-  { label: "Oracle", href: "#" },
-  { label: "Docs", href: "#" },
-  { label: "Deck", href: "#" },
+  { label: "The tape", href: "#tape" },
+  { label: "How it works", href: "#how" },
+  { label: "Refusals", href: "#refusals" },
+  { label: "Rails", href: "#rails" },
+  { label: "About", href: "/about" },
 ];
 
 const legal = [

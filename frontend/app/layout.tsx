@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import SmoothScroll from "@/components/providers/SmoothScroll";
+import Web3Provider from "@/components/providers/Web3Provider";
 import "./globals.css";
 
 const sans = Geist({
@@ -42,7 +43,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body>
-        <SmoothScroll>{children}</SmoothScroll>
+        <Web3Provider>
+          <SmoothScroll>{children}</SmoothScroll>
+        </Web3Provider>
       </body>
     </html>
   );

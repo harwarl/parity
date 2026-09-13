@@ -3,20 +3,21 @@
 import Link from "next/link";
 import Container from "./Container";
 import MobileMenu from "./MobileMenu";
+import WalletButton from "./WalletButton";
 
 const links = [
-  { label: "App", href: "/app" },
-  { label: "Lend", href: "#lend" },
-  { label: "Oracle", href: "#oracle" },
-  { label: "Docs", href: "#docs" },
-  { label: "Deck", href: "#deck" },
+  { label: "The tape", href: "#tape" },
+  { label: "How it works", href: "#how" },
+  { label: "Refusals", href: "#refusals" },
+  { label: "Rails", href: "#rails" },
+  { label: "About", href: "/about" },
 ];
 
 /**
- * Header for the new "/" landing page only — a different nav shape (App /
- * Lend / Oracle / Docs / Deck + a wallet pill) than the shared Navbar used by
- * /about and /app, so it lives on its own rather than forcing those pages to
- * carry links that don't apply to them.
+ * Header for the new "/" landing page only — mirrors the shared Navbar's link
+ * vocabulary (the tape / how it works / refusals / rails / about) since
+ * that's what GAUGE actually has, plus the wallet pill + "Get paper account"
+ * CTA the reference design called for.
  */
 export default function LandingNavbar() {
   return (
@@ -40,9 +41,7 @@ export default function LandingNavbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <span className="tnum rounded-md border border-line-strong bg-surface px-3 py-1.5 text-[0.78rem] text-text-dim">
-            0x825b&hellip;bc48
-          </span>
+          <WalletButton />
           <Link
             href="#waitlist"
             className="inline-flex h-9 items-center justify-center rounded-md bg-green px-4 text-[0.8rem] font-medium text-green-ink transition-colors hover:bg-[#12e888]"
