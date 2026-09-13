@@ -1,6 +1,12 @@
 "use client";
 
-import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import SignalCard from "@/components/dashboard/SignalCard";
 import Container from "@/components/layout/Container";
 import LiveClock from "@/components/parity/LiveClock";
@@ -82,7 +88,6 @@ export default function HeroLanding() {
               RTH <LiveClock />
             </span>
           </p>
-
           <h1
             data-hero-line
             className="mt-6 text-balance text-[2.1rem] font-bold leading-[1.08] tracking-[-0.02em] text-text sm:text-[2.75rem] lg:text-[3.1rem]"
@@ -106,7 +111,7 @@ export default function HeroLanding() {
             className="mt-8 flex flex-wrap items-center gap-3"
           >
             <a
-              href="#waitlist"
+              href="/dashboard"
               className="inline-flex h-11 items-center justify-center rounded-md bg-green px-5 text-sm font-semibold text-green-ink transition-[background-color,transform] duration-200 hover:bg-[#12e888] active:scale-[0.97]"
             >
               Get paper account

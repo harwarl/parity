@@ -47,7 +47,7 @@ export default function CtaBanner() {
 
           <div className="flex shrink-0 flex-wrap items-center gap-3">
             <a
-              href="/app"
+              href="/dashboard"
               className="inline-flex h-11 items-center justify-center rounded-md bg-green px-5 text-sm font-semibold text-green-ink transition-[background-color,transform] duration-200 hover:bg-[#12e888] active:scale-[0.97]"
             >
               Get paper account

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { fmtBps, fmtPrice } from "@/lib/parity/format";
 import type { TapeRow } from "@/types/parity";
 
@@ -85,6 +85,9 @@ function StatBlock({
 export default function CashTokenChart({ row }: { row: TapeRow }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const gradientId = useId();
+  const cashGradientId = `${gradientId}-cash`;
+  const tokenGradientId = `${gradientId}-token`;
 
   const { cash, token } = useMemo(() => {
     const base = wobble(row.symbol, 1);
@@ -111,6 +114,12 @@ export default function CashTokenChart({ row }: { row: TapeRow }) {
     arr
       .map((v, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(1)} ${y(v).toFixed(1)}`)
       .join(" ");
+  // same line, closed down to the plot floor — the fill under each series
+  const areaPath = (arr: number[]) => {
+    const bottom = (PAD_TOP + plotH).toFixed(1);
+    const lastX = ((arr.length - 1) * step).toFixed(1);
+    return `${path(arr)} L${lastX} ${bottom} L0 ${bottom} Z`;
+  };
 
   const lastCash = cash[cash.length - 1];
   const lastToken = token[token.length - 1];
@@ -184,6 +193,17 @@ export default function CashTokenChart({ row }: { row: TapeRow }) {
                 onPointerMove={onMove}
                 onPointerLeave={() => setHoverIdx(null)}
               >
+                <defs>
+                  <linearGradient id={cashGradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CASH_BLUE} stopOpacity="0.32" />
+                    <stop offset="100%" stopColor={CASH_BLUE} stopOpacity="0" />
+                  </linearGradient>
+                  <linearGradient id={tokenGradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--green)" stopOpacity="0.32" />
+                    <stop offset="100%" stopColor="var(--green)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+
                 {ticks.map((t, i) => (
                   <line
                     key={i}
@@ -195,6 +215,9 @@ export default function CashTokenChart({ row }: { row: TapeRow }) {
                     strokeWidth="1"
                   />
                 ))}
+
+                <path d={areaPath(cash)} fill={`url(#${cashGradientId})`} stroke="none" />
+                <path d={areaPath(token)} fill={`url(#${tokenGradientId})`} stroke="none" />
 
                 <path
                   d={path(cash)}

@@ -43,7 +43,7 @@ export default function LandingNavbar() {
         <div className="hidden items-center gap-3 md:flex">
           <WalletButton />
           <Link
-            href="#waitlist"
+            href="/dashboard"
             className="inline-flex h-9 items-center justify-center rounded-md bg-green px-4 text-[0.8rem] font-medium text-green-ink transition-colors hover:bg-[#12e888]"
           >
             Get paper account
