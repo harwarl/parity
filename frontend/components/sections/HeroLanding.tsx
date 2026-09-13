@@ -2,6 +2,7 @@
 
 import { type ReactNode, useLayoutEffect, useRef } from "react";
 import SignalCard from "@/components/dashboard/SignalCard";
+import LiveClock from "@/components/parity/LiveClock";
 import Tilt from "@/components/shared/Tilt";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
@@ -60,6 +61,10 @@ export default function HeroLanding() {
             <span className="size-1.5 animate-pulse rounded-full bg-green" />
             LIVE
             <span className="text-text-dim">Watching market inefficiencies 24/7</span>
+            <span aria-hidden className="text-green/40">·</span>
+            <span className="tnum text-text-mute">
+              <LiveClock />
+            </span>
           </p>
 
           <h1

@@ -1,6 +1,7 @@
 import SiteBackground from "@/components/background/SiteBackground";
 import LandingFooter from "@/components/layout/LandingFooter";
 import LandingNavbar from "@/components/layout/LandingNavbar";
+import TickerStrip from "@/components/parity/TickerStrip";
 import CtaBanner from "@/components/sections/CtaBanner";
 import DoesDoesnt from "@/components/sections/DoesDoesnt";
 import FaqAccordion from "@/components/sections/FaqAccordion";
@@ -22,6 +23,7 @@ export default function Page() {
       <LandingNavbar />
       <main>
         <HeroLanding />
+        <TickerStrip />
         <StatBar />
         <HowItWorksSteps />
         <DoesDoesnt />

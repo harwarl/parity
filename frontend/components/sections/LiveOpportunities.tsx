@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import RefusalFeed from "@/components/parity/RefusalFeed";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 
@@ -15,7 +16,6 @@ const rows = [
     status: "Eligibe",
     statusTone: "green",
     expires: "00:42",
-    cta: "green",
   },
   {
     symbol: "TSLA",
@@ -27,7 +27,6 @@ const rows = [
     status: "Dust",
     statusTone: "mute",
     expires: "—",
-    cta: "dark",
   },
   {
     symbol: "AAPL",
@@ -39,7 +38,6 @@ const rows = [
     status: "Thin",
     statusTone: "mute",
     expires: "—",
-    cta: "dark",
   },
 ] as const;
 
@@ -73,7 +71,7 @@ export default function LiveOpportunities() {
   return (
     <section ref={ref} className="border-t border-line py-16 sm:py-20" id="tape">
       <div className="mx-auto w-full max-w-360 px-6 sm:px-12 lg:px-16">
-        <div data-lo-head className="flex items-center justify-between gap-4">
+        <div data-lo-head className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-[1.4rem] font-bold tracking-tight text-text sm:text-2xl">
             Live Opportunities (Paper Mode)
           </h2>
@@ -83,8 +81,12 @@ export default function LiveOpportunities() {
           </a>
         </div>
 
+        <div data-lo-head className="mt-4">
+          <RefusalFeed />
+        </div>
+
         <div data-lo-table className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse text-left">
+          <table className="w-full min-w-180 border-collapse text-left">
             <thead>
               <tr className="border-b border-line text-[0.7rem] uppercase tracking-widest text-text-mute">
                 <th className="py-3 pr-4 font-normal">Asset</th>
@@ -134,11 +136,7 @@ export default function LiveOpportunities() {
                   <td className="py-4 pl-4 text-right">
                     <button
                       type="button"
-                      className={`h-8 rounded-md px-4 text-[0.8rem] font-medium transition-colors ${
-                        r.cta === "green"
-                          ? "bg-green text-green-ink hover:bg-[#12e888]"
-                          : "border border-line-strong text-text-dim hover:border-text-mute hover:text-text"
-                      }`}
+                      className="h-8 rounded-md bg-green px-4 text-[0.8rem] font-medium text-green-ink transition-colors hover:bg-[#12e888]"
                     >
                       View
                     </button>
@@ -173,9 +171,8 @@ function AssetIcon({ kind }: { kind: "hood" | "tsla" | "aapl" }) {
   }
   if (kind === "tsla") {
     return (
-      <span className="flex size-6 items-center justify-center rounded-full bg-[#e82127]/20 text-[#e82127]">
+      <span className="flex size-6 items-center justify-center rounded-full bg-[#e82127] text-white">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-          <circle cx="8" cy="8" r="7" fillOpacity="0" />
           <path d="M8 3c1.8 0 3.4.5 4.6 1.3l-1 1.4c-.9-.4-1.8-.7-2.7-.75L8 15h-1L6.1 4.95c-.9.05-1.9.35-2.8.75l-1-1.4C3.5 3.5 5.2 3 7 3h1Z" />
         </svg>
       </span>

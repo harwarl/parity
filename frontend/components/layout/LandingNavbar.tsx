@@ -5,10 +5,10 @@ import MobileMenu from "./MobileMenu";
 
 const links = [
   { label: "App", href: "/app" },
-  { label: "Lend", href: "#" },
-  { label: "Oracle", href: "#" },
-  { label: "Docs", href: "#" },
-  { label: "Deck", href: "#" },
+  { label: "Lend", href: "#lend" },
+  { label: "Oracle", href: "#oracle" },
+  { label: "Docs", href: "#docs" },
+  { label: "Deck", href: "#deck" },
 ];
 
 /**
@@ -20,7 +20,7 @@ const links = [
 export default function LandingNavbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-6 sm:px-12 md:h-14 lg:px-16">
+      <div className="mx-auto flex h-16 w-full max-w-360 items-center justify-between px-6 sm:px-12 md:h-14 lg:px-16">
         <div className="flex items-center gap-8 lg:gap-10">
           <Link href="/" className="flex items-center gap-2 text-text" aria-label="GAUGE home">
             <GaugeMark />
