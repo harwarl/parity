@@ -8,6 +8,7 @@ import Icon from "@/components/ui/Icon";
 import { fmtNet, SESSION_LABEL } from "@/lib/parity/format";
 import { ROW_HAIRCUT } from "@/lib/parity/universe";
 import { useLiveTape } from "@/hooks/useLiveTape";
+import type { TapeRow } from "@/types/parity";
 
 const TAB_SYMBOLS = ["GOOGL", "HOOD", "AAPL", "TSLA", "NVDA"];
 
@@ -30,50 +31,13 @@ const REJECT_CODES = [
   },
 ] as const;
 
-const RECENT = [
-  {
-    time: "10:14",
-    symbol: "AAPL",
-    net: "+42 bps",
-    status: "Ready",
-    tone: "green" as const,
-  },
-  {
-    time: "09:47",
-    symbol: "TSLA",
-    net: "+36 bps",
-    status: "Executed (Paper)",
-    tone: "dim" as const,
-  },
-  {
-    time: "08:12",
-    symbol: "NVDA",
-    net: "—",
-    status: "HALT",
-    tone: "halt" as const,
-  },
-  {
-    time: "Jun 24",
-    symbol: "AMZN",
-    net: "—",
-    status: "THIN",
-    tone: "halt" as const,
-  },
-  {
-    time: "Jun 24",
-    symbol: "META",
-    net: "+18 bps",
-    status: "DUST",
-    tone: "halt" as const,
-  },
-  {
-    time: "Jun 23",
-    symbol: "MSFT",
-    net: "+27 bps",
-    status: "Executed (Paper)",
-    tone: "dim" as const,
-  },
-];
+export interface RecentSignal {
+  time: string;
+  symbol: string;
+  net: string;
+  status: string;
+  tone: "green" | "dim" | "halt";
+}
 
 function PanelTitle({
   children,
@@ -90,7 +54,17 @@ function PanelTitle({
   );
 }
 
-export default function CardsPanel() {
+export default function CardsPanel({
+  capUsed,
+  capTotal,
+  recent,
+  onConfirm,
+}: {
+  capUsed: number;
+  capTotal: number;
+  recent: RecentSignal[];
+  onConfirm: (row: TapeRow, clip: number) => void;
+}) {
   const { rows } = useLiveTape(1800);
   const [selected, setSelected] = useState(TAB_SYMBOLS[0]);
   const [query, setQuery] = useState("");
@@ -98,6 +72,7 @@ export default function CardsPanel() {
   const row = rows.find((r) => r.symbol === selected) ?? rows[0];
   const dead = row.state === "halt" || row.state === "stale";
   const tradable = row.state === "rth" && row.netBps > 0;
+  const capReached = capUsed >= capTotal;
 
   const suggestions = useMemo(() => {
     const q = query.trim().toUpperCase();
@@ -112,10 +87,15 @@ export default function CardsPanel() {
       {/* card + chart */}
       <div className="grid gap-6 lg:grid-cols-10 lg:items-stretch">
         <div className="lg:col-span-4">
-          <SignalCard key={row.symbol} row={row} />
+          <SignalCard
+            key={row.symbol}
+            row={row}
+            onConfirm={onConfirm}
+            capReached={capReached}
+          />
         </div>
 
-        <div className="flex h-full min-w-0 flex-col rounded-2xl border border-line bg-surface p-5 sm:p-6 lg:col-span-6">
+        <div className="flex min-w-0 flex-col self-start rounded-2xl border border-line bg-surface p-5 sm:p-6 lg:col-span-6">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap items-center gap-1">
               {TAB_SYMBOLS.map((s) => (
@@ -196,7 +176,11 @@ export default function CardsPanel() {
               }
             />
             <ChecklistItem pass label="Sufficient depth" value="1.2M shares" />
-            <ChecklistItem pass label="Daily cap" value="1 / 3 used" />
+            <ChecklistItem
+              pass={!capReached}
+              label="Daily cap"
+              value={`${capUsed} / ${capTotal} used`}
+            />
           </ul>
 
           <div className="mt-5 space-y-3 border-t border-line pt-5">
@@ -290,7 +274,7 @@ export default function CardsPanel() {
             <span className="text-right">Status</span>
           </div>
           <div className="divide-y divide-line">
-            {RECENT.map((r) => (
+            {recent.map((r) => (
               <div
                 key={`${r.time}-${r.symbol}`}
                 className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 py-3 transition-colors hover:bg-surface-2/60"
