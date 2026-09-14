@@ -3,7 +3,32 @@ use std::sync::{Arc, Mutex};
 
 use gauge_carder::card_store::CardStore;
 use gauge_carder::paper_ledger::PaperLedger;
+use serde::Serialize;
 use shared_types::{BasisTick, User};
+use tokio::sync::broadcast;
+
+/// Why cards need a push channel at all: a card is opened by gauge-carder
+/// off a market tick, with no request from the user to hang a response on —
+/// GET /cards alone would leave the frontend polling on a timer to notice
+/// new ones. This is the fan-out point: anything that changes a card's
+/// state broadcasts here, and GET /cards/stream (routes/cards.rs) turns it
+/// into SSE, scoped per user.
+#[derive(Clone, Debug, Serialize)]
+pub struct CardEvent {
+    pub card_id: String,
+    pub user_id: String,
+    pub kind: CardEventKind,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CardEventKind {
+    Opened,
+    Confirmed,
+    Rejected,
+    Expired,
+    StaleOnConfirm,
+}
 
 /// Everything gauge-api holds in-process right now. This is a stand-in for
 /// real cross-service state: in a deployment where gauge-carder is its own
@@ -39,15 +64,32 @@ pub struct AppState {
     /// Base URL of a running gauge-exec instance. gauge-api never holds MCP
     /// credentials itself — live confirms are handed off here.
     pub exec_url: String,
+    /// Broadcast, not mpsc — an SSE connection per browser tab, all wanting
+    /// their own copy of every event they're subscribed to. Sender is cheap
+    /// to clone and fine to hold directly (no Arc/Mutex needed); each SSE
+    /// handler calls `.subscribe()` for its own receiver.
+    pub card_events: broadcast::Sender<CardEvent>,
 }
 
 impl AppState {
     pub fn new(exec_url: impl Into<String>) -> Self {
+        let (card_events, _) = broadcast::channel(256);
         Self {
             store: Arc::new(Mutex::new(Store::new())),
             http: reqwest::Client::new(),
             exec_url: exec_url.into(),
+            card_events,
         }
+    }
+
+    /// Best-effort: `send` errors only when there are no subscribers right
+    /// now, which is fine — there's nothing to catch up.
+    pub fn publish_card_event(&self, card_id: &str, user_id: &str, kind: CardEventKind) {
+        let _ = self.card_events.send(CardEvent {
+            card_id: card_id.to_string(),
+            user_id: user_id.to_string(),
+            kind,
+        });
     }
 }
 

@@ -1,11 +1,15 @@
 use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
+use axum::response::sse::{Event, KeepAlive, Sse};
+use futures_util::StreamExt;
+use futures_util::stream::Stream;
 use gauge_carder::card_store::ConfirmOutcome;
 use serde::{Deserialize, Serialize};
 use shared_types::{Card, UserMode};
+use tokio_stream::wrappers::BroadcastStream;
 
-use crate::state::{AppState, now_ms};
+use crate::state::{AppState, CardEventKind, now_ms};
 
 #[derive(Deserialize)]
 pub struct CardsQuery {
@@ -62,12 +66,18 @@ pub async fn confirm_card(
             Json(ConfirmResponse::AlreadyResolvedOrMissing),
         ),
         Some(ConfirmOutcome::StaleOnConfirm) => {
+            let card = card.expect("stale-on-confirm outcome, card must exist");
+            state.publish_card_event(&card_id, &card.user_id, CardEventKind::StaleOnConfirm);
             (StatusCode::CONFLICT, Json(ConfirmResponse::StaleOnConfirm))
         }
         Some(ConfirmOutcome::Confirmed) => {
             let card = card.expect("confirm succeeded, card must exist");
+            // Local lifecycle state is Confirmed either way — a failed live
+            // handoff is an execution problem, not an unconfirm.
+            state.publish_card_event(&card_id, &card.user_id, CardEventKind::Confirmed);
             if user_mode == Some(UserMode::Live) {
-                match hand_off_to_exec(&state, &card).await {
+                let fresh_tick = state.store.lock().unwrap().tape.get(&card.symbol).cloned();
+                match hand_off_to_exec(&state, &card, fresh_tick).await {
                     Ok(()) => (
                         StatusCode::OK,
                         Json(ConfirmResponse::Confirmed { filled_at_price: None }),
@@ -93,13 +103,31 @@ pub async fn confirm_card(
     }
 }
 
-/// Real HTTP call — but gauge-exec doesn't have a listening server yet (see
-/// its main.rs), so this has nothing to reach until that's built.
-async fn hand_off_to_exec(state: &AppState, card: &Card) -> Result<(), String> {
+/// Calls gauge-exec's POST /execute. `side` is hardcoded to `"Buy"` — v1
+/// only ever executes the equity leg live (README: "Token is research, not
+/// a buy button"), but which leg a card's "Do it" should actually place is
+/// a trading-strategy decision this hasn't resolved (see gauge-exec's
+/// execute.rs), so treat this as a placeholder, not a settled answer.
+/// `side`/`cheap_side` are sent as plain JSON strings rather than importing
+/// gauge-exec's `OrderSide` type — gauge-api deliberately doesn't depend on
+/// gauge-exec's crate, only its wire contract.
+async fn hand_off_to_exec(
+    state: &AppState,
+    card: &Card,
+    fresh_tick: Option<shared_types::BasisTick>,
+) -> Result<(), String> {
+    let fresh_tick = fresh_tick.ok_or_else(|| "no cached tape tick to re-quote against".to_string())?;
     state
         .http
         .post(format!("{}/execute", state.exec_url))
-        .json(&serde_json::json!({ "card_id": card.card_id }))
+        .json(&serde_json::json!({
+            "user_id": card.user_id,
+            "symbol": card.symbol,
+            "side": "Buy",
+            "cheap_side": card.cheap_side,
+            "clip_usd": card.clip_usd,
+            "fresh_tick": fresh_tick,
+        }))
         .send()
         .await
         .map_err(|e| e.to_string())?
@@ -109,12 +137,47 @@ async fn hand_off_to_exec(state: &AppState, card: &Card) -> Result<(), String> {
 }
 
 pub async fn skip_card(State(state): State<AppState>, Path(card_id): Path<String>) -> StatusCode {
-    let mut store = state.store.lock().unwrap();
-    if store.card_store.reject(&card_id) {
+    let (rejected, user_id) = {
+        let mut store = state.store.lock().unwrap();
+        let rejected = store.card_store.reject(&card_id);
+        let user_id = store.card_store.get(&card_id).map(|c| c.user_id.clone());
+        (rejected, user_id)
+    };
+    if rejected {
+        if let Some(user_id) = user_id {
+            state.publish_card_event(&card_id, &user_id, CardEventKind::Rejected);
+        }
         StatusCode::OK
     } else {
         StatusCode::CONFLICT
     }
+}
+
+/// Live updates for one user's cards. Cards are opened server-side by
+/// gauge-carder off a market tick — there's no client request to hang a
+/// response on — so the frontend needs this instead of polling GET /cards
+/// on a timer. Each event is `{"card_id", "user_id", "kind"}`; the client
+/// still fetches the card body from GET /cards, this is only the "something
+/// changed" signal (same "dumb push, smart fetch" split as gauge-notif).
+pub async fn stream_cards(
+    State(state): State<AppState>,
+    Query(query): Query<CardsQuery>,
+) -> Sse<impl Stream<Item = Result<Event, axum::Error>>> {
+    let user_id = query.user_id;
+    let receiver = state.card_events.subscribe();
+    let stream = BroadcastStream::new(receiver).filter_map(move |msg| {
+        let user_id = user_id.clone();
+        async move {
+            match msg {
+                // A lagged receiver dropped some events — nothing to send
+                // for those; the client's next GET /cards fetch catches up.
+                Err(_lagged) => None,
+                Ok(event) if event.user_id != user_id => None,
+                Ok(event) => Some(Event::default().json_data(&event)),
+            }
+        }
+    });
+    Sse::new(stream).keep_alive(KeepAlive::default())
 }
 
 #[cfg(test)]
@@ -286,6 +349,53 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn stream_cards_responds_with_sse_content_type() {
+        let app = router(seed_state());
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/cards/stream?user_id=alice")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers().get("content-type").unwrap(), "text/event-stream");
+    }
+
+    #[tokio::test]
+    async fn stream_cards_only_delivers_events_for_the_requested_user() {
+        let state = seed_state();
+        let app = router(state.clone());
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/cards/stream?user_id=alice")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let mut body = response.into_body().into_data_stream();
+
+        // Published after the subscription above exists (oneshot already ran
+        // the handler), so both are queued for delivery — only one should
+        // pass the per-user filter.
+        state.publish_card_event("bobs-card", "bob", CardEventKind::Confirmed);
+        state.publish_card_event("paper-card", "alice", CardEventKind::Confirmed);
+
+        let chunk = tokio::time::timeout(std::time::Duration::from_secs(2), body.next())
+            .await
+            .expect("timed out waiting for an SSE event")
+            .expect("stream ended before any event arrived")
+            .expect("chunk read error");
+        let text = String::from_utf8(chunk.to_vec()).unwrap();
+        assert!(text.contains("paper-card"), "got: {text}");
+        assert!(!text.contains("bobs-card"), "got: {text}");
     }
 
     #[tokio::test]

@@ -5,12 +5,14 @@ edition = "2024"
 
 [dependencies]
 axum = "0.8.9"
+futures-util = "0.3.34"
 gauge-carder = { version = "0.1.0", path = "../gauge-carder" }
 reqwest = { version = "0.13.5", features = ["json"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 shared-types = { path = "../shared-types" }
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net"] }
+tokio-stream = { version = "0.1.19", features = ["sync"] }
 
 [dev-dependencies]
 http-body-util = "0.1.5"

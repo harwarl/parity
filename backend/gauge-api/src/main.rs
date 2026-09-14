@@ -9,8 +9,11 @@
 // cross-service state: gauge-api doesn't yet subscribe to gauge-market's tape,
 // and card/settings state isn't shared with a real gauge-carder process — both
 // need a persistence/RPC decision that hasn't been made. The confirm handler's
-// call to gauge-exec is a real HTTP request, but gauge-exec has no server
-// listening yet (see its main.rs), so live confirms will fail until that exists.
+// call to gauge-exec (GAUGE_EXEC_URL, default matches gauge-exec's own default
+// bind address) now reaches a real POST /execute — gauge-exec's HTTP server is
+// implemented — but gauge-exec still runs with NotImplementedClient (no real
+// MCP), so a live confirm will pass every gate and then fail honestly at the
+// MCP step, not silently pretend to succeed.
 
 mod routes;
 mod state;
