@@ -6,4 +6,6 @@
 pub mod card_store;
 pub mod index;
 pub mod paper_ledger;
+pub mod persistence;
 pub mod policy;
+pub mod tick_consumer;

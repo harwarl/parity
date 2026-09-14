@@ -1,11 +1,6 @@
 use redis::aio::ConnectionManager;
 use redis::AsyncCommands;
-use shared_types::BasisTick;
-
-/// The single stream every `BasisTick` is published onto. `gauge-carder`
-/// subscribes here and fans out via its own symbol -> users index — the bus
-/// itself doesn't route per symbol.
-pub const STREAM_KEY: &str = "gauge:ticks";
+use shared_types::{BasisTick, TICK_STREAM_KEY};
 
 /// Publishes `BasisTick`s to Redis Streams via `XADD`. `ConnectionManager`
 /// reconnects on its own, which is what a long-running ingest loop needs.
@@ -28,7 +23,7 @@ impl TickPublisher {
             redis::RedisError::from((redis::ErrorKind::Client, "tick serialization failed", e.to_string()))
         })?;
         self.conn
-            .xadd(STREAM_KEY, "*", &[("symbol", tick.symbol.as_str()), ("payload", payload.as_str())])
+            .xadd(TICK_STREAM_KEY, "*", &[("symbol", tick.symbol.as_str()), ("payload", payload.as_str())])
             .await
     }
 }

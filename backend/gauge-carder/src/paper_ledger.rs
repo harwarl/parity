@@ -45,6 +45,12 @@ impl PaperLedger {
     pub fn fills_for(&self, user_id: &str) -> impl Iterator<Item = &Fill> {
         self.fills.iter().filter(move |f| f.user_id == user_id)
     }
+
+    /// Rehydrates from already-computed `Fill`s (e.g. loaded from
+    /// persistence) — unlike `record_fill`, doesn't recompute a price.
+    pub fn hydrate(&mut self, fills: Vec<Fill>) {
+        self.fills = fills;
+    }
 }
 
 #[cfg(test)]
@@ -96,5 +102,21 @@ mod tests {
         ledger.record_fill(&card(), &tick(50.0, 49.4), 40_000);
         assert_eq!(ledger.fills_for("alice").count(), 1);
         assert_eq!(ledger.fills_for("bob").count(), 0);
+    }
+
+    #[test]
+    fn hydrate_restores_previously_recorded_fills_without_recomputing_price() {
+        let mut ledger = PaperLedger::new();
+        ledger.hydrate(vec![Fill {
+            card_id: "c1".to_string(),
+            user_id: "alice".to_string(),
+            symbol: "HOOD".to_string(),
+            cheap_side: CheapSide::Token,
+            clip_usd: 40.0,
+            fill_price: 49.4,
+            filled_at_ms: 40_000,
+        }]);
+        assert_eq!(ledger.fills_for("alice").count(), 1);
+        assert_eq!(ledger.fills_for("alice").next().unwrap().fill_price, 49.4);
     }
 }
