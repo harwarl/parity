@@ -1,95 +1,51 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use gauge_carder::card_store::CardStore;
-use gauge_carder::paper_ledger::PaperLedger;
-use serde::Serialize;
-use shared_types::{BasisTick, User};
+use gauge_carder::persistence::RedisStore;
+use shared_types::{BasisTick, CardEvent};
 use tokio::sync::broadcast;
 
-/// Why cards need a push channel at all: a card is opened by gauge-carder
-/// off a market tick, with no request from the user to hang a response on —
-/// GET /cards alone would leave the frontend polling on a timer to notice
-/// new ones. This is the fan-out point: anything that changes a card's
-/// state broadcasts here, and GET /cards/stream (routes/cards.rs) turns it
-/// into SSE, scoped per user.
-#[derive(Clone, Debug, Serialize)]
-pub struct CardEvent {
-    pub card_id: String,
-    pub user_id: String,
-    pub kind: CardEventKind,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CardEventKind {
-    Opened,
-    Confirmed,
-    Rejected,
-    Expired,
-    StaleOnConfirm,
-}
-
-/// Everything gauge-api holds in-process right now. This is a stand-in for
-/// real cross-service state: in a deployment where gauge-carder is its own
-/// process, gauge-api wouldn't own its own CardStore/PaperLedger instance
-/// like this — it'd read/write through a database or an RPC call to the
-/// real gauge-carder service. Neither of those has been chosen yet, so this
-/// keeps the HTTP layer real and testable in the meantime.
-pub struct Store {
-    pub card_store: CardStore,
-    pub paper_ledger: PaperLedger,
-    pub users: HashMap<String, User>,
-    /// Latest published tick per symbol. Stays empty until gauge-api
-    /// subscribes to gauge-market's Redis Streams (or reads its tape some
-    /// other way) — not wired up yet.
-    pub tape: HashMap<String, BasisTick>,
-}
-
-impl Store {
-    fn new() -> Self {
-        Self {
-            card_store: CardStore::new(),
-            paper_ledger: PaperLedger::new(),
-            users: HashMap::new(),
-            tape: HashMap::new(),
-        }
-    }
-}
-
+/// gauge-api's process state. Card/user data is no longer held locally —
+/// `persistence` is the same Redis-backed store gauge-carder writes
+/// through (gauge_carder::persistence::RedisStore), so a card gauge-carder
+/// opens and a confirm/skip gauge-api handles are the same record now, not
+/// two disconnected copies.
 #[derive(Clone)]
 pub struct AppState {
-    pub store: Arc<Mutex<Store>>,
+    pub persistence: RedisStore,
+    /// Latest tick per symbol — an in-memory read-through cache fed by a
+    /// background Redis Streams consumer (main.rs's `run_tape_consumer`),
+    /// not itself persisted. Losing it on restart just means a brief wait
+    /// for the next tick before /tape and the exec re-quote have data.
+    pub tape: Arc<Mutex<HashMap<String, BasisTick>>>,
     pub http: reqwest::Client,
     /// Base URL of a running gauge-exec instance. gauge-api never holds MCP
     /// credentials itself — live confirms are handed off here.
     pub exec_url: String,
-    /// Broadcast, not mpsc — an SSE connection per browser tab, all wanting
-    /// their own copy of every event they're subscribed to. Sender is cheap
-    /// to clone and fine to hold directly (no Arc/Mutex needed); each SSE
-    /// handler calls `.subscribe()` for its own receiver.
+    /// Local fan-out to this process's SSE connections. Fed exclusively by
+    /// main.rs's `run_card_event_relay`, which subscribes to Redis Pub/Sub
+    /// (shared_types::CARD_EVENTS_CHANNEL) — route handlers publish there,
+    /// not here directly, so there's one path for "how do SSE clients learn
+    /// about a change" regardless of which process made it.
     pub card_events: broadcast::Sender<CardEvent>,
+    /// Service-level bearer token checked by auth.rs. Proves the caller
+    /// holds a valid credential to talk to gauge-api at all — it does not
+    /// prove the caller is the specific user named in a request path. Real
+    /// per-user identity (session, OAuth, whatever) is still undecided.
+    pub api_token: String,
 }
 
 impl AppState {
-    pub fn new(exec_url: impl Into<String>) -> Self {
+    pub fn new(persistence: RedisStore, exec_url: impl Into<String>, api_token: impl Into<String>) -> Self {
         let (card_events, _) = broadcast::channel(256);
         Self {
-            store: Arc::new(Mutex::new(Store::new())),
+            persistence,
+            tape: Arc::new(Mutex::new(HashMap::new())),
             http: reqwest::Client::new(),
             exec_url: exec_url.into(),
             card_events,
+            api_token: api_token.into(),
         }
-    }
-
-    /// Best-effort: `send` errors only when there are no subscribers right
-    /// now, which is fine — there's nothing to catch up.
-    pub fn publish_card_event(&self, card_id: &str, user_id: &str, kind: CardEventKind) {
-        let _ = self.card_events.send(CardEvent {
-            card_id: card_id.to_string(),
-            user_id: user_id.to_string(),
-            kind,
-        });
     }
 }
 

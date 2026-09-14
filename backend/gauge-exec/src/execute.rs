@@ -10,23 +10,40 @@ pub enum ExecutionRejection {
     OutsideRth,
     LiveDisabledForUser,
     Requote(RequoteRejection),
+    /// v1 only ever executes the equity leg live (README: "Token is
+    /// research, not a buy button") — a card whose cheap side is the token
+    /// leg has no live order gauge-exec can place for it.
+    UnsupportedCheapSide,
     McpUnauthorized,
     McpRateLimited,
     McpOther(String),
 }
 
+/// The only trading rule gauge-exec knows: v1 never shorts, never buys the
+/// token, so the cheap side being Equity is the only case with an order to
+/// place at all. This is the authoritative enforcement of that rule — not
+/// a caller-supplied `side` gauge-exec just trusts. gauge-api independently
+/// checks `cheap_side` too before ever calling here (avoids a wasted round
+/// trip), but this is the actual boundary: gauge-exec is "the highest-
+/// scrutiny part of the system," so it derives the side itself rather than
+/// accepting one from a caller it has no reason to trust on a real-money
+/// decision.
+fn order_side_for(cheap_side: CheapSide) -> Result<OrderSide, ExecutionRejection> {
+    match cheap_side {
+        CheapSide::Equity => Ok(OrderSide::Buy),
+        CheapSide::Token | CheapSide::Neither => Err(ExecutionRejection::UnsupportedCheapSide),
+    }
+}
+
 /// The confirm-time path: rth gate, then the per-user/global live gate,
 /// then a mandatory re-quote against `fresh_tick` (never the card-open
-/// price), and only then the two MCP calls. `side` is supplied by the
-/// caller rather than derived from `card_cheap_side` here — which leg a
-/// v1 "Do it" actually buys/sells is a trading-strategy decision this
-/// scaffolding doesn't make on its own.
+/// price), then the side derivation above, and only then the two MCP
+/// calls.
 pub async fn confirm_and_execute<C: TradingMcpClient>(
     client: &C,
     live_gate: &mut LiveTradingGate,
     user_id: &str,
     symbol: &str,
-    side: OrderSide,
     card_cheap_side: CheapSide,
     clip_usd: f64,
     fresh_tick: &BasisTick,
@@ -38,6 +55,7 @@ pub async fn confirm_and_execute<C: TradingMcpClient>(
         return Err(ExecutionRejection::LiveDisabledForUser);
     }
     requote(card_cheap_side, fresh_tick).map_err(ExecutionRejection::Requote)?;
+    let side = order_side_for(card_cheap_side)?;
 
     let review = client
         .review_equity_order(user_id, symbol, side, clip_usd)
@@ -83,9 +101,10 @@ mod tests {
             &self,
             _user_id: &str,
             _symbol: &str,
-            _side: OrderSide,
+            side: OrderSide,
             _clip_usd: f64,
         ) -> Result<crate::mcp::ReviewResult, McpError> {
+            assert_eq!(side, OrderSide::Buy, "v1 only ever places Buy orders");
             *self.review_calls.lock().unwrap() += 1;
             self.review_result
                 .as_ref()
@@ -117,13 +136,17 @@ mod tests {
         tick(Session::Rth, Decision::CardEligible, CheapSide::Equity, 80.0)
     }
 
-    #[tokio::test]
-    async fn happy_path_places_the_order() {
-        let client = FakeClient {
+    fn fake_client() -> FakeClient {
+        FakeClient {
             review_result: Ok(ReviewResultStub("rev1".to_string())),
             place_result: Ok(PlaceResult { broker_order_id: "order1".to_string() }),
             review_calls: Mutex::new(0),
-        };
+        }
+    }
+
+    #[tokio::test]
+    async fn happy_path_places_the_order() {
+        let client = fake_client();
         let mut live_gate = LiveTradingGate::new();
 
         let result = confirm_and_execute(
@@ -131,7 +154,6 @@ mod tests {
             &mut live_gate,
             "alice",
             "HOOD",
-            OrderSide::Buy,
             CheapSide::Equity,
             40.0,
             &eligible_tick(),
@@ -143,16 +165,12 @@ mod tests {
 
     #[tokio::test]
     async fn refuses_outside_rth_without_calling_mcp() {
-        let client = FakeClient {
-            review_result: Ok(ReviewResultStub("rev1".to_string())),
-            place_result: Ok(PlaceResult { broker_order_id: "order1".to_string() }),
-            review_calls: Mutex::new(0),
-        };
+        let client = fake_client();
         let mut live_gate = LiveTradingGate::new();
         let overnight = tick(Session::Overnight, Decision::CardEligible, CheapSide::Equity, 80.0);
 
         let result = confirm_and_execute(
-            &client, &mut live_gate, "alice", "HOOD", OrderSide::Buy, CheapSide::Equity, 40.0, &overnight,
+            &client, &mut live_gate, "alice", "HOOD", CheapSide::Equity, 40.0, &overnight,
         )
         .await;
 
@@ -162,16 +180,12 @@ mod tests {
 
     #[tokio::test]
     async fn stale_requote_blocks_execution() {
-        let client = FakeClient {
-            review_result: Ok(ReviewResultStub("rev1".to_string())),
-            place_result: Ok(PlaceResult { broker_order_id: "order1".to_string() }),
-            review_calls: Mutex::new(0),
-        };
+        let client = fake_client();
         let mut live_gate = LiveTradingGate::new();
         let collapsed = tick(Session::Rth, Decision::CardEligible, CheapSide::Equity, -10.0);
 
         let result = confirm_and_execute(
-            &client, &mut live_gate, "alice", "HOOD", OrderSide::Buy, CheapSide::Equity, 40.0, &collapsed,
+            &client, &mut live_gate, "alice", "HOOD", CheapSide::Equity, 40.0, &collapsed,
         )
         .await;
 
@@ -179,6 +193,21 @@ mod tests {
             result,
             Err(ExecutionRejection::Requote(RequoteRejection::NetBpsCollapsed))
         );
+        assert_eq!(*client.review_calls.lock().unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn token_cheap_side_is_rejected_before_ever_calling_mcp() {
+        let client = fake_client();
+        let mut live_gate = LiveTradingGate::new();
+        let token_cheap = tick(Session::Rth, Decision::CardEligible, CheapSide::Token, 80.0);
+
+        let result = confirm_and_execute(
+            &client, &mut live_gate, "alice", "HOOD", CheapSide::Token, 40.0, &token_cheap,
+        )
+        .await;
+
+        assert_eq!(result, Err(ExecutionRejection::UnsupportedCheapSide));
         assert_eq!(*client.review_calls.lock().unwrap(), 0);
     }
 
@@ -192,7 +221,7 @@ mod tests {
         let mut live_gate = LiveTradingGate::new();
 
         let result = confirm_and_execute(
-            &client, &mut live_gate, "alice", "HOOD", OrderSide::Buy, CheapSide::Equity, 40.0, &eligible_tick(),
+            &client, &mut live_gate, "alice", "HOOD", CheapSide::Equity, 40.0, &eligible_tick(),
         )
         .await;
 
@@ -210,7 +239,7 @@ mod tests {
         let mut live_gate = LiveTradingGate::new();
 
         let result = confirm_and_execute(
-            &client, &mut live_gate, "alice", "HOOD", OrderSide::Buy, CheapSide::Equity, 40.0, &eligible_tick(),
+            &client, &mut live_gate, "alice", "HOOD", CheapSide::Equity, 40.0, &eligible_tick(),
         )
         .await;
 

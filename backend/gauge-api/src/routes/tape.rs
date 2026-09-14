@@ -5,9 +5,10 @@ use shared_types::BasisTick;
 use crate::state::AppState;
 
 /// Public, unauthenticated — powers Watcher mode and the marketing site's
-/// live widget. Empty until gauge-api actually subscribes to gauge-market's
-/// tape (see state.rs); the route itself is real.
+/// live widget (see routes/mod.rs, this route sits outside the auth layer).
+/// Populated by main.rs's `run_tape_consumer` background task, which reads
+/// gauge-market's Redis Streams tick bus directly; no longer always empty.
 pub async fn get_tape(State(state): State<AppState>) -> Json<Vec<BasisTick>> {
-    let store = state.store.lock().unwrap();
-    Json(store.tape.values().cloned().collect())
+    let tape = state.tape.lock().unwrap();
+    Json(tape.values().cloned().collect())
 }

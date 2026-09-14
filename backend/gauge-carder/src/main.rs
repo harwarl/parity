@@ -7,12 +7,8 @@
 // Streams tick bus (tick_consumer) and persists card/user/fill state to Redis
 // (persistence), both implemented and exposed from the library.
 //
-// Known gap this doesn't close: gauge-api still keeps its own separate in-memory
-// CardStore (see gauge-api/src/state.rs) rather than reading/writing this same
-// Redis-backed state — so a card this process opens and a confirm/skip gauge-api
-// handles are not, today, the same record. This loop only ever opens and expires
-// cards; confirm/reject still only happen in gauge-api's disconnected copy. Wiring
-// those together is the natural next step, not done here.
+// gauge-api now reads and writes this same Redis-backed state (cards, users) and
+// relays CardEvents published here over its own SSE — see gauge-api/src/state.rs.
 
 use std::collections::HashMap;
 
@@ -22,7 +18,7 @@ use gauge_carder::paper_ledger::PaperLedger;
 use gauge_carder::persistence::RedisStore;
 use gauge_carder::policy::{self, PolicyOutcome};
 use gauge_carder::tick_consumer::TickConsumer;
-use shared_types::{Card, CardState, Decision, User};
+use shared_types::{Card, CardEvent, CardEventKind, CardState, Decision, User};
 
 fn now_ms() -> u64 {
     std::time::SystemTime::now()
@@ -119,6 +115,15 @@ async fn main() {
                         card_store.open(card.clone());
                         if let Err(e) = persistence.save_card(&card).await {
                             eprintln!("gauge-carder: failed to persist card {}: {e}", card.card_id);
+                        } else if let Err(e) = persistence
+                            .publish_card_event(&CardEvent {
+                                card_id: card.card_id.clone(),
+                                user_id: user_id.clone(),
+                                kind: CardEventKind::Opened,
+                            })
+                            .await
+                        {
+                            eprintln!("gauge-carder: failed to publish open event for {}: {e}", card.card_id);
                         }
                         println!("gauge-carder: opened card {} for {user_id}", card.card_id);
                     }
@@ -131,8 +136,18 @@ async fn main() {
 
         for card_id in card_store.expire_stale(now_ms()) {
             if let Some(card) = card_store.get(&card_id) {
+                let user_id = card.user_id.clone();
                 if let Err(e) = persistence.save_card(card).await {
                     eprintln!("gauge-carder: failed to persist expiry of {card_id}: {e}");
+                } else if let Err(e) = persistence
+                    .publish_card_event(&CardEvent {
+                        card_id: card_id.clone(),
+                        user_id,
+                        kind: CardEventKind::Expired,
+                    })
+                    .await
+                {
+                    eprintln!("gauge-carder: failed to publish expiry event for {card_id}: {e}");
                 }
             }
         }

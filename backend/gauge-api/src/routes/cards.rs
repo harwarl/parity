@@ -4,28 +4,34 @@ use axum::http::StatusCode;
 use axum::response::sse::{Event, KeepAlive, Sse};
 use futures_util::StreamExt;
 use futures_util::stream::Stream;
-use gauge_carder::card_store::ConfirmOutcome;
+use gauge_carder::card_store::{CardStore, ConfirmOutcome};
+use gauge_carder::paper_ledger::PaperLedger;
 use serde::{Deserialize, Serialize};
-use shared_types::{Card, UserMode};
+use shared_types::{Card, CardEvent, CardEventKind, CheapSide, UserMode};
 use tokio_stream::wrappers::BroadcastStream;
 
-use crate::state::{AppState, CardEventKind, now_ms};
+use crate::state::{AppState, now_ms};
 
 #[derive(Deserialize)]
 pub struct CardsQuery {
     pub user_id: String,
 }
 
-pub async fn list_cards(State(state): State<AppState>, Query(query): Query<CardsQuery>) -> Json<Vec<Card>> {
-    let store = state.store.lock().unwrap();
-    Json(
-        store
-            .card_store
-            .cards_for_user(&query.user_id)
-            .into_iter()
-            .cloned()
-            .collect(),
-    )
+/// O(n) over every persisted card, not an indexed-by-user lookup — fine at
+/// this scale, would want a Redis set per user (`gauge:carder:cards:by_user:
+/// {id}`) if this ever needs to be fast.
+pub async fn list_cards(
+    State(mut state): State<AppState>,
+    Query(query): Query<CardsQuery>,
+) -> Result<Json<Vec<Card>>, StatusCode> {
+    let cards = state
+        .persistence
+        .load_all_cards()
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(
+        cards.into_iter().filter(|c| c.user_id == query.user_id).collect(),
+    ))
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -37,28 +43,43 @@ pub enum ConfirmResponse {
     Confirmed { filled_at_price: Option<f64> },
     StaleOnConfirm,
     LiveHandoffFailed { reason: String },
+    /// The card is confirmed, but v1 can't execute it live — only the
+    /// equity leg is tradable live (README: "Token is research, not a buy
+    /// button"), so a card whose cheap side is the token leg has nothing
+    /// for gauge-exec to place. Not an error — the confirm itself succeeded
+    /// as an acknowledgement, there's just no live order to follow it with.
+    LiveActionUnavailable { reason: String },
     AlreadyResolvedOrMissing,
 }
 
 /// "Confirm always re-quotes" is gauge-exec's job, not this handler's — this
-/// only resolves the card's own lifecycle and, for a live user, hands off to
-/// gauge-exec. gauge-api never sees or holds MCP credentials.
+/// only resolves the card's own lifecycle (via an ephemeral CardStore reused
+/// for its tested TTL/idempotency rules, not a second implementation of
+/// them) and, for a live-eligible user, hands off to gauge-exec. gauge-api
+/// never sees or holds MCP credentials.
 pub async fn confirm_card(
-    State(state): State<AppState>,
+    State(mut state): State<AppState>,
     Path(card_id): Path<String>,
 ) -> (StatusCode, Json<ConfirmResponse>) {
     let now = now_ms();
 
-    let (outcome, card, user_mode) = {
-        let mut store = state.store.lock().unwrap();
-        let outcome = store.card_store.confirm(&card_id, now);
-        let card = store.card_store.get(&card_id).cloned();
-        let user_mode = card
-            .as_ref()
-            .and_then(|c| store.users.get(&c.user_id))
-            .map(|u| u.mode);
-        (outcome, card, user_mode)
+    let loaded = match state.persistence.load_card(&card_id).await {
+        Ok(Some(card)) => card,
+        _ => {
+            return (
+                StatusCode::CONFLICT,
+                Json(ConfirmResponse::AlreadyResolvedOrMissing),
+            );
+        }
     };
+
+    let mut ephemeral = CardStore::new();
+    ephemeral.open(loaded);
+    let outcome = ephemeral.confirm(&card_id, now);
+    let card = ephemeral
+        .get(&card_id)
+        .cloned()
+        .expect("just registered via open()");
 
     match outcome {
         None => (
@@ -66,17 +87,37 @@ pub async fn confirm_card(
             Json(ConfirmResponse::AlreadyResolvedOrMissing),
         ),
         Some(ConfirmOutcome::StaleOnConfirm) => {
-            let card = card.expect("stale-on-confirm outcome, card must exist");
-            state.publish_card_event(&card_id, &card.user_id, CardEventKind::StaleOnConfirm);
+            let _ = state.persistence.save_card(&card).await;
+            publish_event(&mut state, &card_id, &card.user_id, CardEventKind::StaleOnConfirm).await;
             (StatusCode::CONFLICT, Json(ConfirmResponse::StaleOnConfirm))
         }
         Some(ConfirmOutcome::Confirmed) => {
-            let card = card.expect("confirm succeeded, card must exist");
-            // Local lifecycle state is Confirmed either way — a failed live
-            // handoff is an execution problem, not an unconfirm.
-            state.publish_card_event(&card_id, &card.user_id, CardEventKind::Confirmed);
+            if let Err(e) = state.persistence.save_card(&card).await {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ConfirmResponse::LiveHandoffFailed { reason: e.to_string() }),
+                );
+            }
+            publish_event(&mut state, &card_id, &card.user_id, CardEventKind::Confirmed).await;
+
+            let user_mode = state
+                .persistence
+                .load_user(&card.user_id)
+                .await
+                .ok()
+                .flatten()
+                .map(|u| u.mode);
+
             if user_mode == Some(UserMode::Live) {
-                let fresh_tick = state.store.lock().unwrap().tape.get(&card.symbol).cloned();
+                if card.cheap_side != CheapSide::Equity {
+                    return (
+                        StatusCode::OK,
+                        Json(ConfirmResponse::LiveActionUnavailable {
+                            reason: "only the equity leg is executable live in v1; this card's cheap side is the token leg".to_string(),
+                        }),
+                    );
+                }
+                let fresh_tick = state.tape.lock().unwrap().get(&card.symbol).cloned();
                 match hand_off_to_exec(&state, &card, fresh_tick).await {
                     Ok(()) => (
                         StatusCode::OK,
@@ -88,11 +129,16 @@ pub async fn confirm_card(
                     ),
                 }
             } else {
-                let filled_at_price = {
-                    let mut store = state.store.lock().unwrap();
-                    let confirm_tick = store.tape.get(&card.symbol).cloned();
-                    confirm_tick
-                        .map(|tick| store.paper_ledger.record_fill(&card, &tick, now).fill_price)
+                let confirm_tick = state.tape.lock().unwrap().get(&card.symbol).cloned();
+                let filled_at_price = match confirm_tick {
+                    Some(tick) => {
+                        let mut ledger = PaperLedger::new();
+                        let fill = ledger.record_fill(&card, &tick, now).clone();
+                        let price = fill.fill_price;
+                        let _ = state.persistence.save_fill(&fill).await;
+                        Some(price)
+                    }
+                    None => None,
                 };
                 (
                     StatusCode::OK,
@@ -103,13 +149,14 @@ pub async fn confirm_card(
     }
 }
 
-/// Calls gauge-exec's POST /execute. `side` is hardcoded to `"Buy"` — v1
-/// only ever executes the equity leg live (README: "Token is research, not
-/// a buy button"), but which leg a card's "Do it" should actually place is
-/// a trading-strategy decision this hasn't resolved (see gauge-exec's
-/// execute.rs), so treat this as a placeholder, not a settled answer.
-/// `side`/`cheap_side` are sent as plain JSON strings rather than importing
-/// gauge-exec's `OrderSide` type — gauge-api deliberately doesn't depend on
+/// Calls gauge-exec's POST /execute. No `side` field — gauge-exec derives
+/// Buy/Sell from `cheap_side` itself (its own execute::order_side_for) and
+/// is the authoritative enforcer of "only the equity leg trades live in
+/// v1," not this handler. The `cheap_side == Equity` check above is a
+/// fast-path so gauge-api doesn't burn a network round trip on a request
+/// gauge-exec would reject anyway — not the safety boundary itself.
+/// `cheap_side` is sent as a plain JSON value rather than importing
+/// gauge-exec's types — gauge-api deliberately doesn't depend on
 /// gauge-exec's crate, only its wire contract.
 async fn hand_off_to_exec(
     state: &AppState,
@@ -123,7 +170,6 @@ async fn hand_off_to_exec(
         .json(&serde_json::json!({
             "user_id": card.user_id,
             "symbol": card.symbol,
-            "side": "Buy",
             "cheap_side": card.cheap_side,
             "clip_usd": card.clip_usd,
             "fresh_tick": fresh_tick,
@@ -136,21 +182,39 @@ async fn hand_off_to_exec(
     Ok(())
 }
 
-pub async fn skip_card(State(state): State<AppState>, Path(card_id): Path<String>) -> StatusCode {
-    let (rejected, user_id) = {
-        let mut store = state.store.lock().unwrap();
-        let rejected = store.card_store.reject(&card_id);
-        let user_id = store.card_store.get(&card_id).map(|c| c.user_id.clone());
-        (rejected, user_id)
+pub async fn skip_card(State(mut state): State<AppState>, Path(card_id): Path<String>) -> StatusCode {
+    let loaded = match state.persistence.load_card(&card_id).await {
+        Ok(Some(card)) => card,
+        _ => return StatusCode::CONFLICT,
     };
-    if rejected {
-        if let Some(user_id) = user_id {
-            state.publish_card_event(&card_id, &user_id, CardEventKind::Rejected);
-        }
-        StatusCode::OK
-    } else {
-        StatusCode::CONFLICT
+
+    let mut ephemeral = CardStore::new();
+    ephemeral.open(loaded);
+    if !ephemeral.reject(&card_id) {
+        return StatusCode::CONFLICT;
     }
+    let card = ephemeral.get(&card_id).expect("just rejected");
+    if state.persistence.save_card(card).await.is_err() {
+        return StatusCode::INTERNAL_SERVER_ERROR;
+    }
+    let user_id = card.user_id.clone();
+    publish_event(&mut state, &card_id, &user_id, CardEventKind::Rejected).await;
+    StatusCode::OK
+}
+
+/// Every card mutation goes through Redis Pub/Sub, even gauge-api's own —
+/// see state.rs's note on `card_events`. Best-effort: a publish failure
+/// only means SSE clients miss this one notification, not that the mutation
+/// itself failed (it's already saved by the time this is called).
+async fn publish_event(state: &mut AppState, card_id: &str, user_id: &str, kind: CardEventKind) {
+    let _ = state
+        .persistence
+        .publish_card_event(&CardEvent {
+            card_id: card_id.to_string(),
+            user_id: user_id.to_string(),
+            kind,
+        })
+        .await;
 }
 
 /// Live updates for one user's cards. Cards are opened server-side by
@@ -184,116 +248,134 @@ pub async fn stream_cards(
 mod tests {
     use super::*;
     use crate::routes::router;
+    use crate::test_support;
+    use crate::test_support::{test_state, unique_id};
     use axum::body::Body;
     use axum::http::Request;
     use http_body_util::BodyExt;
-    use shared_types::{CheapSide, Decision, Session, User};
+    use shared_types::{BasisTick, CardState, Decision, Session, User, UserMode};
     use tower::ServiceExt;
 
-    fn seed_state() -> AppState {
-        // Port 1 is reserved/unlisted — connecting there fails fast and
-        // deterministically, standing in for "gauge-exec isn't running".
-        let state = AppState::new("http://127.0.0.1:1");
-        {
-            let mut store = state.store.lock().unwrap();
-            store.users.insert(
-                "alice".to_string(),
-                User {
-                    user_id: "alice".to_string(),
-                    mode: UserMode::Paper,
-                    nav_usd: 1_000.0,
-                    max_clip_usd: 100.0,
-                    name_pct: 0.1,
-                    daily_card_cap: 3,
-                    universe: Default::default(),
-                    mutes: Default::default(),
-                    kill_switch: false,
-                },
-            );
-            let alice = store.users.get("alice").unwrap().clone();
-            store.users.insert(
-                "bob".to_string(),
-                User {
-                    user_id: "bob".to_string(),
-                    mode: UserMode::Live,
-                    ..alice
-                },
-            );
-            store.tape.insert(
-                "HOOD".to_string(),
-                shared_types::BasisTick {
-                    symbol: "HOOD".to_string(),
-                    share_mid: 50.0,
-                    token_per_share: 50.6,
-                    basis_bps: 120.0,
-                    net_bps: 90.0,
-                    cheap_side: CheapSide::Equity,
-                    session: Session::Rth,
-                    clip_max: 100.0,
-                    decision: Decision::CardEligible,
-                    ts_ms: now_ms(),
-                },
-            );
-            store.card_store.open(Card {
-                card_id: "paper-card".to_string(),
-                user_id: "alice".to_string(),
-                symbol: "HOOD".to_string(),
-                clip_usd: 40.0,
-                cheap_side: CheapSide::Equity,
-                basis_bps: 120.0,
-                net_bps: 90.0,
-                state: shared_types::CardState::Open,
-                opened_at_ms: now_ms(),
-                ttl_ms: 75_000,
-            });
-            store.card_store.open(Card {
-                card_id: "live-card".to_string(),
-                user_id: "bob".to_string(),
-                symbol: "HOOD".to_string(),
-                clip_usd: 40.0,
-                cheap_side: CheapSide::Equity,
-                basis_bps: 120.0,
-                net_bps: 90.0,
-                state: shared_types::CardState::Open,
-                opened_at_ms: now_ms(),
-                ttl_ms: 75_000,
-            });
+    fn auth_header(builder: axum::http::request::Builder) -> axum::http::request::Builder {
+        builder.header("authorization", "Bearer test-token")
+    }
+
+    fn user(user_id: &str, mode: UserMode) -> User {
+        User {
+            user_id: user_id.to_string(),
+            mode,
+            nav_usd: 1_000.0,
+            max_clip_usd: 100.0,
+            name_pct: 0.5,
+            daily_card_cap: 3,
+            universe: Default::default(),
+            mutes: Default::default(),
+            kill_switch: false,
         }
-        state
+    }
+
+    fn card(card_id: &str, user_id: &str, cheap_side: CheapSide) -> Card {
+        Card {
+            card_id: card_id.to_string(),
+            user_id: user_id.to_string(),
+            symbol: "HOOD".to_string(),
+            clip_usd: 40.0,
+            cheap_side,
+            basis_bps: 120.0,
+            net_bps: 90.0,
+            state: CardState::Open,
+            opened_at_ms: now_ms(),
+            ttl_ms: 75_000,
+        }
+    }
+
+    fn tick(symbol: &str) -> BasisTick {
+        BasisTick {
+            symbol: symbol.to_string(),
+            share_mid: 50.0,
+            token_per_share: 50.6,
+            basis_bps: 120.0,
+            net_bps: 90.0,
+            cheap_side: CheapSide::Equity,
+            session: Session::Rth,
+            clip_max: 100.0,
+            decision: Decision::CardEligible,
+            ts_ms: now_ms(),
+        }
     }
 
     #[tokio::test]
     async fn list_cards_returns_only_that_users_cards() {
-        let app = router(seed_state());
+        let alice = unique_id("alice");
+        let bob = unique_id("bob");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_card(&card(&card_id, &alice, CheapSide::Equity)).await.unwrap();
+        state.persistence.save_card(&card(&unique_id("card"), &bob, CheapSide::Equity)).await.unwrap();
+
+        let app = router(state);
         let response = app
             .oneshot(
-                Request::builder()
-                    .uri("/cards?user_id=alice")
+                auth_header(Request::builder().uri(format!("/cards?user_id={alice}")))
                     .body(Body::empty())
                     .unwrap(),
             )
             .await
             .unwrap();
+
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let cards: Vec<Card> = serde_json::from_slice(&body).unwrap();
         assert_eq!(cards.len(), 1);
-        assert_eq!(cards[0].card_id, "paper-card");
+        assert_eq!(cards[0].card_id, card_id);
     }
 
     #[tokio::test]
-    async fn confirming_a_paper_card_records_a_fill_at_the_tape_mid() {
-        let app = router(seed_state());
+    async fn requests_without_the_bearer_token_are_rejected() {
+        let state = test_state().await;
+        let app = router(state);
         let response = app
             .oneshot(
                 Request::builder()
-                    .method("POST")
-                    .uri("/cards/paper-card/confirm")
+                    .uri("/cards?user_id=anyone")
                     .body(Body::empty())
                     .unwrap(),
             )
             .await
             .unwrap();
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn tape_stays_public_without_auth() {
+        let state = test_state().await;
+        let app = router(state);
+        let response = app
+            .oneshot(Request::builder().uri("/tape").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn confirming_a_paper_card_records_a_fill_at_the_tape_mid() {
+        let user_id = unique_id("alice");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_user(&user(&user_id, UserMode::Paper)).await.unwrap();
+        state.persistence.save_card(&card(&card_id, &user_id, CheapSide::Equity)).await.unwrap();
+        state.tape.lock().unwrap().insert("HOOD".to_string(), tick("HOOD"));
+
+        let app = router(state);
+        let response = app
+            .oneshot(
+                auth_header(Request::builder().method("POST").uri(format!("/cards/{card_id}/confirm")))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let parsed: ConfirmResponse = serde_json::from_slice(&body).unwrap();
@@ -301,18 +383,48 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn confirming_a_live_card_reports_the_handoff_failure_when_exec_is_unreachable() {
-        let app = router(seed_state());
+    async fn confirming_a_live_card_whose_cheap_side_is_the_token_has_no_live_action() {
+        let user_id = unique_id("alice");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_user(&user(&user_id, UserMode::Live)).await.unwrap();
+        state.persistence.save_card(&card(&card_id, &user_id, CheapSide::Token)).await.unwrap();
+
+        let app = router(state);
         let response = app
             .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/cards/live-card/confirm")
+                auth_header(Request::builder().method("POST").uri(format!("/cards/{card_id}/confirm")))
                     .body(Body::empty())
                     .unwrap(),
             )
             .await
             .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let parsed: ConfirmResponse = serde_json::from_slice(&body).unwrap();
+        assert!(matches!(parsed, ConfirmResponse::LiveActionUnavailable { .. }));
+    }
+
+    #[tokio::test]
+    async fn confirming_a_live_equity_card_reports_the_handoff_failure_when_exec_is_unreachable() {
+        let user_id = unique_id("alice");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_user(&user(&user_id, UserMode::Live)).await.unwrap();
+        state.persistence.save_card(&card(&card_id, &user_id, CheapSide::Equity)).await.unwrap();
+        state.tape.lock().unwrap().insert("HOOD".to_string(), tick("HOOD"));
+
+        let app = router(state);
+        let response = app
+            .oneshot(
+                auth_header(Request::builder().method("POST").uri(format!("/cards/{card_id}/confirm")))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
         assert_eq!(response.status(), StatusCode::BAD_GATEWAY);
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let parsed: ConfirmResponse = serde_json::from_slice(&body).unwrap();
@@ -321,11 +433,16 @@ mod tests {
 
     #[tokio::test]
     async fn confirming_twice_is_conflict_not_a_double_fill() {
-        let app = router(seed_state());
+        let user_id = unique_id("alice");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_user(&user(&user_id, UserMode::Paper)).await.unwrap();
+        state.persistence.save_card(&card(&card_id, &user_id, CheapSide::Equity)).await.unwrap();
+        state.tape.lock().unwrap().insert("HOOD".to_string(), tick("HOOD"));
+
+        let app = router(state);
         let request = || {
-            Request::builder()
-                .method("POST")
-                .uri("/cards/paper-card/confirm")
+            auth_header(Request::builder().method("POST").uri(format!("/cards/{card_id}/confirm")))
                 .body(Body::empty())
                 .unwrap()
         };
@@ -337,80 +454,89 @@ mod tests {
 
     #[tokio::test]
     async fn skip_resolves_an_open_card() {
-        let app = router(seed_state());
+        let user_id = unique_id("alice");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_card(&card(&card_id, &user_id, CheapSide::Equity)).await.unwrap();
+
+        let app = router(state);
         let response = app
             .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/cards/paper-card/skip")
+                auth_header(Request::builder().method("POST").uri(format!("/cards/{card_id}/skip")))
                     .body(Body::empty())
                     .unwrap(),
             )
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::OK);
-    }
-
-    #[tokio::test]
-    async fn stream_cards_responds_with_sse_content_type() {
-        let app = router(seed_state());
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/cards/stream?user_id=alice")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
-        assert_eq!(response.headers().get("content-type").unwrap(), "text/event-stream");
-    }
-
-    #[tokio::test]
-    async fn stream_cards_only_delivers_events_for_the_requested_user() {
-        let state = seed_state();
-        let app = router(state.clone());
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/cards/stream?user_id=alice")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-        let mut body = response.into_body().into_data_stream();
-
-        // Published after the subscription above exists (oneshot already ran
-        // the handler), so both are queued for delivery — only one should
-        // pass the per-user filter.
-        state.publish_card_event("bobs-card", "bob", CardEventKind::Confirmed);
-        state.publish_card_event("paper-card", "alice", CardEventKind::Confirmed);
-
-        let chunk = tokio::time::timeout(std::time::Duration::from_secs(2), body.next())
-            .await
-            .expect("timed out waiting for an SSE event")
-            .expect("stream ended before any event arrived")
-            .expect("chunk read error");
-        let text = String::from_utf8(chunk.to_vec()).unwrap();
-        assert!(text.contains("paper-card"), "got: {text}");
-        assert!(!text.contains("bobs-card"), "got: {text}");
     }
 
     #[tokio::test]
     async fn skipping_an_unknown_card_is_conflict() {
-        let app = router(seed_state());
+        let state = test_state().await;
+        let app = router(state);
         let response = app
             .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/cards/nope/skip")
+                auth_header(Request::builder().method("POST").uri("/cards/nope-at-all/skip"))
                     .body(Body::empty())
                     .unwrap(),
             )
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::CONFLICT);
+    }
+
+    #[tokio::test]
+    async fn stream_cards_relays_redis_pubsub_events_filtered_by_user() {
+        let alice = unique_id("alice");
+        let bob = unique_id("bob");
+        let state = test_state().await;
+        // The real relay, same as main.rs spawns — proves the whole
+        // Pub/Sub -> broadcast -> SSE pipeline, not just the filter.
+        tokio::spawn(crate::background::run_card_event_relay(
+            test_support::test_redis_url(),
+            state.card_events.clone(),
+        ));
+        // Give the relay a moment to subscribe before anything is published.
+        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+
+        let app = router(state.clone());
+        let response = app
+            .oneshot(
+                auth_header(Request::builder().uri(format!("/cards/stream?user_id={alice}")))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let mut body = response.into_body().into_data_stream();
+
+        let mut persistence = state.persistence.clone();
+        persistence
+            .publish_card_event(&CardEvent {
+                card_id: "bobs-card".to_string(),
+                user_id: bob,
+                kind: CardEventKind::Opened,
+            })
+            .await
+            .unwrap();
+        persistence
+            .publish_card_event(&CardEvent {
+                card_id: "alices-card".to_string(),
+                user_id: alice,
+                kind: CardEventKind::Opened,
+            })
+            .await
+            .unwrap();
+
+        let chunk = tokio::time::timeout(std::time::Duration::from_secs(3), body.next())
+            .await
+            .expect("timed out waiting for an SSE event")
+            .expect("stream ended before any event arrived")
+            .expect("chunk read error");
+        let text = String::from_utf8(chunk.to_vec()).unwrap();
+        assert!(text.contains("alices-card"), "got: {text}");
+        assert!(!text.contains("bobs-card"), "got: {text}");
     }
 }

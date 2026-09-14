@@ -11,7 +11,7 @@ use tokio::sync::Mutex;
 
 use crate::execute::{ExecutionRejection, confirm_and_execute};
 use crate::live_gate::LiveTradingGate;
-use crate::mcp::{NotImplementedClient, OrderSide, PlaceResult};
+use crate::mcp::{NotImplementedClient, PlaceResult};
 
 /// Fixed to `NotImplementedClient` rather than generic over `TradingMcpClient`
 /// — axum's `#[debug_handler]`/Handler-trait machinery doesn't play well
@@ -42,7 +42,9 @@ impl ServerState {
 struct ExecuteRequest {
     user_id: String,
     symbol: String,
-    side: OrderSide,
+    /// No `side` field — gauge-exec derives Buy/Sell from `cheap_side`
+    /// itself (execute::order_side_for) rather than trusting a caller-sent
+    /// one on a real-money decision.
     cheap_side: CheapSide,
     clip_usd: f64,
     /// The re-quote input — gauge-exec never trusts a price it didn't just
@@ -56,6 +58,7 @@ impl IntoResponse for ExecutionRejection {
             ExecutionRejection::OutsideRth => StatusCode::CONFLICT,
             ExecutionRejection::LiveDisabledForUser => StatusCode::FORBIDDEN,
             ExecutionRejection::Requote(_) => StatusCode::CONFLICT,
+            ExecutionRejection::UnsupportedCheapSide => StatusCode::UNPROCESSABLE_ENTITY,
             ExecutionRejection::McpUnauthorized => StatusCode::BAD_GATEWAY,
             ExecutionRejection::McpRateLimited => StatusCode::SERVICE_UNAVAILABLE,
             ExecutionRejection::McpOther(_) => StatusCode::BAD_GATEWAY,
@@ -75,7 +78,6 @@ async fn execute_handler(
         &mut *live_gate,
         &req.user_id,
         &req.symbol,
-        req.side,
         req.cheap_side,
         req.clip_usd,
         &req.fresh_tick,
@@ -103,11 +105,14 @@ mod tests {
     use tower::ServiceExt;
 
     fn request_body(session: Session, net_bps: f64) -> serde_json::Value {
+        request_body_with_side(session, net_bps, CheapSide::Equity)
+    }
+
+    fn request_body_with_side(session: Session, net_bps: f64, cheap_side: CheapSide) -> serde_json::Value {
         serde_json::json!({
             "user_id": "alice",
             "symbol": "HOOD",
-            "side": "Buy",
-            "cheap_side": "Equity",
+            "cheap_side": cheap_side,
             "clip_usd": 40.0,
             "fresh_tick": BasisTick {
                 symbol: "HOOD".to_string(),
@@ -115,7 +120,7 @@ mod tests {
                 token_per_share: 50.6,
                 basis_bps: 120.0,
                 net_bps,
-                cheap_side: CheapSide::Equity,
+                cheap_side,
                 session,
                 clip_max: 100.0,
                 decision: Decision::CardEligible,
@@ -152,6 +157,16 @@ mod tests {
         let app = router(ServerState::new(NotImplementedClient));
         let response = post_execute(app, request_body(Session::Rth, -5.0)).await;
         assert_eq!(response.status(), StatusCode::CONFLICT);
+    }
+
+    #[tokio::test]
+    async fn a_token_cheap_side_is_rejected_before_mcp() {
+        let app = router(ServerState::new(NotImplementedClient));
+        let response = post_execute(app, request_body_with_side(Session::Rth, 80.0, CheapSide::Token)).await;
+        assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let rejection: ExecutionRejection = serde_json::from_slice(&body).unwrap();
+        assert_eq!(rejection, ExecutionRejection::UnsupportedCheapSide);
     }
 
     #[tokio::test]

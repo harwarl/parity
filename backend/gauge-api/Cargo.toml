@@ -7,6 +7,7 @@ edition = "2024"
 axum = "0.8.9"
 futures-util = "0.3.34"
 gauge-carder = { version = "0.1.0", path = "../gauge-carder" }
+redis = { version = "1.7.0", features = ["tokio-comp", "connection-manager"] }
 reqwest = { version = "0.13.5", features = ["json"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"

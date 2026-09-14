@@ -2,12 +2,14 @@
 //! definitions can't drift between the market plane and the user plane.
 
 mod card;
+mod card_event;
 mod decision;
 mod quotes;
 mod tick;
 mod user;
 
 pub use card::{Card, CardState};
+pub use card_event::{CardEvent, CardEventKind, CARD_EVENTS_CHANNEL};
 pub use decision::{Decision, HaltReason, SkipCode};
 pub use quotes::{ChainlinkQuote, DepthSnapshot, HaircutParams, RhjQuote};
 pub use tick::{BasisTick, CheapSide, Session};

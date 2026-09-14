@@ -1,8 +1,8 @@
 use redis::AsyncCommands;
 use redis::aio::ConnectionManager;
-use serde::de::DeserializeOwned;
 use serde::Serialize;
-use shared_types::{Card, User};
+use serde::de::DeserializeOwned;
+use shared_types::{CARD_EVENTS_CHANNEL, Card, CardEvent, User};
 
 use crate::paper_ledger::Fill;
 
@@ -31,12 +31,20 @@ impl RedisStore {
         save(&mut self.conn, CARD_KEY_PREFIX, &card.card_id, card).await
     }
 
+    pub async fn load_card(&mut self, card_id: &str) -> redis::RedisResult<Option<Card>> {
+        load_one(&mut self.conn, CARD_KEY_PREFIX, card_id).await
+    }
+
     pub async fn load_all_cards(&mut self) -> redis::RedisResult<Vec<Card>> {
         load_all(&mut self.conn, CARD_KEY_PREFIX).await
     }
 
     pub async fn save_user(&mut self, user: &User) -> redis::RedisResult<()> {
         save(&mut self.conn, USER_KEY_PREFIX, &user.user_id, user).await
+    }
+
+    pub async fn load_user(&mut self, user_id: &str) -> redis::RedisResult<Option<User>> {
+        load_one(&mut self.conn, USER_KEY_PREFIX, user_id).await
     }
 
     pub async fn load_all_users(&mut self) -> redis::RedisResult<Vec<User>> {
@@ -51,6 +59,27 @@ impl RedisStore {
     pub async fn load_all_fills(&mut self) -> redis::RedisResult<Vec<Fill>> {
         load_all(&mut self.conn, FILL_KEY_PREFIX).await
     }
+
+    /// Announces a card lifecycle change on `CARD_EVENTS_CHANNEL`. Anyone —
+    /// gauge-carder opening/expiring a card, gauge-api confirming/rejecting
+    /// one — calls this after a successful `save_card`, so every mutator
+    /// goes through the same "state changed" signal.
+    pub async fn publish_card_event(&mut self, event: &CardEvent) -> redis::RedisResult<()> {
+        let json = serde_json::to_string(event).map_err(|e| {
+            redis::RedisError::from((redis::ErrorKind::Client, "serialization failed", e.to_string()))
+        })?;
+        let _: usize = self.conn.publish(CARD_EVENTS_CHANNEL, json).await?;
+        Ok(())
+    }
+}
+
+async fn load_one<T: DeserializeOwned>(
+    conn: &mut ConnectionManager,
+    prefix: &str,
+    id: &str,
+) -> redis::RedisResult<Option<T>> {
+    let json: Option<String> = conn.get(format!("{prefix}{id}")).await?;
+    Ok(json.and_then(|j| serde_json::from_str(&j).ok()))
 }
 
 async fn save<T: Serialize>(
