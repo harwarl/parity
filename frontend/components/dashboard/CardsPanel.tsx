@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CashTokenChart from "@/components/dashboard/CashTokenChart";
 import SignalCard from "@/components/dashboard/SignalCard";
 import Icon from "@/components/ui/Icon";
@@ -66,7 +67,11 @@ export default function CardsPanel({
   onConfirm: (row: TapeRow, clip: number) => void;
 }) {
   const { rows } = useLiveTape(1800);
-  const [selected, setSelected] = useState(TAB_SYMBOLS[0]);
+  const searchParams = useSearchParams();
+  const requestedSymbol = searchParams.get("symbol")?.toUpperCase();
+  const [selected, setSelected] = useState(
+    requestedSymbol && TAB_SYMBOLS.includes(requestedSymbol) ? requestedSymbol : TAB_SYMBOLS[0],
+  );
   const [query, setQuery] = useState("");
 
   const row = rows.find((r) => r.symbol === selected) ?? rows[0];
@@ -82,17 +87,40 @@ export default function CardsPanel({
       .slice(0, 5);
   }, [query, rows, selected]);
 
+  // After a confirm, the card has nothing left to do on this name. Let the
+  // "trade placed" outcome actually show for a beat, then jump to the next
+  // tab that's tradable so there's always an actionable card without the
+  // user having to switch symbols by hand.
+  const advanceTimeoutRef = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(advanceTimeoutRef.current), []);
+
+  const handleConfirmed = (confirmedRow: TapeRow, clip: number) => {
+    onConfirm(confirmedRow, clip);
+
+    const from = TAB_SYMBOLS.indexOf(selected);
+    const order = TAB_SYMBOLS.slice(from + 1).concat(TAB_SYMBOLS.slice(0, from + 1));
+    const next = order.find((s) => {
+      const r = rows.find((row) => row.symbol === s);
+      return r && r.state === "rth" && r.netBps > 0 && s !== selected;
+    });
+    if (next) {
+      window.clearTimeout(advanceTimeoutRef.current);
+      advanceTimeoutRef.current = window.setTimeout(() => setSelected(next), 2200);
+    }
+  };
+
+  const selectSymbol = (symbol: string) => {
+    window.clearTimeout(advanceTimeoutRef.current);
+    setSelected(symbol);
+    setQuery("");
+  };
+
   return (
     <div className="space-y-6">
       {/* card + chart */}
       <div className="grid gap-6 lg:grid-cols-10 lg:items-stretch">
         <div className="lg:col-span-4">
-          <SignalCard
-            key={row.symbol}
-            row={row}
-            onConfirm={onConfirm}
-            capReached={capReached}
-          />
+          <SignalCard key={row.symbol} row={row} onConfirm={handleConfirmed} />
         </div>
 
         <div className="flex min-w-0 flex-col self-start rounded-2xl border border-line bg-surface p-5 sm:p-6 lg:col-span-6">
@@ -102,10 +130,7 @@ export default function CardsPanel({
                 <button
                   key={s}
                   type="button"
-                  onClick={() => {
-                    setSelected(s);
-                    setQuery("");
-                  }}
+                  onClick={() => selectSymbol(s)}
                   aria-pressed={selected === s}
                   className={`rounded-md border px-3 py-1.5 text-[0.82rem] transition-colors ${
                     selected === s
@@ -137,10 +162,7 @@ export default function CardsPanel({
                     <button
                       key={r.symbol}
                       type="button"
-                      onClick={() => {
-                        setSelected(r.symbol);
-                        setQuery("");
-                      }}
+                      onClick={() => selectSymbol(r.symbol)}
                       className="block w-full px-3 py-2 text-left text-[0.8rem] text-text-dim transition-colors hover:bg-surface hover:text-text"
                     >
                       {r.symbol}

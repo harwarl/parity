@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 
 export const metadata: Metadata = {
@@ -6,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return <DashboardShell />;
+  return (
+    <Suspense fallback={null}>
+      <DashboardShell />
+    </Suspense>
+  );
 }

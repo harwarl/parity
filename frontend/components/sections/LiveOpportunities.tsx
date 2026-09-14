@@ -1,49 +1,39 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import Link from "next/link";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Container from "@/components/layout/Container";
 import RefusalFeed from "@/components/parity/RefusalFeed";
 import BrandMark from "@/components/shared/BrandMark";
+import { useLiveTape } from "@/hooks/useLiveTape";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
+import { fmtBps, fmtPrice } from "@/lib/parity/format";
 
-const rows = [
-  {
-    symbol: "HOOD",
-    stock: "$20.01",
-    token: "$20.08",
-    net: "$0.05 (+25 bps)",
-    netTone: "green",
-    status: "Eligibe",
-    statusTone: "green",
-    expires: "00:42",
-  },
-  {
-    symbol: "TSLA",
-    stock: "$248.32",
-    token: "$248.11",
-    net: "$0.00 (dust)",
-    netTone: "mute",
-    status: "Dust",
-    statusTone: "mute",
-    expires: "—",
-  },
-  {
-    symbol: "AAPL",
-    stock: "$227.14",
-    token: "$226.90",
-    net: "$0.00 (after costs)",
-    netTone: "mute",
-    status: "Thin",
-    statusTone: "mute",
-    expires: "—",
-  },
-] as const;
+const SYMBOLS = ["HOOD", "TSLA", "AAPL"] as const;
+const TTL_SECONDS = 75;
 
-/** "Live Opportunities (Paper Mode)" — the sample tape table on the landing page. */
+function fmtTtlClock(seconds: number): string {
+  const s = Math.max(0, Math.ceil(seconds));
+  const mm = Math.floor(s / 60).toString().padStart(2, "0");
+  const ss = (s % 60).toString().padStart(2, "0");
+  return `${mm}:${ss}`;
+}
+
+/** "Live Opportunities (Paper Mode)" — real drifting prices/net-edge (via
+ * useLiveTape) and a real ticking TTL, not a static mockup. */
 export default function LiveOpportunities() {
   const ref = useRef<HTMLElement>(null);
   const reduced = usePrefersReducedMotion();
+  const { rows: liveRows } = useLiveTape(1800);
+  const [remaining, setRemaining] = useState(TTL_SECONDS);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setRemaining((r) => (r > 1 ? r - 1 : TTL_SECONDS));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useLayoutEffect(() => {
     if (reduced || !ref.current) return;
@@ -66,6 +56,23 @@ export default function LiveOpportunities() {
     }, ref);
     return () => ctx.revert();
   }, [reduced]);
+
+  const rows = SYMBOLS.map((symbol) => {
+    const row = liveRows.find((r) => r.symbol === symbol) ?? liveRows[0];
+    const dead = row.state === "halt" || row.state === "stale";
+    const tradable = !dead && row.state === "rth" && row.netBps > 0;
+    const moveAbs = Math.abs(row.tokenPerShare - row.shareMid);
+    return {
+      symbol,
+      stock: dead ? "—" : fmtPrice(row.shareMid),
+      token: dead ? "—" : fmtPrice(row.tokenPerShare),
+      net: dead ? "—" : `$${moveAbs.toFixed(2)} (${tradable ? fmtBps(row.netBps) : "dust"})`,
+      netTone: tradable ? ("green" as const) : ("mute" as const),
+      status: dead ? row.state.toUpperCase() : tradable ? "Eligible" : "Dust",
+      statusTone: tradable ? ("green" as const) : ("mute" as const),
+      expires: tradable ? fmtTtlClock(remaining) : "—",
+    };
+  });
 
   return (
     <section ref={ref} className="border-t border-line py-16 sm:py-20" id="tape">
@@ -110,10 +117,15 @@ export default function LiveOpportunities() {
                       <span className="text-[0.9rem] font-medium text-text">{r.symbol}</span>
                     </span>
                   </td>
-                  <td className="tnum py-4 pr-4 text-[0.88rem] text-text-dim">{r.stock}</td>
-                  <td className="tnum py-4 pr-4 text-[0.88rem] text-text-dim">{r.token}</td>
+                  <td className="tnum tick-flash py-4 pr-4 text-[0.88rem] text-text-dim" key={`stock-${r.stock}`}>
+                    {r.stock}
+                  </td>
+                  <td className="tnum tick-flash py-4 pr-4 text-[0.88rem] text-text-dim" key={`token-${r.token}`}>
+                    {r.token}
+                  </td>
                   <td
-                    className={`tnum py-4 pr-4 text-[0.88rem] ${
+                    key={`net-${r.net}`}
+                    className={`tnum tick-flash py-4 pr-4 text-[0.88rem] ${
                       r.netTone === "green" ? "text-green" : "text-text-mute"
                     }`}
                   >
@@ -127,18 +139,18 @@ export default function LiveOpportunities() {
                           : "border-line-strong text-text-mute"
                       }`}
                     >
-                      <span className={`size-1.5 rounded-full ${r.statusTone === "green" ? "bg-green" : "bg-text-mute"}`} />
+                      <span className={`size-1.5 rounded-full ${r.statusTone === "green" ? "animate-pulse bg-green" : "bg-text-mute"}`} />
                       {r.status}
                     </span>
                   </td>
                   <td className="tnum py-4 pr-4 text-[0.85rem] text-text-mute">{r.expires}</td>
                   <td className="py-4 pl-4 text-right">
-                    <button
-                      type="button"
-                      className="h-8 rounded-md bg-green px-4 text-[0.8rem] font-medium text-green-ink transition-colors hover:bg-[#12e888]"
+                    <Link
+                      href={`/dashboard?symbol=${r.symbol}`}
+                      className="inline-flex h-8 items-center rounded-md bg-green px-4 text-[0.8rem] font-medium text-green-ink transition-colors hover:bg-[#12e888]"
                     >
                       View
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}

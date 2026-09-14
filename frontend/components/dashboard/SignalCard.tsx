@@ -46,20 +46,18 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
  * `confirmHref` makes "Confirm & Do It" a real link (the landing hero sends
  * it to /dashboard); left unset, "Confirm & Do It" opens a clip-size modal —
  * picking a clip is the buy action, a one-step simulated paper fill.
- * `onConfirm` fires once with the row and chosen clip, and `capReached`
- * disables the button once the daily cap is used up. */
+ * `onConfirm` fires once with the row and chosen clip. Users can confirm the
+ * same or different names as many times as they like — no daily cap gating. */
 export default function SignalCard({
   row,
   onExpire,
   confirmHref,
   onConfirm,
-  capReached = false,
 }: {
   row: TapeRow;
   onExpire?: () => void;
   confirmHref?: string;
   onConfirm?: (row: TapeRow, clip: number) => void;
-  capReached?: boolean;
 }) {
   const [remaining, setRemaining] = useState(TTL_SECONDS);
   const [confirmed, setConfirmed] = useState(false);
@@ -132,7 +130,7 @@ export default function SignalCard({
   const tone = dead ? "halt" : tradable ? "green" : "mute";
 
   const handlePickClip = (amount: number) => {
-    if (confirmed || capReached) return;
+    if (confirmed) return;
     setClip(amount);
     setConfirmed(true);
     setModalOpen(false);
@@ -304,17 +302,14 @@ export default function SignalCard({
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                disabled={capReached}
-                className="h-12 rounded-xl bg-green text-[0.9rem] font-bold text-green-ink transition-colors hover:bg-[#12e888] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-green"
+                className="h-12 rounded-xl bg-green text-[0.9rem] font-bold text-green-ink transition-colors hover:bg-[#12e888]"
               >
                 Confirm &amp; Do It
               </button>
             )}
           </div>
           <p className="mt-auto pt-4 text-center text-[0.76rem] text-text-mute">
-            {capReached
-              ? "Daily cap reached. Try again tomorrow."
-              : "Re-quotes at confirm. Valid for 75 seconds."}
+            Re-quotes at confirm. Valid for 75 seconds.
           </p>
         </>
       ) : (
