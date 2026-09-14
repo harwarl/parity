@@ -58,6 +58,10 @@ impl CardStore {
         self.cards.get(card_id)
     }
 
+    pub fn cards_for_user(&self, user_id: &str) -> Vec<&Card> {
+        self.cards.values().filter(|c| c.user_id == user_id).collect()
+    }
+
     /// Idempotent: confirming an already-resolved card is a no-op (`None`)
     /// rather than double-filling. Confirming past TTL resolves to
     /// `StaleOnConfirm`, distinct from a background `expire_stale` sweep.
@@ -182,5 +186,16 @@ mod tests {
 
         let next_day = 3_000 + MS_PER_DAY;
         assert_eq!(store.cards_opened_today("alice", next_day), 0);
+    }
+
+    #[test]
+    fn cards_for_user_only_returns_that_users_cards() {
+        let mut store = CardStore::new();
+        store.open(card("c1", "alice", 1_000, 75_000));
+        store.open(card("c2", "bob", 1_000, 75_000));
+
+        let alice_cards = store.cards_for_user("alice");
+        assert_eq!(alice_cards.len(), 1);
+        assert_eq!(alice_cards[0].card_id, "c1");
     }
 }

@@ -1,6 +1,6 @@
 use shared_types::{BasisTick, CheapSide, Decision};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum RequoteRejection {
     /// The fresh tick isn't CardEligible any more (Skip or Halt).
     NoLongerEligible,

@@ -5,7 +5,7 @@ use crate::mcp::{McpError, OrderSide, PlaceResult, TradingMcpClient};
 use crate::requote::{requote, RequoteRejection};
 use crate::session_gate::allows_live_execution;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum ExecutionRejection {
     OutsideRth,
     LiveDisabledForUser,
