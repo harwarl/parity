@@ -3,13 +3,13 @@
 import { useLayoutEffect, useRef } from "react";
 import Container from "@/components/layout/Container";
 import RefusalFeed from "@/components/parity/RefusalFeed";
+import BrandMark from "@/components/shared/BrandMark";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { gsap } from "@/lib/gsap";
 
 const rows = [
   {
     symbol: "HOOD",
-    icon: "hood",
     stock: "$20.01",
     token: "$20.08",
     net: "$0.05 (+25 bps)",
@@ -20,7 +20,6 @@ const rows = [
   },
   {
     symbol: "TSLA",
-    icon: "tsla",
     stock: "$248.32",
     token: "$248.11",
     net: "$0.00 (dust)",
@@ -31,7 +30,6 @@ const rows = [
   },
   {
     symbol: "AAPL",
-    icon: "aapl",
     stock: "$227.14",
     token: "$226.90",
     net: "$0.00 (after costs)",
@@ -108,7 +106,7 @@ export default function LiveOpportunities() {
                 >
                   <td className="py-4 pr-4">
                     <span className="flex items-center gap-2.5">
-                      <AssetIcon kind={r.icon} />
+                      <BrandMark symbol={r.symbol} className="size-6" />
                       <span className="text-[0.9rem] font-medium text-text">{r.symbol}</span>
                     </span>
                   </td>
@@ -157,33 +155,5 @@ function ArrowIcon() {
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M2.5 8h11M9 3.5 13.5 8 9 12.5" />
     </svg>
-  );
-}
-
-function AssetIcon({ kind }: { kind: "hood" | "tsla" | "aapl" }) {
-  if (kind === "hood") {
-    return (
-      <span className="flex size-6 items-center justify-center rounded-full bg-green/15 text-green">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-          <path d="M8 1.5C5 4 3 6.5 3 9.5A5 5 0 0 0 8 14.5 5 5 0 0 0 13 9.5c0-3-2-5.5-5-8Z" />
-        </svg>
-      </span>
-    );
-  }
-  if (kind === "tsla") {
-    return (
-      <span className="flex size-6 items-center justify-center rounded-full bg-[#e82127] text-white">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-          <path d="M8 3c1.8 0 3.4.5 4.6 1.3l-1 1.4c-.9-.4-1.8-.7-2.7-.75L8 15h-1L6.1 4.95c-.9.05-1.9.35-2.8.75l-1-1.4C3.5 3.5 5.2 3 7 3h1Z" />
-        </svg>
-      </span>
-    );
-  }
-  return (
-    <span className="flex size-6 items-center justify-center rounded-full bg-text-dim/15 text-text-dim">
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-        <path d="M11.3 8.4c0-1.7 1.4-2.5 1.5-2.6-.8-1.1-2-1.3-2.4-1.3-1 0-1.9.6-2.4.6s-1.3-.6-2.2-.6c-1.1 0-2.2.7-2.8 1.7-1.2 2.1-.3 5.2.8 6.9.6.8 1.3 1.8 2.1 1.7.8-.02 1.2-.55 2.2-.55s1.3.55 2.2.53c.9-.02 1.5-.85 2-1.7.7-.9.9-1.9.9-1.95 0 0-1.75-.68-1.75-2.68Zm-1.7-5c.5-.6.8-1.4.75-2.2-.7.04-1.6.5-2.1 1.1-.45.5-.85 1.35-.75 2.1.8.06 1.6-.4 2.1-1Z" />
-      </svg>
-    </span>
   );
 }

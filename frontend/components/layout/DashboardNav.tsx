@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import Container from "./Container";
+import WalletButton from "./WalletButton";
 
 const links = [
   { label: "Tape", href: "/dashboard" },
@@ -13,9 +14,8 @@ const links = [
 
 /**
  * Console-style nav for the dashboard shell: pill nav + a right-hand icon
- * cluster (status pill, notifications, live pulse, help, primary CTA) — the
- * same arrangement as a wallet-app header, minus anything implying a
- * connected wallet or custody (CLAUDE.md: no custody, no wallet to connect).
+ * cluster (status pill, notifications, live pulse, help, wallet connect) —
+ * the same arrangement as a wallet-app header.
  */
 export default function DashboardNav() {
   return (
@@ -32,10 +32,10 @@ export default function DashboardNav() {
           <RightCluster />
         </div>
 
-        {/* mobile: brand + cta on row one, pills scroll on row two */}
+        {/* mobile: brand + wallet on row one, pills scroll on row two */}
         <div className="flex items-center justify-between gap-3 md:hidden">
           <Brand />
-          <CtaLink />
+          <WalletButton />
         </div>
         <nav
           aria-label="Dashboard"
@@ -116,17 +116,6 @@ function IconButton({
   );
 }
 
-function CtaLink() {
-  return (
-    <Link
-      href="/dashboard"
-      className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-green px-4 text-[0.8rem] font-medium text-green-ink transition-colors hover:bg-[#12e888]"
-    >
-      Check the Gauge
-    </Link>
-  );
-}
-
 function RightCluster() {
   return (
     <div className="flex shrink-0 items-center gap-2.5">
@@ -134,7 +123,7 @@ function RightCluster() {
       <IconButton name="bell" label="Notifications" />
       <IconButton name="activity" label="Live status" />
       <IconButton name="help" label="Help" />
-      <CtaLink />
+      <WalletButton />
     </div>
   );
 }
