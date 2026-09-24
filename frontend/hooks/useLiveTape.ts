@@ -9,16 +9,16 @@ import type { TapeRow } from "@/types/parity";
 
 /**
  * The shared tape. Polls gauge-api's real GET /tape every 5s; while
- * gauge-market has no poll loop running yet (backend's most significant
- * remaining gap — see its ARCHITECTURE.md), that endpoint comes back empty
+ * gauge-api's mod market has no poll loop running yet (backend's most
+ * significant remaining gap — see TODO.md), that endpoint comes back empty
  * and every row falls back to the illustrative local simulation below, so
  * the marketing site keeps working standalone. This *is* the "explicitly
  * wired to a live tape endpoint" case CLAUDE.md carves out — real rows
- * replace their seeded counterpart the moment gauge-market starts
+ * replace their seeded counterpart the moment mod market starts
  * publishing, with no code change needed here.
  *
  * A row backed by real data is never perturbed by the local random walk —
- * doing so would silently overwrite gauge-engine's actual net_bps with this
+ * doing so would silently overwrite mod engine's actual net_bps with this
  * file's illustrative ROW_HAIRCUT approximation. Live ticks are read from a
  * ref inside the same interval loop that already drives the illustrative
  * animation (rather than a second effect that would call setState directly
@@ -26,7 +26,7 @@ import type { TapeRow } from "@/types/parity";
  * render), so there's one update path, not two racing ones.
  *
  * Only ever updates rows already in the seeded TAPE (10 fixed symbols) — a
- * real tick for a symbol outside that list is silently ignored. gauge-market
+ * real tick for a symbol outside that list is silently ignored. gauge-api
  * has no decided live universe yet (ARCHITECTURE.md §7), so there's nothing
  * more specific to reconcile against today.
  */
