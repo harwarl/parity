@@ -2,17 +2,13 @@
 #
 # gauge-api connects to Redis at startup and refuses to start without one —
 # `make up` checks for it first and fails fast with a clear message rather
-# than letting it panic. gauge-api used to be three separate binaries
-# (gauge-market, gauge-carder, gauge-api) talking over Redis and HTTP; they're
-# folded into one deployable now (see gauge-api/src/main.rs) — gauge-exec
-# stays its own service on purpose, since it's the one that will hold real
-# MCP credentials and shouldn't share a process/crash domain with anything
-# else.
-#
-# gauge-notif is still a stub today (no server loop yet): it connects,
-# prints a line, and exits almost immediately. `make status` right after
-# `make up` will show it as stopped — that's today's real state, not a bug
-# here. gauge-exec and gauge-api are real long-running servers.
+# than letting it panic. gauge-api used to be four separate binaries
+# (gauge-engine, gauge-market, gauge-carder, gauge-api) talking over Redis
+# and HTTP, plus a fifth (gauge-notif) that never had any real logic. They're
+# all folded into this one deployable now (see gauge-api/src/main.rs) —
+# gauge-exec stays its own service on purpose, since it's the one that will
+# hold real MCP credentials and shouldn't share a process/crash domain with
+# anything else.
 
 SHELL := /bin/bash
 RUN_DIR := .run
@@ -26,11 +22,10 @@ GAUGE_EXEC_URL ?= http://$(GAUGE_EXEC_ADDR)
 # isn't purely local.
 GAUGE_API_TOKEN ?= dev-token
 
-SERVICES := exec api notif
+SERVICES := exec api
 
-ENV_exec  := GAUGE_EXEC_ADDR=$(GAUGE_EXEC_ADDR)
-ENV_api   := REDIS_URL=$(REDIS_URL) GAUGE_API_TOKEN=$(GAUGE_API_TOKEN) GAUGE_API_ADDR=$(GAUGE_API_ADDR) GAUGE_EXEC_URL=$(GAUGE_EXEC_URL)
-ENV_notif :=
+ENV_exec := GAUGE_EXEC_ADDR=$(GAUGE_EXEC_ADDR)
+ENV_api  := REDIS_URL=$(REDIS_URL) GAUGE_API_TOKEN=$(GAUGE_API_TOKEN) GAUGE_API_ADDR=$(GAUGE_API_ADDR) GAUGE_EXEC_URL=$(GAUGE_EXEC_URL)
 
 .PHONY: help build redis-check up down restart status logs clean
 
@@ -40,7 +35,7 @@ help:
 	@echo "make restart       down, then up"
 	@echo "make status        show which services are running"
 	@echo "make logs          tail every service's log"
-	@echo "make logs-api      tail one service's log (exec/api/notif)"
+	@echo "make logs-api      tail one service's log (exec/api)"
 	@echo "make build         cargo build --workspace"
 	@echo "make redis-check   fail fast with a clear message if Redis isn't reachable"
 	@echo "make clean         down, then remove $(RUN_DIR)/"
@@ -61,12 +56,11 @@ $(RUN_DIR):
 up: build redis-check $(RUN_DIR)
 	@$(MAKE) --no-print-directory start-exec
 	@$(MAKE) --no-print-directory start-api
-	@$(MAKE) --no-print-directory start-notif
 	@echo ""
 	@$(MAKE) --no-print-directory status
 
-# One rule handles all three services — $* is the short name (exec, api,
-# notif); ENV_$* supplies that service's env vars (see above).
+# One rule handles both services — $* is the short name (exec, api);
+# ENV_$* supplies that service's env vars (see above).
 start-%: $(RUN_DIR)
 	@if [ -f $(RUN_DIR)/$*.pid ] && kill -0 "$$(cat $(RUN_DIR)/$*.pid)" 2>/dev/null; then \
 		echo "gauge-$* already running (pid $$(cat $(RUN_DIR)/$*.pid))"; \

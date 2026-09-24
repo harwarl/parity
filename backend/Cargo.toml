@@ -1,9 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "gauge-engine",
     "gauge-api",
     "gauge-exec",
-    "gauge-notif",
     "shared-types",
 ]

@@ -5,8 +5,9 @@
 //! service that will hold real MCP credentials).
 //!
 //! Still missing, same gap as before the merge: the actual poll loop tying
-//! feeds -> gauge-engine -> halt controller -> publish together. Nothing
-//! here calls `TickPublisher::publish` yet — see main.rs's startup check.
+//! feeds -> crate::engine::evaluate -> halt controller -> publish together.
+//! Nothing here calls `TickPublisher::publish` yet — see main.rs's startup
+//! check.
 
 pub mod clock;
 pub mod feeds;
