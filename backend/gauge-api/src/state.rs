@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use gauge_carder::persistence::RedisStore;
+use crate::carder::persistence::RedisStore;
 use shared_types::{BasisTick, CardEvent};
 use tokio::sync::broadcast;
 

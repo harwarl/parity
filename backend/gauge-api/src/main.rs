@@ -1,26 +1,35 @@
-// HTTP surface for the Next.js app: GET /tape (public), GET /cards, GET
-// /cards/stream (SSE), POST /cards/:id/confirm, POST /cards/:id/skip, GET /log,
-// and the You tab settings. gauge-api is the only service the frontend talks to.
-// On confirm it hands off internally to gauge-exec and relays status back — it
-// never holds or sees MCP credentials itself.
+// The single non-exec backend service: ingest (mod market), user-plane fan-out
+// (mod carder), and the HTTP surface for the Next.js app (mod routes) — GET /tape
+// (public), GET /cards, GET /cards/stream (SSE), POST /cards/:id/confirm, POST
+// /cards/:id/skip, GET /log, and the You tab settings. On confirm it hands off
+// to gauge-exec over HTTP and relays status back — it never holds or sees MCP
+// credentials itself. gauge-exec stays its own deployable on purpose: it's the
+// one service that will hold real MCP credentials, and merging it in here would
+// put those credentials in the same process/crash domain as everything else.
 //
-// State is Redis-backed via gauge_carder::persistence::RedisStore (state.rs) —
-// the same store gauge-carder writes through, so card/user data is now actually
-// shared across processes, not two disconnected in-memory copies. Two background
-// tasks (background.rs) mirror gauge-market's tick stream into an in-memory tape
-// cache and relay gauge-carder's card lifecycle Pub/Sub announcements into this
-// process's local SSE broadcast channel. Every route but /tape requires a bearer
-// token (auth.rs) — service-level auth only, not real per-user identity, which
-// is still an undecided architecture question.
+// This used to be three separate binaries (gauge-market, gauge-carder,
+// gauge-api) talking over Redis and HTTP. They're folded in here as mod market
+// and mod carder — same code, same tests, just one deployable instead of three.
+// State is Redis-backed via carder::persistence::RedisStore (state.rs) — the
+// same store carder::runner's background loop writes through, so a card that
+// loop opens and a confirm/skip an HTTP request handles are the same record.
+// Two more background tasks (background.rs) mirror the tick stream into an
+// in-memory tape cache and relay card lifecycle Pub/Sub announcements into this
+// process's local SSE broadcast channel. Every route but /tape requires a
+// bearer token (auth.rs) — service-level auth only, not real per-user identity,
+// which is still an undecided architecture question.
 
 mod auth;
 mod background;
+mod carder;
+mod market;
 mod routes;
 mod state;
 #[cfg(test)]
 mod test_support;
 
-use gauge_carder::persistence::RedisStore;
+use carder::persistence::RedisStore;
+use market::publish::TickPublisher;
 use state::AppState;
 
 #[tokio::main]
@@ -31,6 +40,8 @@ async fn main() {
         std::env::var("GAUGE_EXEC_URL").unwrap_or_else(|_| "http://127.0.0.1:8082".to_string());
     let bind_addr =
         std::env::var("GAUGE_API_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
+    let carder_consumer_name = std::env::var("GAUGE_CARDER_CONSUMER_NAME")
+        .unwrap_or_else(|_| "gauge-api-carder-1".to_string());
     let api_token = std::env::var("GAUGE_API_TOKEN").unwrap_or_else(|_| {
         panic!(
             "gauge-api: GAUGE_API_TOKEN must be set — every route but /tape requires it \
@@ -43,13 +54,24 @@ async fn main() {
         .await
         .unwrap_or_else(|e| panic!("gauge-api: failed to connect to Redis at {redis_url}: {e}"));
 
+    // Ingest side: still just the startup connectivity check gauge-market had
+    // before the merge — the real poll loop (feeds -> gauge-engine -> halt
+    // controller -> publish) was never built (see market/mod.rs). Folding the
+    // three services together didn't add that; it's the same gap, now living
+    // in one binary instead of an undeployed separate one.
+    match TickPublisher::connect(&redis_url).await {
+        Ok(_publisher) => println!("gauge-api/market: connected to Redis at {redis_url}"),
+        Err(e) => eprintln!("gauge-api/market: failed to connect to Redis at {redis_url}: {e}"),
+    }
+
     let state = AppState::new(persistence, exec_url, api_token);
 
     tokio::spawn(background::run_tape_consumer(redis_url.clone(), state.tape.clone()));
     tokio::spawn(background::run_card_event_relay(
-        redis_url,
+        redis_url.clone(),
         state.card_events.clone(),
     ));
+    tokio::spawn(carder::runner::run(redis_url, carder_consumer_name));
 
     let app = routes::router(state);
 

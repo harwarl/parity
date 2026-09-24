@@ -1,4 +1,4 @@
-use crate::clock::now_ms;
+use crate::market::clock::now_ms;
 use shared_types::DepthSnapshot;
 
 /// Assumed response shape for `GET {base_url}/depth/{symbol}` — placeholder,

@@ -1,4 +1,4 @@
-use crate::clock::now_ms;
+use crate::market::clock::now_ms;
 use shared_types::ChainlinkQuote;
 
 /// Assumed response shape for `GET {base_url}/chainlink/{symbol}` — this

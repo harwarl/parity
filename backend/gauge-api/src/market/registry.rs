@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use shared_types::Decision;
 
-use crate::halt::HaltController;
+use crate::market::halt::HaltController;
 
 /// One `HaltController` per symbol, created on first sight. Owns nothing
 /// about *how* ticks arrive — the ingest loop drives it.

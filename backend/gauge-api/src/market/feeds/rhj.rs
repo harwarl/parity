@@ -1,4 +1,4 @@
-use crate::clock::now_ms;
+use crate::market::clock::now_ms;
 use shared_types::RhjQuote;
 
 /// Assumed response shape for `GET {base_url}/rhj/prices/{symbol}` — not

@@ -7,7 +7,7 @@
 
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use gauge_carder::persistence::RedisStore;
+use crate::carder::persistence::RedisStore;
 
 use crate::state::{AppState, now_ms};
 

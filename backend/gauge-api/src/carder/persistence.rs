@@ -4,7 +4,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use shared_types::{CARD_EVENTS_CHANNEL, Card, CardEvent, User};
 
-use crate::paper_ledger::Fill;
+use crate::carder::paper_ledger::Fill;
 
 const CARD_KEY_PREFIX: &str = "gauge:carder:cards:";
 const USER_KEY_PREFIX: &str = "gauge:carder:users:";
