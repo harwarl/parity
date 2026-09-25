@@ -1,209 +1,313 @@
 @import "tailwindcss";
+@import "../styles/animations.css";
 
 /*
- * TAPE — design tokens. See CLAUDE.md "Design DNA".
- * Ground: near-black, dense not airy. One green accent, used sparingly:
- * status pills, primary action, the gap number. Numerals are always mono.
- * Separation is hairline 1px borders, never shadows.
+ * GAUGE tokens (design.md §2). The single source for colour, radius and type.
+ * Components reference these as Tailwind utilities (bg-panel, text-muted,
+ * rounded-panel, font-display …) or as the g-* primitives below.
  */
-:root {
-  --ground: #0a0a0a; /* page background — near-black, not pure */
-  --surface: #101010; /* panels */
-  --surface-2: #161616; /* raised panels / card face */
-  --line: color-mix(in oklab, #ffffff 9%, transparent); /* hairline border */
-  --line-strong: color-mix(in oklab, #ffffff 16%, transparent);
+@theme {
+  --color-bg: #0a0b0d;
+  --color-hero: #07080a;
+  --color-panel: #111316;
+  --color-panel-2: #16181c;
+  --color-inset: #0a0b0d;
+  --color-track: #1c1f23;
+  --color-line: rgba(249, 247, 244, 0.08);
+  --color-line-2: rgba(249, 247, 244, 0.14);
+  --color-line-row: rgba(249, 247, 244, 0.06);
+  --color-ink: #f9f7f4;
+  --color-ink-2: #c9cbcf;
+  --color-muted: #a6a9ae;
+  --color-dim: #80848a;
+  --color-accent: #b2d450;
+  --color-accent-hover: #c2e062;
+  --color-accent-soft: #e4f5a6;
+  --color-accent-ink: #0b0d07;
+  --color-neg: #ff6b5e;
+  --color-dead: #5a5d62;
 
-  --text: #f4f4f3; /* headlines, primary */
-  --text-dim: #a6a6a3; /* body copy — ~7:1 on ground */
-  --text-mute: #6f6f6c; /* timestamps, meta, session state */
+  --radius-panel: 20px;
+  --radius-inset: 14px;
+  --radius-card: 22px;
+  --radius-block: 28px;
+  --radius-stamp: 8px;
 
-  --green: #00dc7a; /* the one accent */
-  --green-ink: #04140c; /* text/icons on a green fill */
-  --green-soft: color-mix(in oklab, #00dc7a 14%, transparent);
-
-  --halt: #5b5b58; /* halted / stale / disabled — desaturated, "no data" */
+  --ease-enter: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-packet: cubic-bezier(0.6, 0, 0.3, 1);
+  --ease-stamp: cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 
 @theme inline {
-  --color-ground: var(--ground);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-  --color-text: var(--text);
-  --color-text-dim: var(--text-dim);
-  --color-text-mute: var(--text-mute);
-  --color-green: var(--green);
-  --color-green-ink: var(--green-ink);
-  --color-green-soft: var(--green-soft);
-  --color-halt: var(--halt);
-
-  --color-background: var(--ground);
-  --color-foreground: var(--text);
-
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
-
-  --default-font-family: var(--font-sans);
+  --font-display: var(--font-unbounded), system-ui, sans-serif;
+  --font-dot: var(--font-doto), monospace;
+  --font-body: var(--font-jakarta), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
-html {
+:root {
+  --panel-grad: linear-gradient(180deg, #131519 0%, #0f1113 100%);
+  --glow: rgba(178, 212, 80, 0.35);
   color-scheme: dark;
-  background: var(--ground);
-  -webkit-text-size-adjust: 100%;
-  overflow-x: clip;
-  /* scale the whole type system down a notch — dense, terminal-ish */
-  font-size: 15px;
 }
 
-body {
-  background: var(--ground);
-  color: var(--text);
-  /* nothing on the page may push a horizontal scrollbar; wide content
-     scrolls inside its own overflow-x container (CLAUDE.md). clip keeps
-     position: sticky working, unlike overflow-x: hidden. */
-  overflow-x: clip;
-  font-family: var(--font-sans);
-  font-synthesis: none;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  /* own stacking context so the fixed -z background layer paints above the
-     body fill instead of being hidden behind it */
-  isolation: isolate;
-}
-
-/* Numerals — prices, bps, TTL, timestamps, multipliers. Always mono, tabular. */
-.tnum {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
-  letter-spacing: -0.01em;
-}
-
-/* Tiny tracked ALL-CAPS eyebrow above a section. */
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--text-mute);
-}
-
-/* Browser surfaces — themed, not defaults. */
-::selection {
-  background: var(--green);
-  color: var(--green-ink);
-}
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
-}
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 999px;
-}
-:focus-visible {
-  outline: 2px solid var(--green);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-/* Motion vocabulary — fast, physical, no bounce. */
-@keyframes num-pop {
-  0% {
-    opacity: 0.3;
-    transform: translateY(-0.14em);
+@layer base {
+  html {
+    background: var(--color-bg);
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-}
-.num-pop {
-  animation: num-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes tick-flash {
-  0% {
-    color: var(--green);
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
   }
-  100% {
-    color: inherit;
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
   }
-}
-.tick-flash {
-  animation: tick-flash 0.9s ease-out;
-}
-
-@keyframes rail-run {
-  0% {
-    left: -8%;
-    opacity: 0;
+  html {
+    scrollbar-color: #2a2d32 var(--color-bg);
   }
-  12% {
-    opacity: 1;
-  }
-  45% {
-    left: 104%;
-    opacity: 1;
-  }
-  55%,
-  100% {
-    left: 104%;
-    opacity: 0;
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
   }
 }
 
-@keyframes strike {
-  from {
-    transform: scaleX(0);
+@layer components {
+  /* Container: 1200 centred, 16px gutter below that */
+  .g-wrap {
+    width: min(1200px, calc(100% - 32px));
+    margin-inline: auto;
   }
-  to {
-    transform: scaleX(1);
-  }
-}
 
-/* line-draw for the hero basis sparkline (path uses pathLength=1) */
-@keyframes draw {
-  from {
-    stroke-dashoffset: 1;
+  /* Eyebrow: Plex Mono 12, uppercase, .22em, lime */
+  .g-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-accent);
   }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
 
-@keyframes caret {
-  0%,
-  100% {
-    opacity: 1;
+  /* Mono label: 10–12px, .12–.18em, dim */
+  .g-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-dim);
   }
-  50% {
-    opacity: 0;
-  }
-}
 
-@keyframes ticker {
-  from {
-    transform: translateX(0);
+  /* Section H2: Unbounded 800, 72px */
+  .g-h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(44px, 5vw, 72px);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+    color: var(--color-ink);
   }
-  to {
-    transform: translateX(-50%);
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  /* Doto accent word: 900, lime, glow */
+  .g-dot {
+    font-family: var(--font-dot);
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    color: var(--color-accent);
+    text-shadow: 0 0 28px rgba(178, 212, 80, 0.35);
+  }
+  .g-h2 .g-dot {
+    font-size: calc(1em * 80 / 72);
+  }
+
+  /* H3 panel title: Unbounded 600, 22px */
+  .g-h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    color: var(--color-ink);
+  }
+
+  /* Lede 19/1.6 muted, Body 16/1.6 muted */
+  .g-lede {
+    font-size: 19px;
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+  .g-lede b {
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .g-p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+
+  /* Panel + featured panel (design.md §6) */
+  .g-panel {
+    position: relative;
+    background: var(--panel-grad);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    transition:
+      border-color 0.4s,
+      box-shadow 0.4s;
+  }
+  .g-panel:hover {
+    border-color: rgba(178, 212, 80, 0.35);
+    box-shadow:
+      0 0 0 1px rgba(178, 212, 80, 0.12),
+      0 20px 60px -20px rgba(178, 212, 80, 0.18);
+  }
+  .g-feat {
+    border-color: rgba(178, 212, 80, 0.45);
+    background:
+      radial-gradient(120% 90% at 0 0, rgba(178, 212, 80, 0.1), transparent 55%),
+      var(--panel-grad);
+    box-shadow:
+      0 0 0 1px rgba(178, 212, 80, 0.1),
+      0 30px 80px -30px rgba(178, 212, 80, 0.3);
+  }
+
+  /* Inset block */
+  .g-inset {
+    background: var(--color-inset);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-inset);
+    padding: 16px 18px;
+  }
+
+  /* Pill: 28px, mono 11 uppercase .16em muted. Lime + small variants. */
+  .g-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid var(--color-line-2);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-muted);
+  }
+  .g-pill-lime {
+    color: var(--color-accent);
+    border-color: rgba(178, 212, 80, 0.4);
+  }
+  .g-pill-sm {
+    height: 24px;
+    padding: 0 10px;
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  /* Live dot: 6px lime, ping 2.4s */
+  .g-live {
+    display: inline-block;
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    box-shadow: 0 0 10px var(--color-accent);
+    animation: g-ping 2.4s ease-in-out infinite;
+  }
+
+  /* Data row: mono 13, label muted, bottom border 6% */
+  .g-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--color-line-row);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 17px;
+  }
+  .g-row > :first-child {
+    color: var(--color-muted);
+  }
+  .g-row > :last-child {
+    color: var(--color-ink);
+    text-align: right;
+  }
+
+  /* Buttons (design.md §6) */
+  .g-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 52px;
+    padding: 0 26px;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  .g-btn:active {
+    transform: translateY(1px);
+  }
+  .g-btn-primary {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    box-shadow:
+      0 0 0 1px rgba(178, 212, 80, 0.6),
+      0 10px 40px -6px rgba(178, 212, 80, 0.55);
+  }
+  .g-btn-primary:hover {
+    background: var(--color-accent-hover);
+    box-shadow:
+      0 0 0 1px rgba(178, 212, 80, 0.6),
+      0 12px 56px -4px rgba(178, 212, 80, 0.7);
+  }
+  .g-btn-secondary {
+    background: rgba(249, 247, 244, 0.03);
+    color: var(--color-ink);
+    border: 1px solid rgba(249, 247, 244, 0.18);
+  }
+  .g-btn-secondary:hover {
+    border-color: rgba(249, 247, 244, 0.4);
+  }
+  .g-btn-ink {
+    background: var(--color-accent-ink);
+    color: var(--color-accent);
+  }
+  .g-btn-ink:hover {
+    background: #1a1d12;
+  }
+  .g-btn-outline-ink {
+    background: transparent;
+    color: var(--color-accent-ink);
+    border: 1.5px solid rgba(11, 13, 7, 0.5);
+  }
+  .g-btn-outline-ink:hover {
+    border-color: var(--color-accent-ink);
+  }
+  .g-btn-sm {
+    height: 48px;
+    padding: 0 24px;
+    font-size: 15px;
   }
 }

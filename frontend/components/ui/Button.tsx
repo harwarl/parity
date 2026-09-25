@@ -1,44 +1,37 @@
-import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
+import type { ComponentProps } from "react";
 
-type Variant = "primary" | "ghost";
+type Variant = "primary" | "secondary" | "ink" | "outline-ink";
 
-const base =
-  "inline-flex items-center justify-center gap-2 rounded-md px-4 h-10 text-sm font-medium tracking-tight transition-[transform,background-color,border-color,color] duration-150 ease-out active:translate-y-px disabled:pointer-events-none disabled:opacity-40";
+type ButtonProps = ComponentProps<"a"> & {
+  variant?: Variant;
+  size?: "md" | "sm";
+  /** Trailing ↗ for links that leave the page (Open GAUGE). */
+  external?: boolean;
+};
 
-const variants: Record<Variant, string> = {
-  primary: "bg-green text-green-ink hover:bg-[#12e888]",
-  ghost:
-    "border border-line-strong text-text-dim hover:border-text-mute hover:text-text",
+const variantClass: Record<Variant, string> = {
+  primary: "g-btn-primary",
+  secondary: "g-btn-secondary",
+  ink: "g-btn-ink",
+  "outline-ink": "g-btn-outline-ink",
 };
 
 export function Button({
-  variant = "ghost",
+  variant = "primary",
+  size = "md",
+  external = false,
   className = "",
-  ...props
-}: ComponentProps<"button"> & { variant?: Variant }) {
-  return (
-    <button
-      className={`${base} ${variants[variant]} ${className}`}
-      {...props}
-    />
-  );
-}
-
-export function ButtonLink({
-  variant = "ghost",
-  className = "",
-  href,
   children,
   ...props
-}: ComponentProps<typeof Link> & { variant?: Variant; children: ReactNode }) {
+}: ButtonProps) {
   return (
-    <Link
-      href={href}
-      className={`${base} ${variants[variant]} ${className}`}
+    <a
+      className={`g-btn ${variantClass[variant]} ${size === "sm" ? "g-btn-sm" : ""} ${className}`}
       {...props}
     >
       {children}
-    </Link>
+      {external && <ArrowUpRightIcon size={18} weight="light" aria-hidden />}
+    </a>
   );
 }

@@ -1,52 +1,61 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import SmoothScroll from "@/components/providers/SmoothScroll";
-import Web3Provider from "@/components/providers/Web3Provider";
+import { Doto, IBM_Plex_Mono, Plus_Jakarta_Sans, Unbounded } from "next/font/google";
+import { site } from "@/config/site";
 import "./globals.css";
 
-const sans = Geist({
-  variable: "--font-geist-sans",
+// design.md §3. Plus Jakarta Sans stands in for Satoshi until the files land.
+const unbounded = Unbounded({
+  variable: "--font-unbounded",
   subsets: ["latin"],
-  display: "swap",
+  weight: ["500", "600", "700", "800"],
 });
 
-const mono = Geist_Mono({
-  variable: "--font-geist-mono",
+const doto = Doto({
+  variable: "--font-doto",
   subsets: ["latin"],
-  display: "swap",
+  weight: ["700", "900"],
 });
 
-const description =
-  "A basis tape for Robinhood cash equities vs Robinhood Chain stock tokens. GAUGE measures the gap, haircuts fees and slippage, and emits a confirm-gated card. GAUGE does not place.";
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+});
+
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gauge.example"),
-  title: {
-    default: "GAUGE · Two prices for the same name. One gap. You tap.",
-    template: "%s · GAUGE",
-  },
-  description,
+  title: site.title,
+  description: site.description,
   openGraph: {
-    title: "GAUGE · Two prices for the same name. One gap.",
-    description,
+    title: site.title,
+    description: site.description,
     type: "website",
   },
-  robots: { index: true, follow: true },
+  twitter: {
+    card: "summary_large_image",
+    title: site.title,
+    description: site.description,
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#0A0B0D",
   colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
-      <body>
-        <Web3Provider>
-          <SmoothScroll>{children}</SmoothScroll>
-        </Web3Provider>
-      </body>
+    <html
+      lang="en"
+      className={`${unbounded.variable} ${doto.variable} ${jakarta.variable} ${plexMono.variable}`}
+    >
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,15 +1,19 @@
-import type { ReactNode } from "react";
-import SiteBackground from "@/components/background/SiteBackground";
-import Footer from "@/components/layout/Footer";
-import Navbar from "@/components/layout/Navbar";
+import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
+import { Footer } from "@/components/layout/Footer";
+import { Navbar } from "@/components/layout/Navbar";
+import { EdgeGlows } from "@/components/shared/EdgeGlows";
+import { MotionGate } from "@/components/shared/MotionGate";
 
-export default function MarketingLayout({ children }: { children: ReactNode }) {
+/** Root is overflow:clip (never hidden) so the sticky nav keeps working. */
+export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
-    <>
-      <SiteBackground />
+    <div className="relative isolate overflow-clip">
+      <EdgeGlows />
+      <AnnouncementBar />
       <Navbar />
-      {children}
+      <main>{children}</main>
       <Footer />
-    </>
+      <MotionGate />
+    </div>
   );
 }
