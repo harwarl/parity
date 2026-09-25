@@ -15,3 +15,18 @@ export function formatCost(bps: number): string {
 export function formatClock(seconds: number): string {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
+
+/** Signed dollars: "+$354.00", "−$19.00". */
+export function formatSignedUsd(value: number): string {
+  const abs = Math.abs(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return value < 0 ? `${MINUS}$${abs}` : `+$${abs}`;
+}
+
+/** Plain one-decimal with a true minus: "9.4", "−0.3". */
+export function formatBps(bps: number): string {
+  const s = Math.abs(bps).toFixed(1);
+  return bps < 0 ? `${MINUS}${s}` : s;
+}

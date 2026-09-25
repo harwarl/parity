@@ -2,7 +2,8 @@ import type { FaqItem, NavLink, TickerItem, WontDoItem } from "@/types/content";
 
 /** Open placeholders (design.md §11). Swap before launch. */
 export const urls = {
-  app: "[APP_URL]",
+  /** In-app route; swap for [APP_URL] if the app ships on its own domain. */
+  app: "/dashboard",
   docs: "[DOCS_URL]",
   contactEmail: "[CONTACT_EMAIL]",
 } as const;

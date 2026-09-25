@@ -259,6 +259,53 @@
   50%      { opacity: 0.45; transform: scale(0.8); }
 }
 
+/* ── App (animations.md §6B) ─────────────────────────────
+ * Prefixed j- so they never collide with Tailwind's built-in ping/pulse.
+ * J1 reuses g-ping, J7 reuses g-shimmer, J9 reuses g-draw.
+ */
+
+/* J2 · active card scan (4.6s) */
+@keyframes j-scan {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* J3 · CARD row pulse (3s) */
+@keyframes j-glowrow {
+  0%, 100% { background: rgba(178, 212, 80, 0.04); }
+  50%      { background: rgba(178, 212, 80, 0.09); }
+}
+
+/* J4 · pending cap pip (2s) */
+@keyframes j-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+/* J8 · waterfall grow */
+@keyframes j-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* J9 panel · J10 drawer rise */
+@keyframes j-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* J11 · token mark */
+@keyframes j-orbit {
+  to { transform: rotate(360deg); }
+}
+@keyframes j-breathe {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+@keyframes j-dash {
+  to { stroke-dashoffset: -40; }
+}
+
 /* Pause loops in sections that are offscreen (animations.md §10). */
 [data-offscreen] *,
 [data-offscreen] *::before,

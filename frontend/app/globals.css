@@ -27,6 +27,11 @@
   --color-neg: #ff6b5e;
   --color-dead: #5a5d62;
 
+  /* App (design.md §5B.1) */
+  --color-rail: #08090b;
+  --color-thin: #e8b04a;
+  --color-closed: #8fa6da;
+
   --radius-panel: 20px;
   --radius-inset: 14px;
   --radius-card: 22px;
@@ -309,5 +314,102 @@
     height: 48px;
     padding: 0 24px;
     font-size: 15px;
+  }
+}
+
+/* ── App (design.md §5B) ───────────────────────────────── */
+@layer components {
+  /* Rail tooltip: ::after with attr(data-tip), 56px right of the item */
+  .app-tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: 50%;
+    left: 56px;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    border: 1px solid rgba(249, 247, 244, 0.14);
+    border-radius: 8px;
+    background: #16181c;
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 50;
+  }
+  .app-tip:hover::after,
+  .app-tip:focus-visible::after {
+    opacity: 1;
+  }
+
+  /* Panel header .ph: 16/22, 6% hairline, mono label left, meta right */
+  .app-ph {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 54px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--color-line-row);
+  }
+  .app-ph-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-2);
+  }
+  .app-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--color-dim);
+  }
+
+  /* Inset cell */
+  .app-cell {
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-inset);
+    padding: 12px 14px;
+  }
+  .app-cell-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
+  .app-cell-value {
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: var(--color-ink);
+  }
+
+  /* Striped pending pip (J4) */
+  .app-pip-pending {
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(178, 212, 80, 0.7) 0 4px,
+      rgba(178, 212, 80, 0.2) 4px 8px
+    );
+  }
+
+  /* Danger button .bd */
+  .g-btn-danger {
+    background: transparent;
+    color: var(--color-neg);
+    border: 1px solid rgba(255, 107, 94, 0.45);
+  }
+  .g-btn-danger:hover {
+    border-color: var(--color-neg);
+  }
+  .g-btn-xs {
+    height: 40px;
+    padding: 0 18px;
+    font-size: 14px;
   }
 }
