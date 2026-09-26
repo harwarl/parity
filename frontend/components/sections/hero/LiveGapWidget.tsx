@@ -4,17 +4,16 @@ import { LiveDot } from "@/components/shared/LiveDot";
 import { DataRow } from "@/components/ui/DataRow";
 import { Pill } from "@/components/ui/Pill";
 
-/** 5.2 · Glass readout of the NVDA sample gap. */
+/**
+ * 5.2 · Glass readout of the NVDA sample gap. Glass (backdrop blur) at lg
+ * only; phones get a near-opaque fill, since blurring over animated art
+ * repaints every frame.
+ */
 export function LiveGapWidget({ className = "" }: { className?: string }) {
   return (
     <aside
       aria-label={`Live gap for ${sample.symbol}, illustrative`}
-      className={`box-content w-[min(360px,calc(100vw-76px))] rounded-panel border border-ink/12 px-[22px] py-5 ${className}`}
-      style={{
-        background: "rgba(15,17,19,.72)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-      }}
+      className={`box-content w-[min(360px,calc(100vw-76px))] rounded-panel border border-ink/12 bg-[rgba(15,17,19,.94)] px-[22px] py-5 lg:bg-[rgba(15,17,19,.72)] lg:backdrop-blur-[16px] ${className}`}
     >
       <div className="mb-2 flex items-center justify-between">
         <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.16em] text-ink">
