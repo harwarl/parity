@@ -39,7 +39,7 @@ export default function TokenPage() {
           </span>
         }
       />
-      <div className="flex flex-col gap-5">
+      <div className="app-rows flex flex-col gap-5">
         <Panel featured className="grid overflow-hidden lg:grid-cols-[380px_1fr]">
           <div
             className="flex flex-col items-center justify-center gap-4 border-b border-line-row p-8 lg:border-r lg:border-b-0"

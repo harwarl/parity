@@ -3,22 +3,26 @@
 import { Pill } from "@/components/ui/Pill";
 import { Panel } from "@/components/ui/Panel";
 import { useMode } from "@/components/app/shell/ModeProvider";
+import { useLive } from "@/components/app/shell/LiveMarketProvider";
+import { LiveNum } from "@/components/app/ui/LiveNum";
 import { PanelHead } from "@/components/app/ui/PanelHead";
 
 /** Home · System health: six services; Trading MCP follows the mode. */
 export function SystemHealth() {
   const { mode } = useMode();
   const live = mode === "live";
+  const { latency } = useLive();
+  const ms = (v: number, unit = " ms", prefix = "") => <LiveNum value={v} text={`${prefix}${v}${unit}`} invert />;
   const rows = [
-    { name: "Robinhood quotes", what: "cash mid · 11 names", metric: "38 ms", state: "OK" },
-    { name: "Chainlink", what: "token / share feed", metric: "hb 1.1 s", state: "OK" },
-    { name: "Robinhood Chain RPC", what: "block + depth reads", metric: "212 ms", state: "OK" },
-    { name: "Redis bus", what: "market → user plane", metric: "lag 3 ms", state: "OK" },
-    { name: "SSE stream", what: "this client", metric: "250 ms", state: "OK" },
+    { name: "Robinhood quotes", what: "cash mid · 11 names", metric: ms(latency.quotes), state: "OK" },
+    { name: "Chainlink", what: "token / share feed", metric: ms(latency.chainlink, " s", "hb "), state: "OK" },
+    { name: "Robinhood Chain RPC", what: "block + depth reads", metric: ms(latency.rpc), state: "OK" },
+    { name: "Redis bus", what: "market → user plane", metric: ms(latency.redis, " ms", "lag "), state: "OK" },
+    { name: "SSE stream", what: "this client", metric: ms(latency.sse), state: "OK" },
     {
       name: "Trading MCP",
       what: live ? "Agentic Account · linked" : "idle in paper",
-      metric: live ? "164 ms" : "—",
+      metric: live ? ms(latency.mcp) : "—",
       state: live ? "LINKED" : "IDLE",
     },
   ];

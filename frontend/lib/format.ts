@@ -2,8 +2,10 @@ const MINUS = "−";
 
 /** Signed basis points with a true minus sign: "+17.0", "−6.3". */
 export function formatSignedBps(bps: number): string {
-  const abs = Math.abs(bps).toFixed(1);
-  return bps < 0 ? `${MINUS}${abs}` : `+${abs}`;
+  const r = Math.round(bps * 10) / 10;
+  if (r === 0) return "0.0";
+  const abs = Math.abs(r).toFixed(1);
+  return r < 0 ? `${MINUS}${abs}` : `+${abs}`;
 }
 
 /** Negative cost figure: "−7.6". */
@@ -27,6 +29,7 @@ export function formatSignedUsd(value: number): string {
 
 /** Plain one-decimal with a true minus: "9.4", "−0.3". */
 export function formatBps(bps: number): string {
-  const s = Math.abs(bps).toFixed(1);
-  return bps < 0 ? `${MINUS}${s}` : s;
+  const r = Math.round(bps * 10) / 10;
+  const s = Math.abs(r).toFixed(1);
+  return r < 0 ? `${MINUS}${s}` : s;
 }

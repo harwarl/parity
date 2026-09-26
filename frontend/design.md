@@ -1,13 +1,13 @@
 # GAUGE: design.md
 
-|                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status          | Landing page approved for handoff                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Rev             | 5 · 2026-09-26                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Changelog       | r5: added §5B.12, the full app copy deck (every label, list and state-dependent string), exact sample-data generators with code, and the remaining geometry; META net corrected to 1.2. r4: added the app (§5B: 6 screens, shell, shared data model, interactions), app motion J1–J12, app placeholders and accessibility. r3: 4th won't-do panel is now "Go past 3 a day". r2: GAUGE will have a token; removed the "Ship a token" refusal (won't-do is now 3 panels) and the token line from the FAQ. r1: landing page with 10 sections, per-section motion, asset pack |
-| Companion files | `animations.md` (every animation, with code), `assets/` (brand, favicon, social, css, tokens, fonts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| System          | rain-design-skill-2 (v2 language). GAUGE is the reference build.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Source          | Design canvas "GAUGE": landing `Main.dc.html` (1440 × 7400, expand fill) + app `Home`, `Watchlist`, `Card`, `History`, `Token`, `Settings` `.dc.html` (1440 wide, interactive, linked)                                                                                                                                                                                                                                                                                                                                                                                    |
+|                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Status          | Landing page approved for handoff                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Rev             | 6 · 2026-09-26                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Changelog       | r6: added §5C Docs (4 screens: shell, reading typography, components, per-page specs, interactions, full copy deck); docs motion K1–K7; docs code-comment grey raised to #80848A for AA. r5: added §5B.12, the full app copy deck (every label, list and state-dependent string), exact sample-data generators with code, and the remaining geometry; META net corrected to 1.2. r4: added the app (§5B: 6 screens, shell, shared data model, interactions), app motion J1–J12, app placeholders and accessibility. r3: 4th won't-do panel is now "Go past 3 a day". r2: GAUGE will have a token; removed the "Ship a token" refusal (won't-do is now 3 panels) and the token line from the FAQ. r1: landing page with 10 sections, per-section motion, asset pack |
+| Companion files | `animations.md` (every animation, with code), `assets/` (brand, favicon, social, css, tokens, fonts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| System          | rain-design-skill-2 (v2 language). GAUGE is the reference build.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Source          | Design canvas "GAUGE": landing `Main.dc.html` (1440 × 7400, expand fill) + app `Home`, `Watchlist`, `Card`, `History`, `Token`, `Settings` + docs `DocsHome`, `DocsQuickstart`, `DocsCard`, `DocsReasons` `.dc.html` (1440 wide, interactive, linked)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ## 1. Product in one line
 
@@ -922,6 +922,289 @@ labels: HTML spans at left = X(i)/8 %, text = first 3 letters of the day + ' ' +
 | Chip                        | 34px, padding 0 8 0 14, radius 999, `#0F1113`, 1px at 12%, mono 500 13; ✕ in a 20px round at 5% cream                                                                                                                                              |
 | Danger button `.bd`         | transparent, `--neg` text, 1px `--neg` border at 45%                                                                                                                                                                                               |
 
+## 5C. Docs (4 screens)
+
+The docs row sits below the app under the canvas title "GAUGE · Docs" (note at 1560, 4160). All four screens are 1440 wide and interactive, and they link to each other.
+
+| Artboard                 | x, y       | h    | Page                          |
+| ------------------------ | ---------- | ---- | ----------------------------- |
+| `DocsHome.dc.html`       | 1560, 4420 | 1760 | Docs home (overview)          |
+| `DocsQuickstart.dc.html` | 3080, 4420 | 3000 | Quickstart (straight to live) |
+| `DocsCard.dc.html`       | 4600, 4420 | 3900 | How a card is made            |
+| `DocsReasons.dc.html`    | 6120, 4420 | 3700 | Reason codes                  |
+
+**Treatment, "calm reading mode":** the same tokens as §2 and §5B.1, dialled down.
+
+- **Kept from the landing page:**
+  - one lime glow (docs home only);
+  - panels and the featured panel for tiles and callouts;
+  - Doto only on the home headline and the reason-code words.
+- **Dropped:** grid texture, edge glows and planet art.
+- **Type:** smaller display, and a 720px reading column.
+
+### 5C.1 Shell
+
+- **Root:** `width:1440px; min-height:<h>px; background:--bg`.
+- **Docs nav (`.dnav`)**, a floating glass pill:
+  - `position:sticky; top:16px; width:1376px; height:60px; margin:16px auto 0; padding:0 8px 0 22px; radius 999`, fill `rgba(12,13,15,.7)`, `blur(18px) saturate(140%)`, border at 10%, shadow `0 16px 50px rgba(0,0,0,.45)` plus `inset 0 1px 0 rgba(249,247,244,.06)`.
+  - **Left:** wordmark at 96×21, then a "DOCS" pill (mono 11px `.2em`, lime, lime border at 40%, padding 3/9), then links at a 26px gap (Jakarta 500 14px `--ink-2`; active: lime).
+  - **Right:** search button (`.srch`: 300×40, radius 999, `--bg` fill, border at 12%, 15px icon, "Search docs", `⌘K` kbd chip: mono 500 11px, 1px border at 14%, radius 6, padding 2/8), then "Open GAUGE ↗" primary (44px) linking to `Home.dc.html`.
+- **Layout grid:** `width:1300px; margin:0 auto; padding-top:48px; display:grid; gap:56px`.
+  - Home: `248px 1fr`.
+  - Articles: `248px 1fr 220px`, which gives a 720px centre column.
+- **Sidebar (`.side`):** `position:sticky; top:100px`, flex column, gap 22.
+  - Group label: mono 500 10.5px `.2em` uppercase `--dim`, margin 0 0 6 12.
+  - Link `.nl`: 34px, padding 0 12, radius 10, 14px `--muted`. Hover: 4% fill. Active: lime, lime 8% fill, `inset 0 0 0 1px rgba(178,212,80,.25)`, plus `aria-current="page"`.
+  - Tree:
+    - GET STARTED: Overview · Quickstart · Link your Agentic Account · Paper vs live
+    - HOW GAUGE WORKS: How a card is made · The four gates · Reason codes · Card lifecycle · Daily cap
+    - SAFETY: What GAUGE won't do · The token is not the share
+    - DEVELOPERS + `DRAFT` chip: Architecture · Gap math spec · Event stream (SSE) · Card event · Reason event
+    - REFERENCE: Glossary · FAQ · Changelog
+  - Undrawn pages link to `#`.
+- **DRAFT chip (`.draft`):** 18px, padding 0 7, radius 999, border `rgba(232,176,74,.45)`, `--thin` text, mono 500 9px `.14em`. It marks every developer item and every drafted code block.
+- **TOC (`.toc`):** sticky at top 100.
+  - Label "ON THIS PAGE" (mono 10.5 `.2em` `--dim`).
+  - Links sit in a column with 16px left padding and a 1px left rule at 8%. Each link is 13px `--dim`, padding 6/0. The active link is ink with a 6px lime dot and glow placed via `::before` (`margin-left:-16px`).
+  - Below: "Edit this page ↗" and "Report an issue ↗" (mono 12 `--dim`).
+
+### 5C.2 Article typography (`.art`)
+
+| Element           | Spec                                                                                                                                               |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Breadcrumb        | mono 12 `--dim`, `/` separators, current page in `--ink`, margin-bottom 18                                                                         |
+| H1                | Unbounded 700, 40px, −0.045em, lh 1.08                                                                                                             |
+| Lede              | 19px `--muted`, margin 16/0/20                                                                                                                     |
+| Meta row          | mono 12 `--dim` ("N min read · type · note"), bottom hairline at 8%, padding-bottom 28                                                             |
+| H2                | Unbounded 600, 23px, −0.03em, margin 56/0/14, `scroll-margin-top:100px`. An optional `.n` prefix is mono 500 13px lime `.1em` ("01" … "06", "DEV") |
+| Body `p`, `li`    | Jakarta 16.5px / 1.75 `--ink-2`; `strong` in `--ink` 600                                                                                           |
+| Inline `code`     | mono 13.5, 6% fill, 1px border at 8%, padding 1/6, radius 6, `--ink`                                                                               |
+| Path chip `.path` | mono 500 13px, padding 4/10, radius 999, 4% fill, border at 10%. Used for UI paths ("Settings → Gates")                                            |
+| Link in body      | lime                                                                                                                                               |
+
+### 5C.3 Components
+
+| Component                    | Spec                                                                                                                                                                                                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Callout `.note`              | flex, gap 14, padding 16/18, radius 14, 15px/1.65. Starts with a mono 12 tag (TIP, NOTE, RULE, ORDER, REQUIRED) and a bold lead-in. `.tip`: lime 6% fill, border at 30%, text `#D9EBA0`. `.warn`: amber 6% fill, border at 35%, text `#F0D39A`. It has a full border, not a left-border accent.        |
+| Code block `.code`           | radius 14, `#0C0D10`, border at 9%. Header 40px: filename or event name (mono 500 11.5 `--dim`), DRAFT chip, and a Copy button (`.cp`: 26px pill, border at 14%, mono 11; label goes "Copy" → "Copied ✓" for 1.6s). `pre`: padding 16/18, mono 13.5/1.75, `white-space:pre`                            |
+| Syntax colours               | keyword/key `.k` `#8FA6DA` · string/number literal `.s` lime · type, fn name, numeric value `.nm` `#E4F5A6` · comment `.c` `#80848A` (5.2:1; was #6B6F75 at 3.8:1, below AA) · plain `--ink-2`                                                                                                         |
+| Formula block `.formula`     | padding 22/24, radius 16, background `radial-gradient(120% 120% at 0 0, rgba(178,212,80,.08), transparent 60%), #0C0D10`, lime border at 30%, mono 500 17/1.7 `--ink`. Label `.lab`: 10.5px `.2em` lime. A worked-example variant is 15px on a plain background with a 10% border and a `--dim` label. |
+| Doc table `.dt`              | full width, 14.5px. `th`: mono 500 10.5 `.14em` `--dim`, padding 10/12, bottom border at 10%. `td`: padding 12, border at 6%. Value cells `.v`: mono `--ink`, nowrap, tinted by state. These are real `<table>` elements because the tables are static.                                                |
+| Step (Quickstart) `.step`    | grid `40px 1fr`, gap 18. Number badge: 36px round, mono 600 13 lime, lime border at 50%, 8% fill. Its H2 has no `.n` prefix, so the number only appears once.                                                                                                                                          |
+| Prev/next `.pn`              | 2-column grid at gap 14, margin-top 48. Each is a panel with padding 18/20, radius 16. Label mono 11 `--dim` ("← PREVIOUS" / "NEXT →"), title 16/600. Hover: lime border at 45%.                                                                                                                       |
+| Reason panel `.rc` (Reasons) | grid `200px 1fr`, gap 28, padding 26, radius 20, panel gradient. Left: code in Doto 900 40px in its state colour, gate label mono 11 `.16em`. Right: H3 in Unbounded 600 18, body, "What to do:", and an example box `.ex` (padding 12/14, radius 12, `--bg`, mono 12.5/1.6)                           |
+| Jump tile `.jump` (Reasons)  | padding 16, radius 16, `#0C0D10`, border at 8% (hover: lime at 40%). Doto 26px code plus a mono 11 gate label                                                                                                                                                                                          |
+
+### 5C.4 Docs home (1440 × 1760)
+
+- **Atmosphere:** one lime radial glow (1100×760, 10%, blur 30) centred above the nav at top −420.
+- **Header** (padding 24/0/44, gap 20):
+  - Eyebrow "GAUGE docs".
+  - H1 in Unbounded 800 52px −0.05em lh 1.02: "Two prices." with "One gap." in Doto 58px lime, then a break and "Everything else, explained."
+  - Lede: 18/1.65, max-width 640.
+  - A large search pill: 640×56, 16px text, `⌘K` chip 12px.
+- **Start here:** 3 tiles in `repeat(3,1fr)` at gap 16. Each is a link panel with padding 26, min-height 210, gap 14. Contents: mono 12 lime label, Unbounded 600 21px title, 14.5/1.6 `--muted` body, and a lime CTA (`margin-top:auto`). The first tile is featured.
+- **The whole product in one line:**
+  - Panel, padding 28/30.
+  - SVG 900×96: a dashed lime flow line at y 30 (`dasharray 4 8`, K2), and 7 stations at x 40 / 177 / 314 / 451 / 588 / 725 / 860.
+  - Station circles are r9 on a `--bg` fill with a 1.5px stroke. HAIRCUT is red; YOU TAP and ONE ORDER are lime. CARD is filled lime at r12 with an r20 halo at 18%.
+  - Labels: mono 11 at y 66, sub-labels mono 10 `--dim` at y 84.
+- **Guides / For developers** (`1fr 1fr`, gap 16):
+  - Guides: 5 link rows (16/0, bottom hairline at 7%, meta mono 12 `--dim`).
+  - Developers: a "DRAFT SCHEMAS" chip and an architecture SVG (440×150).
+    - Six boxes, 120×40 at rx 10: market plane (0,10), Redis bus (160,10, lime), engine · gates (320,10), SSE → client (320,100), exec gateway (160,100), Trading MCP (0,100, lime).
+    - Dashed lime connectors (K3), and "Do it only" at (300,80).
+    - Then 4 link rows in 2 columns.
+- **Popular questions:** 5 link rows, each answered with a lime short answer and an arrow.
+- **Footer:** hairline, mono 12 `--dim`: disclaimer on the left, `Docs · [DOCS_VERSION] · © 2026 GAUGE` on the right.
+
+### 5C.5 Quickstart (1440 × 3000)
+
+- Seven numbered steps, straight to live, then a DEV section. See §5C.9 for the full copy.
+- **Visual inserts:**
+  - **Step 03:** a copy of the app's live strip (lime 8% fill, border at 35%, radius 14, pinging dot, "LIVE", text).
+  - **Step 05:** a figure (`300px 1fr`, gap 24). On the left, a mini card: padding 20, radius 20, featured background, an 84px ring (r54, stroke 8, dashoffset 104 = 52 s), "+9.4" in Unbounded 800 30px lime, and inert Do it / Skip pills. On the right, a 4-item annotated list.
+- **Callouts:** REQUIRED (warn) in step 02; TIP (Paper practice) in step 03; RULE ("The model does not place.") in step 06.
+- **Table:** gates with their defaults and failure codes, each code in its state colour.
+- **DEV:** a shell code block with the SSE `curl` (DRAFT).
+
+### 5C.6 How a card is made (1440 × 3900)
+
+Sections 01–06 plus DEV.
+
+| #                 | Content                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 01 Two prices     | Bullet list, a NOTE callout (the multiplier only touches the chain feed), and a sources table (cash mid · Robinhood quotes · $182.40; token per share · Chainlink · token × multiplier · $182.71)                                                                                                                                                              |
+| 02 The gap        | GAP formula block; the NVDA worked example → 17.0 bps; a rich/cheap explanation                                                                                                                                                                                                                                                                                |
+| 03 The haircut    | Cost table (fees 3.5 · slippage 2.1 · buffer 2.0); NET formula block; a waterfall figure (the same geometry as Card §5B.6 at 20px bars, `100px 1fr 44px`, floor marker at 11.8%)                                                                                                                                                                               |
+| 04 The four gates | Gate-order SVG (680×150): pills FEED (0,22, 92w) · SESSION (145, 104w) · DEPTH (302, 92w) · NET GAP (447, 104w) · CARD (590, 90w, lime fill). Dashed lime flow at y 44 (K2). Drop lines at x 46/197/348/499 in their state colours, then codes at y 124 (14/600) and thresholds at y 142 (10px `--dim`). Followed by a pass-condition table with NVDA values ✓ |
+| 05 Emit           | Bullets: lives 75 s, shows net/prices/leg, counts toward the cap whatever the outcome                                                                                                                                                                                                                                                                          |
+| 06 Re-quote       | Table at card vs at confirm (182.40 → 182.41, 9.4 → 8.9 clears); the RE-QUOTE FAIL example (META Thu 25, 4.6 → 1.4); RULE callout                                                                                                                                                                                                                              |
+| DEV Spec          | `gauge-engine / src/gap.rs` (Rust `Costs`, `gap_bps`, `net_bps`) and `event: card` JSON, both DRAFT                                                                                                                                                                                                                                                            |
+
+The TOC adds an "NVDA AT A GLANCE" box: padding 14, radius 14, `#0C0D10`, mono rows gap 17.0 · costs −7.6 · net 9.4.
+
+### 5C.7 Reason codes (1440 × 3700)
+
+- **At a glance:** 4 jump tiles (codes in their state colours; DUST animated with K5), a summary table (code, gate, fires when, default), and an ORDER callout.
+- **The four codes:** one `.rc` panel each, with an example drawn from the shared data:
+  - STALE: COIN, 3.8 s.
+  - CLOSED: any name at 17:40 ET.
+  - THIN: HOOD, 44.8 gross, $45k.
+  - DUST: META, 8.8 − 7.6 = 1.2.
+- **Re-quote fail:** a compact `.rc` with the META example.
+- **How often:** a 16px stacked bar (DUST 71 / THIN 12 / STALE 9 / CLOSED 8, 2px gaps) with a mono legend, labelled illustrative.
+- **Reason event (DRAFT):** Rust `Reason` enum plus a `gate()` function that encodes the order, and a JSON reason event for HOOD THIN at 12:40:10.
+
+### 5C.8 Interactions and accessibility
+
+- **Links:** each Copy button flips its label to "Copied ✓" for 1.6 s (state per block). Sidebar, TOC, tiles, prev/next and popular questions all link between the four artboards; H2s are anchor targets with `scroll-margin-top:100px`.
+- **Search:** static. The `⌘K` pill is a `<button>` with `aria-label="Search docs"`.
+- **Landmarks:** `nav[aria-label=Docs]`, `aside[aria-label="Docs navigation"]`, `article`, `nav[aria-label="On this page"]`.
+- **Figures:** every figure and diagram has `role="img"` with a sentence-long `aria-label`.
+- **Colour:** state is never shown by colour alone; the code word is always printed.
+- **Contrast:** body `--ink-2` on `--bg` is about 12:1, meta `--dim` 5.2:1. Tip-callout text `#D9EBA0` on its tint is 14.1:1, syntax keys `#8FA6DA` 8.0:1, comments `#80848A` 5.2:1.
+
+### 5C.9 Copy deck (extracted from the markup, in document order)
+
+Items are separated by `·`. `svg:` marks text drawn inside an SVG. Code blocks are verbatim.
+
+##### Docs home (`DocsHome.dc.html`)
+
+- **Docs nav:** DOCS · Guide · Developers · FAQ · Site · Search docs · ⌘K · Open GAUGE ↗
+- **Sidebar:** Get started · Overview · Quickstart · Link your Agentic Account · Paper vs live · How GAUGE works · How a card is made · The four gates · Reason codes · Card lifecycle · Daily cap · Safety · What GAUGE won't do · The token is not the share · Developers · DRAFT · Architecture · Gap math spec · Event stream (SSE) · Card event · Reason event · Reference · Glossary · FAQ · Changelog
+- **Header:** GAUGE docs
+- **H1: Two prices. One gap. Everything else, explained.:** How GAUGE measures the gap between a Robinhood stock and its Robinhood Chain token, when it shows you a card, and what happens when you tap Do it. · Search gates, reason codes, events… · ⌘K
+- **Panel: Start here:** Start here · 01 · 5 min · Quickstart · Link your Agentic Account, set your gates, and read your first card. · Start → · 02 · concept · How a card is made · Measure, haircut, gate, emit. The math behind every card, with a worked NVDA example. · Read → · 03 · reference · Reason codes · STALE, CLOSED, THIN, DUST. What each one means and what to do about it. · Look up →
+- **Panel: The card in one line:** The whole product in one line · Full walkthrough → · svg:MEASURE · svg:cash vs token · svg:HAIRCUT · svg:fees·slip·buffer · svg:4 GATES · svg:feed→session→depth→net · svg:CARD · svg:lives 75 s · svg:YOU TAP · svg:Do it · svg:RE-QUOTE · svg:gates again · svg:ONE ORDER · svg:or paper fill
+- **Panel: Guides:** Guides · Link your Agentic Account · setup · Paper vs live · modes · The four gates · concept · Card lifecycle · concept · What GAUGE won't do · safety
+- **Panel: For developers:** For developers · DRAFT SCHEMAS · svg:market plane · svg:Redis bus · svg:engine · gates · svg:SSE → client · svg:exec gateway · svg:Trading MCP · svg:Do it only · Architecture → · Gap math spec → · Event stream (SSE) → · Card event →
+- **Panel: Popular questions:** Popular questions · Does GAUGE ever place a trade on its own? · No → · Why am I not seeing any cards? · Reason codes → · What counts as a cost? · The haircut → · Why only 3 cards a day? · Daily cap → · Is the token the same as the share? · No → · GAUGE is not affiliated with Robinhood. Signals, not advice. · Docs · [DOCS_VERSION] · © 2026 GAUGE
+
+##### Quickstart (`DocsQuickstart.dc.html`)
+
+- **Docs nav:** same as Docs home.
+- **Sidebar:** same tree as Docs home; the active item is this page.
+- **Header:** Docs · / · Get started · / · Quickstart
+- **H1: Quickstart:** From zero to your first live card in seven steps. You link your Robinhood Agentic Account, check your gates, and tap Do it when a card clears. · 5 min read · · · Live mode · · · Updated [DATE]
+- **H2: Open GAUGE:** 01 · Go to · [APP_URL] · and sign in with · [AUTH_METHOD] · . You land on Home: the active card, the four gates, and the live gap board for every name you watch.
+- **H2: Link your Agentic Account:** 02 · Open · Settings → Mode & account · and choose · Link via Trading MCP · . GAUGE connects through the official Robinhood Trading MCP. · REQUIRED · Agentic Account only. · Live orders go through a Robinhood Agentic Account, and only during regular trading hours (09:30–16:00 ET). GAUGE never holds your funds. · When the link works, the account row reads · Linked via Robinhood Trading MCP · live orders RTH only · .
+- **H2: Switch to Live:** 03 · Use the · Paper · Live · toggle in the top bar. In Live, a lime strip stays under the top bar so you always know what a tap does: · LIVE · Do it places one cash-equity order on your Agentic Account through the Robinhood Trading MCP. · TIP · Want to practice first? · Paper runs the same gates and the same card. It fills at the confirm mid and moves no money.
+- **H2: Check your gates:** 04 · A card only appears when every gate passes. The defaults are strict on purpose. Change them in · Settings → Gates · . · Gate · Default · Fails as · Max quote age · 2.0 s · STALE · Session · RTH · CLOSED · Min depth · $100k · THIN · Net floor · after fees 3.5, slippage, buffer 2.0 · 2.0 bps · DUST · Daily cap · 3 cards · no 4th card
+- **H2: Read your first card:** 05 · When a name clears, you get a card. It lives for 75 seconds. · CARD · NVDA · ● LIVE · svg:0:52 · +9.4 · net bps · Do it · Skip · Countdown. · 75 s, then it's gone. · Net. · What's left of the gap after every cost. · Do it. · The only way an order is ever placed. · Skip. · Nothing happens. The card still counts toward the cap. · For the math behind the net number, read · How a card is made · .
+- **H2: Tap Do it:** 06 · A tap doesn't send the card as-is. GAUGE checks again first: · The countdown holds while GAUGE confirms. · Both legs are · re-quoted · at fresh prices. · All four gates are · re-checked · on the new prices. · If everything still clears, GAUGE places · one cash-equity order · on your Agentic Account. If not, nothing happens. · RULE · The model does not place. · GAUGE never trades the token, never hedges both legs, and never places without your tap.
+- **H2: Review it in History:** 07 · Every card lands in · History · with its net at card, its net at confirm, the outcome, and a full audit trail. You can export the ledger as CSV.
+- **H2: DEV Stream cards yourself DRAFT:** Cards and reasons are pushed over Server-Sent Events. The endpoint and payload below are drafts until the API is published. · shell · DRAFT
+
+```
+# subscribe to your card and reason events
+curl -N "[API_BASE]/v1/stream" \
+  -H "Authorization: Bearer [TOKEN]" \
+  -H "Accept: text/event-stream"
+```
+
+← PREVIOUS · Overview · NEXT → · How a card is made
+
+- **On this page:** ON THIS PAGE · Open GAUGE · Link your Agentic Account · Switch to Live · Check your gates · Read your first card · Tap Do it · Review it in History · Stream cards yourself · Edit this page ↗ · Report an issue ↗
+
+##### How a card is made (`DocsCard.dc.html`)
+
+- **Docs nav:** same as Docs home.
+- **Sidebar:** same tree as Docs home; the active item is this page.
+- **Header:** Docs · / · How GAUGE works · / · How a card is made
+- **H1: How a card is made:** Every card goes through the same four steps: measure the gap, take the costs off, pass the gates, emit. This page walks through all four with one real-shaped example: NVDA at 14:02:18 ET. · 8 min read · · · Concept · · · Numbers are illustrative
+- **H2: 01 Two prices:** GAUGE watches two prices for the same name: · Cash mid. · The Robinhood stock's mid price. · Token per share. · The Robinhood Chain stock token, priced per share. The token feed is multiplied by the token's multiplier so both prices are in the same unit. · NOTE · The multiplier only touches the chain feed. · The cash price is never adjusted. · Leg · Source · NVDA · Cash mid · Robinhood quotes · $182.40 · Token per share · Chainlink · token × multiplier · $182.71
+- **H2: 02 The gap, in basis points:** GAP · |gap| = | token_per_share − cash_mid | ÷ cash_mid × 10,000 · Basis points make every name comparable. A 31¢ gap on a $182 stock and a 53¢ gap on a $118 stock are very different trades, and bps shows it. · NVDA · | 182.71 − 182.40 | ÷ 182.40 × 10,000 = · 17.0 bps · The token is trading · rich · : above the cash price. A negative gap (token cheap) is measured the same way. GAUGE uses the absolute value.
+- **H2: 03 The haircut:** A gap that looks good before costs isn't a gap. GAUGE takes three things off every time: · Cost · What it is · NVDA · Fees · From the fee schedule. Same for every name. · −3.5 · Slippage · Estimated for this name. Thinner books cost more. · −2.1 · Buffer · Your safety margin. Set in · Settings → Gates · . · −2.0 · NET · net = |gap| − fees − slippage − buffer · 17.0 − 3.5 − 2.1 − 2.0 = · 9.4 bps · |gap| · 17.0 · − fees · 3.5 · − slippage · 2.1 · − buffer · 2.0 · Net · 9.4
+- **H2: 04 The four gates:** Gates run · in order · . The first one that fails becomes the reason you see instead of a card. · svg:FEED · svg:SESSION · svg:DEPTH · svg:NET GAP · svg:CARD · svg:STALE · svg:CLOSED · svg:THIN · svg:DUST · svg:age > 2.0 s · svg:outside RTH · svg:depth < $100k · svg:net < 2.0 bps · Gate · Passes when · NVDA · Feed · Both legs are younger than the max quote age (2.0 s) · 0.3 s ✓ · Session · The cash market is in regular hours, 09:30–16:00 ET · RTH ✓ · Depth · Top of book is at least $100k · $420k ✓ · Net gap · Net is at least the floor (2.0 bps) · 9.4 ✓ · Cap · You have had fewer than 3 cards today · 1/3 ✓ · See · Reason codes · for what each failure means and what to do about it.
+- **H2: 05 Emit the card:** When every gate passes, GAUGE emits one card and pushes it to you. For NVDA that happened at · 14:02:18.412 ET · . The card: · lives for · 75 seconds · , then expires on its own; · shows the net, both prices and the leg GAUGE would trade (cash equity only); · counts toward your cap of 3 whether you take it, skip it or let it expire.
+- **H2: 06 Re-quote on confirm:** The numbers on a card are never traded as-is. When you tap · Do it · , GAUGE holds the clock, fetches fresh prices for both legs and runs every gate again. · At card · At confirm · Cash mid · $182.40 · $182.41 · Token per share · $182.71 · $182.71 · Net · 9.4 bps · 8.9 bps · clears · If the re-quote drops net under the floor, the card closes as · RE-QUOTE FAIL · and nothing is placed. Example from the ledger: META on Thu 25 Sep went from 4.6 at card to 1.4 at confirm. · RULE · The model does not place. · In live mode a clear re-quote results in exactly one cash-equity order through the official Robinhood Trading MCP. In paper mode it fills at the confirm mid.
+- **H2: DEV Spec DRAFT:** The same math as code. Names, types and field names are drafts until the engine API is published. · gauge-engine / src/gap.rs · DRAFT
+
+```
+pub struct Costs { pub fees_bps: f64, pub slip_bps: f64, pub buffer_bps: f64 }
+
+/// |token×mult − cash| / cash × 1e4. The multiplier only touches the chain leg.
+pub fn gap_bps(cash_mid: f64, token: f64, mult: f64) -> f64 {
+    ((token * mult - cash_mid) / cash_mid).abs() * 1e4
+}
+
+pub fn net_bps(gap: f64, c: &Costs) -> f64 {
+    gap - c.fees_bps - c.slip_bps - c.buffer_bps
+}
+```
+
+event: card · DRAFT
+
+```
+{
+  "type": "card",
+  "id": "card_7f3a91",
+  "sym": "NVDA",
+  "cash_mid": 182.40,
+  "token_per_share": 182.71,
+  "gap_bps": 17.0,
+  "costs": { "fees_bps": 3.5, "slip_bps": 2.1, "buffer_bps": 2.0 },
+  "net_bps": 9.4,
+  "gates": { "feed_age_s": 0.3, "session": "RTH", "depth_usd": 420000, "cap": "1/3" },
+  "leg": "cash_equity",
+  "emitted_at": "2026-09-26T14:02:18.412-04:00",
+  "expires_at": "2026-09-26T14:03:33.412-04:00",
+  "mode": "live"
+}
+```
+
+← PREVIOUS · Quickstart · NEXT → · Reason codes
+
+- **On this page:** ON THIS PAGE · Two prices · The gap, in basis points · The haircut · The four gates · Emit the card · Re-quote on confirm · Spec (draft) · NVDA AT A GLANCE · gap · 17.0 · costs · −7.6 · net · 9.4 · Edit this page ↗ · Report an issue ↗
+
+##### Reason codes (`DocsReasons.dc.html`)
+
+- **Docs nav:** same as Docs home.
+- **Sidebar:** same tree as Docs home; the active item is this page.
+- **Header:** Docs · / · How GAUGE works · / · Reason codes
+- **H1: Reason codes:** No gap, no card. When a name doesn't clear, GAUGE tells you why in one word. The word is the first gate that failed. · 4 min read · · · Reference · · · Examples from the sample watchlist
+- **H2: At a glance:** STALE · FEED gate · CLOSED · SESSION gate · THIN · DEPTH gate · DUST · NET GAP gate · Code · Gate · Fires when · Default · STALE · Feed · Either price is older than the max quote age · 2.0 s · CLOSED · Session · The cash market is outside regular hours · 09:30–16:00 ET · THIN · Depth · Top of book is below the minimum size · $100k · DUST · Net gap · Net after fees, slippage and buffer is below the floor · 2.0 bps · ORDER · Gates run feed → session → depth → net. · A name with an old price and a tiny gap shows STALE, not DUST. Fix the first failure and the next one may appear.
+- **Panel: STALE:** STALE · FEED GATE · A price is too old to trust · Both legs have to be fresh at the same moment. If either the cash quote or the chain token price is older than your max quote age, the gap might not exist anymore, so GAUGE stays quiet. · What to do: · usually nothing. It clears on the next fresh tick. If a name stays STALE, check · Home → System health · . · COIN · chain feed 3.8 s old · max 2.0 s → · STALE · net would have been 3.4 bps, but the price was too old to use
+- **Panel: CLOSED:** CLOSED · SESSION GATE · The cash market isn't in its session · Stock tokens can keep trading after hours. The cash leg can't be placed live outside regular hours, so GAUGE doesn't emit a card it can't act on. · What to do: · wait for 09:30 ET. Cards resume at the open. · any name · 17:40 ET · after hours → · CLOSED · the token may still tick; GAUGE waits for the cash market
+- **Panel: THIN:** THIN · DEPTH GATE · Not enough size to fill · A wide gap on a thin book usually disappears the moment you trade into it. GAUGE needs at least your minimum depth at the top of the book before it believes the gap. · What to do: · treat a big THIN gap as a warning, not a miss. You can lower min depth in · Settings → Gates · , at your own risk. · HOOD · |gap| 44.8 bps · depth $45k · min $100k → · THIN · the biggest raw gap of the day, and the least fillable
+- **Panel: DUST:** DUST · NET GAP GATE · A gap, but not after costs · The prices differ, but once fees, slippage and your buffer are taken off, what's left is below the floor. This is the most common reason by far. · What to do: · nothing. DUST is GAUGE working as intended. · META · |gap| 8.8 − costs 7.6 = net 1.2 · floor 2.0 → · DUST
+- **H2: Not a reason code: re-quote fail:** A card can pass every gate and still not trade. When you tap · Do it · , GAUGE re-quotes both legs and runs the gates again. If net has dropped below the floor, the card closes as · RE-QUOTE FAIL · and nothing is placed. · RE-QUOTE FAIL · META · Thu 25 Sep 15:21 · net 4.6 at card → 1.4 at confirm · floor 2.0 → no order
+- **H2: How often each one fires:** On a normal session almost every evaluation ends in DUST. That's the point: GAUGE is built to say no. · ■ · DUST 71% · ■ · THIN 12% · ■ · STALE 9% · ■ · CLOSED 8% · illustrative
+- **H2: Reason event DRAFT:** Reasons are streamed like cards, one per name per state change. Field names are drafts. · gauge-engine / src/reason.rs · DRAFT
+
+```
+/// First failing gate wins. Order matters.
+pub enum Reason { Stale, Closed, Thin, Dust }
+
+pub fn gate(q: &Quote, r: &Rules) -> Result<(), Reason> {
+    if q.age_s > r.max_age_s          { return Err(Reason::Stale) }
+    if !q.session.is_rth()             { return Err(Reason::Closed) }
+    if q.depth_usd < r.min_depth_usd   { return Err(Reason::Thin) }
+    if q.net_bps < r.floor_bps         { return Err(Reason::Dust) }
+    Ok(())
+}
+```
+
+event: reason · DRAFT
+
+```
+{
+  "type": "reason",
+  "sym": "HOOD",
+  "code": "THIN",
+  "gate": "depth",
+  "observed": { "depth_usd": 45000, "gap_bps": 44.8 },
+  "threshold": { "min_depth_usd": 100000 },
+  "at": "2026-09-26T12:40:10-04:00"
+}
+```
+
+← PREVIOUS · How a card is made · NEXT → · Card lifecycle
+
+- **On this page:** ON THIS PAGE · At a glance · STALE · CLOSED · THIN · DUST · Re-quote fail · How often · Reason event (draft) · Edit this page ↗ · Report an issue ↗
+
 ## 6. Components
 
 | Component                | Spec                                                                                                                                                                                                                                               |
@@ -970,48 +1253,55 @@ labels: HTML spans at left = X(i)/8 %, text = first 3 letters of the day + ' ' +
 
 ## 9. Motion summary
 
-| ID  | Where      | Name                        | Period           | Meaning                             |
-| --- | ---------- | --------------------------- | ---------------- | ----------------------------------- |
-| A1  | Hero       | Line draw-in                | 2.4s once        | Feeds come online                   |
-| A2  | Hero       | Token breathe + bracket     | 6s               | The gap widens and narrows          |
-| A3  | Hero       | Travelling tick             | 4s               | Live ticks on the token feed        |
-| A4  | Hero       | Cash flow dashes            | 2.2s             | Live cash feed                      |
-| A5  | Hero       | Gap pulse                   | 1.6s / 3s        | The live value                      |
-| A6  | Hero       | Copy rise                   | 1s once          | –                                   |
-| B1  | Ticker     | Marquee                     | 48s              | Names being watched                 |
-| B2  | Ticker     | Threshold flash             | 4.2s             | A gap crossed cost                  |
-| C1  | Measure    | Ruler                       | 4s               | Measuring the gap                   |
-| C2  | Haircut    | Peel                        | 5s               | Costs removed from the gross        |
-| C3  | Emit       | Gates + mini card           | 5.4s             | All four gates pass, then a card    |
-| D1  | Card       | Countdown ring              | 75s (JS)         | Card lifetime                       |
-| D2  | Card       | Re-quote shimmer            | 1.1s once        | Fresh prices on confirm             |
-| D3  | Card       | Cap fill + lock             | 6s               | 3 a day                             |
-| D4  | Card       | Top scan                    | 5s               | Live panel                          |
-| E1  | Reasons    | Age bar                     | 4.4s             | STALE                               |
-| E2  | Reasons    | Session marker              | 6.6s             | CLOSED                              |
-| E3  | Reasons    | Depth drain                 | 3.6s             | THIN                                |
-| E4  | Reasons    | Dissolve                    | 3.2s             | DUST                                |
-| F1  | Paper      | Stamp                       | 4.8s             | Paper fill at mid                   |
-| F2  | Live       | Packet + tap                | 5.2s             | One order, only after your tap      |
-| G1  | Won't      | ✕ draw                      | 6s               | The refusals                        |
-| G2  | Won't      | "not" flicker               | 5.6s             | The thesis line                     |
-| H1  | FAQ        | Answer rise                 | .6s once         | –                                   |
-| H2  | FAQ        | Scan line                   | 3.4s             | The open row                        |
-| I1  | Closing    | Lines split/rejoin          | 6.4s             | Gap opens, then closes              |
-| I2  | Closing    | Headline snap               | 6.4s             | "No gap" at the meeting point       |
-| Z   | Global     | Edge glows / ping           | 38–46s / 2.4s    | Atmosphere / live                   |
-| J1  | App        | Live dot                    | 2.4s             | Feed or mode is live                |
-| J2  | App        | Active card scan            | 4.6s             | A card is open                      |
-| J3  | Home       | CARD row pulse              | 3s               | The name that carded                |
-| J4  | Home       | Pending cap pip             | 2s               | Card pending against the cap        |
-| J5  | Home, Card | Countdown ring              | 75s (JS)         | Card lifetime; holds during confirm |
-| J6  | Card       | Confirm sequence            | 0/.7/1.4/2.1s    | Tap → re-quote → gates → fill       |
-| J7  | Home, Card | Re-quote shimmer            | 1.1s once        | Fresh prices                        |
-| J8  | Card       | Waterfall grow              | .5–.6s staggered | Costs peel off gross                |
-| J9  | Watchlist  | Detail chart draw           | 1.2s             | New name selected                   |
-| J10 | History    | Drawer rise                 | .35s             | Card detail                         |
-| J11 | Token      | Mark orbit / breathe / dash | 40 / 26 / 5 / 3s | Pre-launch, no data yet             |
-| J12 | App        | Micro-transitions           | .15–1s           | Tooltip, switch, hover, arc         |
+| ID  | Where      | Name                        | Period                 | Meaning                                   |
+| --- | ---------- | --------------------------- | ---------------------- | ----------------------------------------- |
+| A1  | Hero       | Line draw-in                | 2.4s once              | Feeds come online                         |
+| A2  | Hero       | Token breathe + bracket     | 6s                     | The gap widens and narrows                |
+| A3  | Hero       | Travelling tick             | 4s                     | Live ticks on the token feed              |
+| A4  | Hero       | Cash flow dashes            | 2.2s                   | Live cash feed                            |
+| A5  | Hero       | Gap pulse                   | 1.6s / 3s              | The live value                            |
+| A6  | Hero       | Copy rise                   | 1s once                | –                                         |
+| B1  | Ticker     | Marquee                     | 48s                    | Names being watched                       |
+| B2  | Ticker     | Threshold flash             | 4.2s                   | A gap crossed cost                        |
+| C1  | Measure    | Ruler                       | 4s                     | Measuring the gap                         |
+| C2  | Haircut    | Peel                        | 5s                     | Costs removed from the gross              |
+| C3  | Emit       | Gates + mini card           | 5.4s                   | All four gates pass, then a card          |
+| D1  | Card       | Countdown ring              | 75s (JS)               | Card lifetime                             |
+| D2  | Card       | Re-quote shimmer            | 1.1s once              | Fresh prices on confirm                   |
+| D3  | Card       | Cap fill + lock             | 6s                     | 3 a day                                   |
+| D4  | Card       | Top scan                    | 5s                     | Live panel                                |
+| E1  | Reasons    | Age bar                     | 4.4s                   | STALE                                     |
+| E2  | Reasons    | Session marker              | 6.6s                   | CLOSED                                    |
+| E3  | Reasons    | Depth drain                 | 3.6s                   | THIN                                      |
+| E4  | Reasons    | Dissolve                    | 3.2s                   | DUST                                      |
+| F1  | Paper      | Stamp                       | 4.8s                   | Paper fill at mid                         |
+| F2  | Live       | Packet + tap                | 5.2s                   | One order, only after your tap            |
+| G1  | Won't      | ✕ draw                      | 6s                     | The refusals                              |
+| G2  | Won't      | "not" flicker               | 5.6s                   | The thesis line                           |
+| H1  | FAQ        | Answer rise                 | .6s once               | –                                         |
+| H2  | FAQ        | Scan line                   | 3.4s                   | The open row                              |
+| I1  | Closing    | Lines split/rejoin          | 6.4s                   | Gap opens, then closes                    |
+| I2  | Closing    | Headline snap               | 6.4s                   | "No gap" at the meeting point             |
+| Z   | Global     | Edge glows / ping           | 38–46s / 2.4s          | Atmosphere / live                         |
+| J1  | App        | Live dot                    | 2.4s                   | Feed or mode is live                      |
+| J2  | App        | Active card scan            | 4.6s                   | A card is open                            |
+| J3  | Home       | CARD row pulse              | 3s                     | The name that carded                      |
+| J4  | Home       | Pending cap pip             | 2s                     | Card pending against the cap              |
+| J5  | Home, Card | Countdown ring              | 75s (JS)               | Card lifetime; holds during confirm       |
+| J6  | Card       | Confirm sequence            | 0/.7/1.4/2.1s          | Tap → re-quote → gates → fill             |
+| J7  | Home, Card | Re-quote shimmer            | 1.1s once              | Fresh prices                              |
+| J8  | Card       | Waterfall grow              | .5–.6s staggered       | Costs peel off gross                      |
+| J9  | Watchlist  | Detail chart draw           | 1.2s                   | New name selected                         |
+| J10 | History    | Drawer rise                 | .35s                   | Card detail                               |
+| J11 | Token      | Mark orbit / breathe / dash | 40 / 26 / 5 / 3s       | Pre-launch, no data yet                   |
+| J12 | App        | Micro-transitions           | .15–1s                 | Tooltip, switch, hover, arc               |
+| K1  | Docs       | Live dot                    | 2.4s                   | The live-strip copy in Quickstart         |
+| K2  | Docs       | Diagram flow                | 1.6s / 1.4s            | Direction of the lifecycle and gate order |
+| K3  | Docs home  | Architecture connectors     | 1.2s                   | Data direction between services           |
+| K4  | Docs       | Waterfall grow              | .5–.6s staggered, once | Costs peel off gross                      |
+| K5  | Reasons    | DUST dissolve               | 3.2s                   | A gap that rounds to nothing              |
+| K6  | Docs       | Copy feedback               | 1.6s                   | Label "Copied ✓"                          |
+| K7  | Docs       | Hover transitions           | .3s                    | Tiles and links                           |
 
 ## 10. Copy
 
@@ -1029,6 +1319,8 @@ labels: HTML spans at left = X(i)/8 %, text = first 3 letters of the day + ' ' +
 - Every price is sample data and labelled ILLUSTRATIVE.
 
 ## 11. Open placeholders
+
+Docs: `[APP_URL]` · `[AUTH_METHOD]` · `[API_BASE]` · `[TOKEN]` (API bearer) · `[DATE]` · `[DOCS_VERSION]`. All developer code (Rust signatures, the SSE endpoint, card and reason event fields) is DRAFT. Nine sidebar pages are not drawn and link to `#`. The landing page's Docs links still point to `[DOCS_URL]`; the target is `DocsHome.dc.html`.
 
 App: `[AV]` (avatar initials) · `[ORDER_SIZE]` (live order size) · `[LIST_TBD]` (real watchlist) · `$[TICKER]`, `[TOKEN_NAME]`, `[CHAIN]`, `[PRICE]`, `[CHANGE_24H]`, `[MCAP]`, `[HOLDERS]`, `[CONTRACT_ADDRESS]`, `[SUPPLY]`, `[DECIMALS]`, `[LAUNCH_DATE]`, `[EXPLORER_URL]`, `[AMOUNT]`, `[USD_VALUE]`, `[UTILITY_1–3]`. The Paper/Live state is per artboard in the mock; in production it is one global setting.
 
@@ -1050,3 +1342,10 @@ Landing: `[APP_URL]` · `[DOCS_URL]` · `[DOMAIN]` (OG and Twitter cards) · `[C
   - Charts have `role="img"` with a label that states the current value.
   - The focus ring is a 2px lime outline everywhere.
   - State is never shown by colour alone: pills carry the word (CARD, THIN, STALE, DUST, TAKEN…).
+- **Docs:**
+  - Landmarks for the docs nav, sidebar, article and TOC.
+  - `aria-current="page"` on the active sidebar item.
+  - H2 anchors carry `scroll-margin-top:100px` so headings clear the sticky nav.
+  - Every diagram and figure has `role="img"` with a sentence-long label.
+  - Copy buttons are real `<button>` elements.
+  - The code-comment grey is `#80848A` (5.2:1).

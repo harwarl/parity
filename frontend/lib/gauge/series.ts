@@ -9,8 +9,8 @@ const symSeed = (sym: string) => sym.split("").reduce((a, ch) => a + ch.charCode
 const path = (pts: [number, number][]) =>
   pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`).join(" ");
 
-/** Home sparkline: 112 × 28, 24 points, ends on the live net. */
-export function sparkline(row: WatchRow) {
+/** Home sparkline seed: 24 points ending on the live net (design.md §5B.12 H). */
+export function seedSparkValues(row: WatchRow): number[] {
   let seed = symSeed(row.sym);
   const v: number[] = [];
   for (let i = 0; i < 24; i++) {
@@ -18,11 +18,16 @@ export function sparkline(row: WatchRow) {
     v.push(row.net + (seed / 233280 - 0.5) * 8 * (1 - i / 30));
   }
   v[23] = row.net;
+  return v;
+}
+
+/** 112 × 28 path for any 24-point series (seeded or live). */
+export function sparklineFrom(v: number[]) {
   const lo = Math.min(...v, RULES.floor) - 1;
   const hi = Math.max(...v, RULES.floor) + 1;
   const y = (x: number) => 26 - ((x - lo) / (hi - lo)) * 24;
-  const pts = v.map((val, i) => [(i * 110) / 23, y(val)] as [number, number]);
-  return { d: path(pts), floorY: y(RULES.floor), end: pts[23] };
+  const pts = v.map((val, i) => [(i * 110) / (v.length - 1), y(val)] as [number, number]);
+  return { d: path(pts), floorY: y(RULES.floor), end: pts[pts.length - 1] };
 }
 
 /** Watchlist detail: 700 × 220, 60 points, one per minute 13:03 → 14:02. */

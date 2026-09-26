@@ -1,4 +1,5 @@
-import { NOW, RULES, rowBySym, ACTIVE } from "@/lib/gauge/model";
+import { RULES, rowBySym, ACTIVE } from "@/lib/gauge/model";
+import { RthLeft } from "@/components/app/ui/LiveClock";
 import { Pill } from "@/components/ui/Pill";
 import { Panel } from "@/components/ui/Panel";
 import { PanelHead } from "@/components/app/ui/PanelHead";
@@ -8,7 +9,7 @@ export function GatesModule() {
   const row = rowBySym(ACTIVE.sym);
   const gates = [
     { name: "Net gap", rule: `net ≥ ${RULES.floor.toFixed(1)} bps floor`, value: row.net.toFixed(1) },
-    { name: "Session", rule: "RTH 09:30–16:00 ET", value: NOW.rthLeft },
+    { name: "Session", rule: "RTH 09:30–16:00 ET", value: <RthLeft /> },
     { name: "Depth", rule: `top of book ≥ $${RULES.minDepth}k`, value: `$${row.depth}k` },
     { name: "Cap", rule: `≤ ${RULES.cap} cards per day`, value: "1/3" },
   ];

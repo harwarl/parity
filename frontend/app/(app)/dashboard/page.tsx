@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { NOW } from "@/lib/gauge/model";
+import { LiveClock } from "@/components/app/ui/LiveClock";
 import { CountdownProvider } from "@/components/app/shell/CountdownProvider";
 import { LiveStrip } from "@/components/app/shell/LiveStrip";
 import { TopBar } from "@/components/app/shell/TopBar";
@@ -24,13 +25,15 @@ export default function HomePage() {
         title="Home"
         context={
           <>
-            {NOW.day} · <b>{NOW.time} ET</b>
+            {NOW.day} · <b>
+              <LiveClock /> ET
+            </b>
           </>
         }
         pills={["rth", "cap", "feeds"]}
       />
       <LiveStrip />
-      <div className="flex flex-col gap-5">
+      <div className="app-rows flex flex-col gap-5">
         <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-[5fr_4fr_3fr]">
           <ActiveCardModule />
           <GatesModule />

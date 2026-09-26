@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RULES, ROWS, stateCounts, type GateState } from "@/lib/gauge/model";
+import { RULES, stateCounts, type GateState } from "@/lib/gauge/model";
 import { formatBps, formatSignedBps } from "@/lib/format";
 import { Panel } from "@/components/ui/Panel";
+import { useLive } from "@/components/app/shell/LiveMarketProvider";
+import { LiveNum } from "@/components/app/ui/LiveNum";
 import { RailIcon } from "@/components/app/shell/RailIcon";
 import { netColor } from "@/components/app/ui/Sparkline";
 import { StatePill, stateHex } from "@/components/app/ui/StatePill";
@@ -19,7 +21,8 @@ const heads = ["Name", "Cash", "Token/sh", "Gap", "Fees", "Slip", "Buffer", "Net
 
 /** Watchlist (design.md §5B.5): filter rail, search + sort, table, detail. */
 export function WatchlistView() {
-  const counts = stateCounts();
+  const { rows: ROWS, latency } = useLive();
+  const counts = stateCounts(ROWS);
   const [filter, setFilter] = useState<Filter>("ALL");
   const [sort, setSort] = useState<Sort>("Net");
   const [query, setQuery] = useState("");
@@ -48,7 +51,7 @@ export function WatchlistView() {
       "A–Z": (a, b) => a.sym.localeCompare(b.sym),
     };
     return [...list].sort(by[sort]);
-  }, [filter, sort, query]);
+  }, [ROWS, filter, sort, query]);
 
   const filters: { key: Filter; label: string; count: number; color: string }[] = [
     { key: "ALL", label: "All names", count: ROWS.length, color: "#F9F7F4" },
@@ -61,7 +64,7 @@ export function WatchlistView() {
   const current = ROWS.find((r) => r.sym === selected) ?? ROWS[0];
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[236px_1fr]">
+    <div className="app-rows grid gap-5 lg:grid-cols-[236px_1fr]">
       <aside className="self-start lg:sticky lg:top-6">
         <Panel className="flex flex-col gap-6 p-5">
           <section aria-labelledby="f-state">
@@ -114,9 +117,9 @@ export function WatchlistView() {
             <h2 id="f-feeds" className="app-cell-label">Feeds</h2>
             <dl className="mt-2 font-mono text-[12px]">
               {[
-                ["Cash · Robinhood", "38 ms"],
-                ["Token · Chainlink", "1.1 s hb"],
-                ["SSE", "250 ms"],
+                ["Cash · Robinhood", `${latency.quotes} ms`],
+                ["Token · Chainlink", `${latency.chainlink} s hb`],
+                ["SSE", `${latency.sse} ms`],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between border-b border-line-row py-2 last:border-b-0">
                   <dt className="text-muted">{k}</dt>
@@ -203,14 +206,14 @@ export function WatchlistView() {
                             <span className="block font-body text-[12px] text-dim">{r.name}</span>
                           </span>
                         </span>
-                        <span className="text-right text-ink">{r.cash.toFixed(2)}</span>
-                        <span className="text-right text-ink-2">{r.token.toFixed(2)}</span>
-                        <span className="text-right text-ink">{formatSignedBps(r.gap)}</span>
+                        <span className="text-right text-ink"><LiveNum value={+r.cash.toFixed(2)} text={r.cash.toFixed(2)} /></span>
+                        <span className="text-right text-ink-2"><LiveNum value={+r.token.toFixed(2)} text={r.token.toFixed(2)} /></span>
+                        <span className="text-right text-ink"><LiveNum value={+r.absGap.toFixed(1)} text={formatSignedBps(r.gap)} /></span>
                         <span className="text-right text-neg">{formatBps(-RULES.fees)}</span>
                         <span className="text-right text-neg">{formatBps(-r.slip)}</span>
                         <span className="text-right text-neg">{formatBps(-RULES.buffer)}</span>
-                        <span className="text-right" style={{ color: netColor(r) }}>{formatSignedBps(r.net)}</span>
-                        <span className={`text-right ${r.depth < RULES.minDepth ? "text-thin" : "text-ink"}`}>${r.depth}k</span>
+                        <span className="text-right" style={{ color: netColor(r) }}><LiveNum value={+r.net.toFixed(1)} text={formatSignedBps(r.net)} /></span>
+                        <span className={`text-right ${r.depth < RULES.minDepth ? "text-thin" : "text-ink"}`}><LiveNum value={r.depth} text={`$${r.depth}k`} /></span>
                         <span className={`text-right ${r.age > RULES.maxAge ? "text-neg" : "text-ink"}`}>{r.age.toFixed(1)}s</span>
                         <span className="flex justify-end"><StatePill state={r.state} /></span>
                       </button>

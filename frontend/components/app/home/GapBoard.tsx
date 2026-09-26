@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
-import { RULES, ROWS, stateCounts } from "@/lib/gauge/model";
-import { formatBps, formatCost, formatSignedBps } from "@/lib/format";
+import { RULES, stateCounts } from "@/lib/gauge/model";
+import { formatCost, formatSignedBps } from "@/lib/format";
 import { Panel } from "@/components/ui/Panel";
 import { Pill } from "@/components/ui/Pill";
+import { useLive } from "@/components/app/shell/LiveMarketProvider";
+import { LiveNum } from "@/components/app/ui/LiveNum";
 import { PanelHead } from "@/components/app/ui/PanelHead";
 import { netColor, Sparkline } from "@/components/app/ui/Sparkline";
 import { StatePill } from "@/components/app/ui/StatePill";
@@ -13,7 +17,8 @@ const heads = ["Name", "Cash mid", "Token/share", "Gap", "Costs", "Net", "Depth"
 
 /** Home · Live gap board (design.md §5B.10). CSS grid with table roles. */
 export function GapBoard() {
-  const counts = stateCounts();
+  const { rows, hist, latency } = useLive();
+  const counts = stateCounts(rows);
   return (
     <Panel>
       <PanelHead
@@ -21,7 +26,7 @@ export function GapBoard() {
         meta={
           <>
             <Pill size="sm" tone="lime" dot="live">
-              SSE · 250 ms
+              SSE · {latency.sse} ms
             </Pill>
             <span className="app-meta tracking-[0.16em]">ILLUSTRATIVE</span>
             <StatePill state="CARD">Card {counts.CARD}</StatePill>
@@ -47,7 +52,7 @@ export function GapBoard() {
               </span>
             ))}
           </div>
-          {ROWS.map((r) => (
+          {rows.map((r) => (
             <div
               key={r.sym}
               role="row"
@@ -61,13 +66,18 @@ export function GapBoard() {
                   <span className="block font-body text-[12px] text-dim">{r.name}</span>
                 </span>
               </span>
-              <span role="cell" className="text-right text-ink">{r.cash.toFixed(2)}</span>
-              <span role="cell" className="text-right text-ink-2">{r.token.toFixed(2)}</span>
-              <span role="cell" className="text-right text-ink">{formatSignedBps(r.gap)}</span>
+              <span role="cell" className="text-right text-ink">
+                <LiveNum value={+r.cash.toFixed(2)} text={r.cash.toFixed(2)} />
+              </span>
+              <span role="cell" className="text-right text-ink-2">
+                <LiveNum value={+r.token.toFixed(2)} text={r.token.toFixed(2)} />
+              </span>
+              <span role="cell" className="text-right text-ink">
+                <LiveNum value={+r.absGap.toFixed(1)} text={formatSignedBps(r.gap)} />
+              </span>
               <span role="cell" className="text-right text-neg">{formatCost(r.costs)}</span>
               <span role="cell" className="text-right" style={{ color: netColor(r) }}>
-                {r.net >= 0 ? "+" : ""}
-                {formatBps(r.net)}
+                <LiveNum value={+r.net.toFixed(1)} text={formatSignedBps(r.net)} />
               </span>
               <span role="cell" className={`text-right ${r.depth < RULES.minDepth ? "text-thin" : "text-ink"}`}>
                 ${r.depth}k
@@ -76,7 +86,7 @@ export function GapBoard() {
                 {r.age.toFixed(1)}s
               </span>
               <span role="cell" className="flex justify-end">
-                <Sparkline row={r} />
+                <Sparkline row={r} values={hist[r.sym]} />
               </span>
               <span role="cell" className="flex justify-end">
                 <StatePill state={r.state} />

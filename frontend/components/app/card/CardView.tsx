@@ -90,7 +90,7 @@ export function CardView() {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="app-rows flex flex-col gap-5">
       <div className="grid gap-5 xl:grid-cols-[5fr_7fr]">
         <Panel featured className="relative flex min-w-0 flex-col gap-6 overflow-hidden p-7 max-sm:p-5">
           <ScanLine />

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { NOW, ROWS } from "@/lib/gauge/model";
+import { ROWS } from "@/lib/gauge/model";
+import { LiveClock } from "@/components/app/ui/LiveClock";
 import { TopBar } from "@/components/app/shell/TopBar";
 import { WatchlistView } from "@/components/app/watchlist/WatchlistView";
 
@@ -12,7 +13,9 @@ export default function WatchlistPage() {
         title="Watchlist"
         context={
           <>
-            {ROWS.length} names · <b>{NOW.time} ET</b>
+            {ROWS.length} names · <b>
+              <LiveClock /> ET
+            </b>
           </>
         }
         pills={["rth", "cap"]}

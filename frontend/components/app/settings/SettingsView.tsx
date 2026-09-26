@@ -143,7 +143,7 @@ export function SettingsView() {
           </ul>
         </nav>
 
-        <div className="flex min-w-0 flex-col gap-5">
+        <div className="app-rows flex min-w-0 flex-col gap-5">
           {/* 1 · Mode & account */}
           <section id="mode" aria-labelledby="h-mode" className="scroll-mt-6">
             <Panel featured>

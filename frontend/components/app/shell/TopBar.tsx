@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { NOW } from "@/lib/gauge/model";
 import { Pill } from "@/components/ui/Pill";
+import { RthLeft } from "@/components/app/ui/LiveClock";
 import { ModeToggle } from "./ModeToggle";
 
 type StatusPill = "rth" | "cap" | "feeds";
@@ -24,7 +24,7 @@ export function TopBar({ title, context, pills = [], actions }: TopBarProps) {
       <div className="flex flex-wrap items-center gap-2.5">
         {pills.includes("rth") && (
           <Pill size="sm" tone="lime" dot="live">
-            RTH · {NOW.rthLeft} left
+            RTH · <RthLeft /> left
           </Pill>
         )}
         {pills.includes("cap") && <Pill size="sm">Cap 1/3</Pill>}

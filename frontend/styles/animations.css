@@ -276,6 +276,35 @@
   50%      { background: rgba(178, 212, 80, 0.09); }
 }
 
+/* Live value change: lime wash up, red wash down (0.9s) */
+@keyframes j-flash-up {
+  from { background: rgba(178, 212, 80, 0.28); }
+  to   { background: rgba(178, 212, 80, 0); }
+}
+@keyframes j-flash-down {
+  from { background: rgba(255, 107, 94, 0.26); }
+  to   { background: rgba(255, 107, 94, 0); }
+}
+
+/* Dashboard entrance: rows rise in, fast (<0.6s total) */
+.app-rows > *,
+.app-rows > .grid > * {
+  animation: j-rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.app-rows > .grid {
+  animation: none;
+}
+.app-rows > :nth-child(2),
+.app-rows > .grid > :nth-child(2) { animation-delay: 60ms; }
+.app-rows > :nth-child(3),
+.app-rows > .grid > :nth-child(3) { animation-delay: 120ms; }
+.app-rows > :nth-child(4),
+.app-rows > .grid > :nth-child(4) { animation-delay: 180ms; }
+.app-rows > :nth-child(n + 5) { animation-delay: 220ms; }
+.app-rows > :nth-child(2) > * { animation-delay: 80ms; }
+.app-rows > :nth-child(3) > * { animation-delay: 140ms; }
+.app-rows > :nth-child(4) > * { animation-delay: 200ms; }
+
 /* J4 · pending cap pip (2s) */
 @keyframes j-blink {
   0%, 100% { opacity: 1; }

@@ -58,7 +58,7 @@ export function HistoryView() {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="app-rows flex flex-col gap-5">
       <Panel className="grid sm:grid-cols-2 lg:grid-cols-5">
         {kpis.map((k) => (
           <div key={k.label} className="border-b border-line-row px-[22px] py-5 lg:border-r lg:border-b-0 lg:last:border-r-0">
