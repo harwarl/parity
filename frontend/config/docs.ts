@@ -3,6 +3,12 @@
 export type DocLink = { label: string; href?: string; draft?: boolean };
 export type DocGroup = { label: string; draft?: boolean; items: DocLink[] };
 
+/** Shown in the docs footer and article meta. Bump when the docs change. */
+export const DOCS_META = {
+  version: "v0.1",
+  updated: "26 Sep 2026",
+} as const;
+
 export const DOCS = {
   home: "/docs",
   quickstart: "/docs/quickstart",

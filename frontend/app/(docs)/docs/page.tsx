@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DOCS } from "@/config/docs";
+import { DOCS, DOCS_META } from "@/config/docs";
 import { Panel } from "@/components/ui/Panel";
 import { DocsSidebar } from "@/components/docs/DocsSidebar";
 import { SearchTrigger } from "@/components/docs/SearchTrigger";
@@ -145,7 +145,7 @@ export default function DocsHome() {
 
           <footer className="mt-14 flex flex-wrap justify-between gap-3 border-t border-ink/8 pt-6 font-mono text-[12px] text-dim">
             <span>GAUGE is not affiliated with Robinhood. Signals, not advice.</span>
-            <span>Docs · [DOCS_VERSION] · © 2026 GAUGE</span>
+            <span>Docs · {DOCS_META.version} · © 2026 GAUGE</span>
           </footer>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DOCS } from "@/config/docs";
+import { DOCS, DOCS_META } from "@/config/docs";
 import { ArticleHeader } from "@/components/docs/ArticleHeader";
 import { ArticleShell } from "@/components/docs/ArticleShell";
 import { CodeBlock } from "@/components/docs/CodeBlock";
@@ -37,7 +37,7 @@ export default function QuickstartPage() {
         crumbs={["Docs", "Get started", "Quickstart"]}
         title="Quickstart"
         lede="From zero to your first live card in seven steps. You link your Robinhood Agentic Account, check your gates, and tap Do it when a card clears."
-        meta={["5 min read", "Live mode", "Updated [DATE]"]}
+        meta={["5 min read", "Live mode", `Updated ${DOCS_META.updated}`]}
       />
 
       <Step n="01" id="open" title="Open GAUGE">
