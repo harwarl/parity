@@ -8,6 +8,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { EmitGates } from "./EmitGates";
 import { HaircutBar } from "./HaircutBar";
 import { MeasureRuler } from "./MeasureRuler";
+import { revealInRow } from "@/lib/reveal";
 
 type Step = {
   eyebrow: string;
@@ -59,11 +60,12 @@ export function HowItWorks() {
         lede="Three steps, every tick. A gap that looks good before costs is not a gap. GAUGE only speaks when what's left after fees, slippage and a buffer is still worth your tap."
       />
       <div className="grid gap-5 lg:grid-cols-3">
-        {steps.map((step) => (
+        {steps.map((step, i) => (
           <Panel
             key={step.eyebrow}
             featured={step.featured}
-            className="box-content flex lg:min-h-[460px] flex-col gap-[18px] p-9 max-sm:p-6"
+            className="g-reveal g-rk box-content flex lg:min-h-[460px] flex-col gap-[18px] p-9 max-sm:p-6"
+            style={revealInRow(i, steps.length)}
           >
             <p className="g-eyebrow">{step.eyebrow}</p>
             <h3 className="g-h3">{step.title}</h3>

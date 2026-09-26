@@ -6,6 +6,7 @@ import { Panel } from "@/components/ui/Panel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { CardMock } from "./CardMock";
 import { DailyCap } from "./DailyCap";
+import { revealInRow } from "@/lib/reveal";
 
 const anatomy = [
   { label: "Countdown", body: "75 seconds, then it's gone. No stale cards waiting in a queue." },
@@ -30,7 +31,8 @@ export function TheCard() {
       <div className="grid gap-5 lg:grid-cols-[7fr_5fr]">
         <Panel
           featured
-          className="flex flex-col gap-11 overflow-hidden p-11 max-sm:p-5 md:flex-row"
+          className="g-reveal g-rk flex flex-col gap-11 overflow-hidden p-11 max-sm:p-5 md:flex-row"
+          style={revealInRow(0, 2)}
         >
           {/* D4 · 1px scan along the top edge */}
           <span aria-hidden className="absolute inset-x-0 top-0 h-px overflow-hidden">
@@ -52,7 +54,9 @@ export function TheCard() {
             ))}
           </dl>
         </Panel>
-        <DailyCap />
+        <div className="g-reveal grid" style={revealInRow(1, 2)}>
+          <DailyCap />
+        </div>
       </div>
     </section>
   );

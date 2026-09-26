@@ -3,6 +3,7 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { useId, useState } from "react";
 import type { FaqItem } from "@/types/content";
+import { reveal } from "@/lib/reveal";
 
 /**
  * 5.9 · One row open at a time; the first is open by default. The answer
@@ -19,7 +20,11 @@ export function FaqList({ items }: { items: FaqItem[] }) {
         const panelId = `${baseId}-panel-${i}`;
         const buttonId = `${baseId}-button-${i}`;
         return (
-          <div key={item.question} className="relative border-b border-ink/10">
+          <div
+            key={item.question}
+            className="g-reveal relative border-b border-ink/10"
+            style={reveal({ x: 32, y: 12, delay: i * 70 })}
+          >
             <h3>
               <button
                 id={buttonId}

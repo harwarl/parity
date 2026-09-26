@@ -313,6 +313,54 @@
   animation-play-state: paused !important;
 }
 
+/* ── Animate on scroll (landing) ─────────────────────────
+ * Driven by RevealObserver (sets data-in). Hidden state applies only once
+ * JS has added .js-reveal, so no-JS and reduced-motion visitors see the
+ * page as designed. Enter: slow, staggered, eased. Exit: quick, no delay.
+ */
+.js-reveal .g-reveal {
+  opacity: 0;
+  transform: translate3d(var(--rx, 0px), var(--ry, 32px), 0) scale(0.96);
+  filter: blur(10px);
+  transition:
+    opacity 0.45s ease,
+    transform 0.5s ease,
+    filter 0.45s ease;
+}
+.js-reveal .g-reveal[data-in] {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+  transition:
+    opacity 0.8s ease var(--rdl, 0ms),
+    transform 1s cubic-bezier(0.2, 0.7, 0.2, 1) var(--rdl, 0ms),
+    filter 0.8s ease var(--rdl, 0ms);
+}
+
+/* A panel's own contents assemble after the panel lands */
+.js-reveal .g-reveal.g-rk > *,
+.js-reveal .g-reveal .g-rk > * {
+  opacity: 0;
+  translate: 0 14px;
+  transition:
+    opacity 0.3s ease,
+    translate 0.3s ease;
+}
+.js-reveal .g-reveal[data-in].g-rk > *,
+.js-reveal .g-reveal[data-in] .g-rk > * {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.6s ease calc(var(--rdl, 0ms) + 180ms + var(--k, 0) * 70ms),
+    translate 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--rdl, 0ms) + 180ms + var(--k, 0) * 70ms);
+}
+.g-rk > :nth-child(2) { --k: 1; }
+.g-rk > :nth-child(3) { --k: 2; }
+.g-rk > :nth-child(4) { --k: 3; }
+.g-rk > :nth-child(5) { --k: 4; }
+.g-rk > :nth-child(6) { --k: 5; }
+.g-rk > :nth-child(n + 7) { --k: 6; }
+
 /* §9 · reduced motion, with the rest-state fixes */
 @media (prefers-reduced-motion: reduce) {
   * {

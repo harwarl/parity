@@ -1,18 +1,22 @@
 /*
  * Closing CTA · design dials: VARIANCE 5 / MOTION 6 / DENSITY 3.
- * Lime block. Two identical brand lines split and rejoin (I1); the headline
+ * Full-bleed lime band (edge to edge, per request; design.md had it inset
+ * 24px with radius 28). Two identical brand lines split and rejoin (I1); the headline
  * snaps when they meet (I2), on one 6.4s clock.
  */
 import { urls } from "@/config/site";
 import { Button } from "@/components/ui/Button";
+import { reveal } from "@/lib/reveal";
 
 const LINE_D =
   "M0 372 C160 366,300 384,460 378 S760 352,960 360 S1260 386,1440 368";
 
 export function ClosingCta() {
   return (
-    <section data-motion className="px-6 pt-[150px] max-sm:px-3">
-      <div className="relative mx-auto flex max-w-[1392px] flex-col items-center gap-9 overflow-hidden rounded-block bg-accent px-10 pt-[120px] pb-[110px] text-center max-sm:px-5 max-sm:pt-20 max-sm:pb-16">
+    <section data-motion className="pt-[150px]">
+      <div
+        style={reveal({ y: 60 })}
+        className="g-reveal relative flex w-full flex-col items-center gap-9 overflow-hidden bg-accent px-10 pt-[120px] pb-[110px] text-center max-sm:px-5 max-sm:pt-20 max-sm:pb-16">
         <svg
           aria-hidden
           viewBox="0 0 1440 740"

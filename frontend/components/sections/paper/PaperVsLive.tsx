@@ -9,6 +9,7 @@ import { Pill } from "@/components/ui/Pill";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { LiveRoute } from "./LiveRoute";
 import { PaperTicket } from "./PaperTicket";
+import { revealInRow } from "@/lib/reveal";
 
 type Mode = {
   title: string;
@@ -62,11 +63,12 @@ export function PaperVsLive() {
         lede="Both modes run the same gates and the same card. The only difference is what happens after you tap."
       />
       <div className="grid gap-5 lg:grid-cols-2">
-        {modes.map((m) => (
+        {modes.map((m, i) => (
           <Panel
             key={m.title}
             featured={m.featured}
-            className="box-content flex lg:min-h-[480px] flex-col gap-6 p-11 max-sm:p-6"
+            className="g-reveal g-rk box-content flex lg:min-h-[480px] flex-col gap-6 p-11 max-sm:p-6"
+            style={revealInRow(i, modes.length)}
           >
             <div className="flex items-center justify-between gap-4">
               <h3 className="g-h3 !text-[34px]">{m.title}</h3>

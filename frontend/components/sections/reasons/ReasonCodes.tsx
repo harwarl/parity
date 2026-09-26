@@ -9,6 +9,7 @@ import { DepthBars } from "./DepthBars";
 import { DustDots } from "./DustDots";
 import { SessionTrack } from "./SessionTrack";
 import { StaleAge } from "./StaleAge";
+import { revealInRow } from "@/lib/reveal";
 
 type Reason = { gate: string; code: string; visual: ReactNode; body: string; featured?: boolean };
 
@@ -57,11 +58,12 @@ export function ReasonCodes() {
         lede="Silence is never a mystery. When a gate fails, GAUGE tells you which one, in one word."
       />
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {reasons.map((r) => (
+        {reasons.map((r, i) => (
           <Panel
             key={r.code}
             featured={r.featured}
-            className="box-content flex sm:min-h-[340px] flex-col gap-5 p-8"
+            className="g-reveal g-rk box-content flex sm:min-h-[340px] flex-col gap-5 p-8"
+            style={revealInRow(i, reasons.length)}
           >
             <p className="g-label">{r.gate}</p>
             {r.visual}
