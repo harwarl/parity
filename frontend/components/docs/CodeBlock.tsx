@@ -40,10 +40,10 @@ export function CodeBlock({
         <button
           type="button"
           onClick={copy}
-          aria-label={copied ? "Copied" : `Copy ${title}`}
           className="h-[26px] cursor-pointer rounded-full border border-ink/14 px-3 font-mono text-[11px] text-ink-2 hover:border-ink/30 hover:text-ink"
         >
           <span aria-live="polite">{copied ? "Copied ✓" : "Copy"}</span>
+          <span className="sr-only"> {title}</span>
         </button>
       </div>
       <pre className="overflow-x-auto px-[18px] py-4 font-mono text-[13.5px] leading-[1.75] whitespace-pre text-ink-2">

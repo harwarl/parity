@@ -6,7 +6,7 @@ export type TocItem = { id: string; label: string };
 
 /**
  * On this page (.toc). The active link follows the section you're reading:
- * the last heading that has scrolled past the top 30% of the viewport.
+ * the last heading that has scrolled past 40% of the viewport height.
  */
 export function Toc({ items, children }: { items: TocItem[]; children?: ReactNode }) {
   const [active, setActive] = useState(items[0]?.id);
@@ -15,7 +15,8 @@ export function Toc({ items, children }: { items: TocItem[]; children?: ReactNod
     const els = items.map((i) => document.getElementById(i.id)).filter(Boolean) as HTMLElement[];
     const observer = new IntersectionObserver(
       () => {
-        const line = window.innerHeight * 0.3;
+        // Same line as the observer's band (rootMargin −60% bottom → 40% down).
+        const line = window.innerHeight * 0.4;
         let current = els[0]?.id;
         for (const el of els) if (el.getBoundingClientRect().top <= line) current = el.id;
         setActive(current);

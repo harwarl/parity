@@ -4,7 +4,7 @@ import type { FaqItem, NavLink, TickerItem, WontDoItem } from "@/types/content";
 export const urls = {
   /** In-app route; swap for [APP_URL] if the app ships on its own domain. */
   app: "/dashboard",
-  docs: "[DOCS_URL]",
+  docs: "/docs",
   contactEmail: "[CONTACT_EMAIL]",
 } as const;
 
@@ -21,7 +21,7 @@ export const navLinks: NavLink[] = [
   { label: "How it works", href: "#how" },
   { label: "The card", href: "#card" },
   { label: "FAQ", href: "#faq" },
-  { label: "Docs", href: urls.docs },
+  // { label: "Docs", href: urls.docs },
 ];
 
 export const footerProduct: NavLink[] = [
