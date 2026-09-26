@@ -413,3 +413,179 @@
     font-size: 14px;
   }
 }
+
+/* ── Docs (design.md §5C) · calm reading mode ────────────── */
+@layer components {
+  /* Article body (.art) */
+  .art p,
+  .art li {
+    font-size: 16.5px;
+    line-height: 1.75;
+    color: var(--color-ink-2);
+  }
+  .art p + p {
+    margin-top: 14px;
+  }
+  .art ul,
+  .art ol {
+    margin: 12px 0;
+    padding-left: 22px;
+  }
+  .art ul { list-style: disc; }
+  .art ol { list-style: decimal; }
+  .art li { margin: 6px 0; padding-left: 4px; }
+  .art li::marker { color: var(--color-dim); }
+  .art strong {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+  .art a:not(.g-btn):not(.doc-plain) {
+    color: var(--color-accent);
+    text-underline-offset: 3px;
+  }
+  .art a:not(.g-btn):not(.doc-plain):hover {
+    text-decoration: underline;
+  }
+  .art :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: var(--color-ink);
+    background: rgba(249, 247, 244, 0.06);
+    border: 1px solid rgba(249, 247, 244, 0.08);
+    border-radius: 6px;
+    padding: 1px 6px;
+  }
+  .art > * + * {
+    margin-top: 16px;
+  }
+
+  /* Path chip for UI paths ("Settings → Gates") */
+  .doc-path {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--color-ink);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(249, 247, 244, 0.04);
+    border: 1px solid rgba(249, 247, 244, 0.1);
+    white-space: nowrap;
+  }
+
+  /* DRAFT chip */
+  .doc-draft {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(232, 176, 74, 0.45);
+    color: var(--color-thin);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    vertical-align: middle;
+  }
+
+  /* Doc table (.dt): real <table> */
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .doc-table th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(249, 247, 244, 0.1);
+  }
+  .doc-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(249, 247, 244, 0.06);
+    color: var(--color-ink-2);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .doc-table td.v {
+    font-family: var(--font-mono);
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+
+  /* Syntax colours */
+  .tok-k { color: #8fa6da; }
+  .tok-s { color: var(--color-accent); }
+  .tok-nm { color: #e4f5a6; }
+  .tok-c { color: #80848a; }
+
+  /* Sidebar link */
+  .doc-nl {
+    display: flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--color-muted);
+  }
+  .doc-nl:hover {
+    background: rgba(249, 247, 244, 0.04);
+    color: var(--color-ink-2);
+  }
+  .doc-nl[aria-current="page"] {
+    color: var(--color-accent);
+    background: rgba(178, 212, 80, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(178, 212, 80, 0.25);
+  }
+
+  /* TOC */
+  .doc-toc a {
+    position: relative;
+    display: block;
+    padding: 6px 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-dim);
+  }
+  .doc-toc a:hover {
+    color: var(--color-ink-2);
+  }
+  .doc-toc a[data-active] {
+    color: var(--color-ink);
+  }
+  .doc-toc a[data-active]::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -16px;
+    width: 6px;
+    height: 6px;
+    margin-left: -3.5px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: var(--color-accent);
+    box-shadow: 0 0 8px var(--color-accent);
+  }
+
+  /* Hover lift for tiles (K7) */
+  .doc-tile {
+    transition:
+      border-color 0.3s,
+      box-shadow 0.3s;
+  }
+  .doc-tile:hover {
+    border-color: rgba(178, 212, 80, 0.4);
+    box-shadow: 0 20px 60px -24px rgba(178, 212, 80, 0.25);
+  }
+  .doc-edge:hover {
+    border-color: rgba(178, 212, 80, 0.45);
+  }
+}
