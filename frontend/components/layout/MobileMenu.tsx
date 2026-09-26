@@ -13,6 +13,17 @@ const CLOSE_MS = 420;
 const EASE_OPEN = "cubic-bezier(.76,0,.24,1)";
 const EASE_CLOSE = "cubic-bezier(.6,0,.4,1)";
 
+const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Circle centred on the hamburger, and the radius that covers the screen. */
+function revealCircle(el: HTMLElement | null) {
+  const r = el?.getBoundingClientRect();
+  const cx = r ? r.left + r.width / 2 : window.innerWidth - 40;
+  const cy = r ? r.top + r.height / 2 : 40;
+  const far = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy));
+  return { from: `circle(22px at ${cx}px ${cy}px)`, to: `circle(${Math.ceil(far)}px at ${cx}px ${cy}px)` };
+}
+
 /** Three lines that morph into an X (the middle one collapses). */
 function Burger({ x }: { x: boolean }) {
   const line = "absolute left-0 h-[1.6px] w-[18px] rounded-full bg-current transition-[transform,opacity] duration-300 ease-[cubic-bezier(.76,0,.24,1)]";
@@ -39,17 +50,6 @@ export function MobileMenu() {
   const closeBtn = useRef<HTMLButtonElement>(null);
   const anim = useRef<Animation | null>(null);
 
-  const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /** Circle centred on the hamburger, and the radius that covers the screen. */
-  const circle = () => {
-    const r = trigger.current?.getBoundingClientRect();
-    const cx = r ? r.left + r.width / 2 : window.innerWidth - 40;
-    const cy = r ? r.top + r.height / 2 : 40;
-    const far = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy));
-    return { from: `circle(22px at ${cx}px ${cy}px)`, to: `circle(${Math.ceil(far)}px at ${cx}px ${cy}px)` };
-  };
-
   const open = () => {
     const d = dialog.current;
     if (!d || phase !== "closed") return;
@@ -57,9 +57,10 @@ export function MobileMenu() {
     d.showModal();
     document.documentElement.style.overflow = "hidden";
     closeBtn.current?.focus(); // showModal would pick the logo
-    requestAnimationFrame(() => setMorph(true));
+    // Two frames: let the close button paint as a burger, then morph to X.
+    requestAnimationFrame(() => requestAnimationFrame(() => setMorph(true)));
     if (reduced()) return;
-    const { from, to } = circle();
+    const { from, to } = revealCircle(trigger.current);
     anim.current?.cancel();
     anim.current = d.animate({ clipPath: [from, to] }, { duration: OPEN_MS, easing: EASE_OPEN, fill: "both" });
   };
@@ -77,7 +78,7 @@ export function MobileMenu() {
     setMorph(false);
     if (reduced()) return finish();
     setPhase("closing");
-    const { from, to } = circle();
+    const { from, to } = revealCircle(trigger.current);
     anim.current?.cancel();
     anim.current = d.animate({ clipPath: [to, from] }, { duration: CLOSE_MS, easing: EASE_CLOSE, fill: "both" });
     anim.current.onfinish = finish;
