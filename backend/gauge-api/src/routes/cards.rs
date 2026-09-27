@@ -5,9 +5,13 @@ use axum::response::sse::{Event, KeepAlive, Sse};
 use futures_util::StreamExt;
 use futures_util::stream::Stream;
 use crate::carder::card_store::{CardStore, ConfirmOutcome};
+use crate::carder::gates::{self, GateOutcome};
 use crate::carder::paper_ledger::PaperLedger;
 use serde::{Deserialize, Serialize};
-use shared_types::{Card, CardEvent, CardEventKind, CheapSide, UserMode};
+use shared_types::{
+    BasisTick, Card, CardEvent, CardEventKind, CardState, CheapSide, GateRules, QuoteSnapshot,
+    SkipCode, User, UserMode,
+};
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::state::{AppState, now_ms};
@@ -50,6 +54,11 @@ pub enum ConfirmResponse {
     /// as an acknowledgement, there's just no live order to follow it with.
     LiveActionUnavailable { reason: String },
     AlreadyResolvedOrMissing,
+    /// Inside the TTL, but the re-quote failed a gate under the user's
+    /// rules (`code`), or there was no fresh quote to re-check against
+    /// (`code: None`). The card closes as `RequoteFail`; nothing fills or
+    /// is placed. `net_bps` is the re-quote's net when there was one.
+    RequoteFail { code: Option<SkipCode>, net_bps: Option<f64> },
 }
 
 /// "Confirm always re-quotes" is gauge-exec's job, not this handler's — this
@@ -73,10 +82,12 @@ pub async fn confirm_card(
         }
     };
 
+    // TTL and idempotency first: an already-resolved card is a no-op, and
+    // one past its 75 s is stale on confirm, before any re-quote.
     let mut ephemeral = CardStore::new();
     ephemeral.open(loaded);
     let outcome = ephemeral.confirm(&card_id, now);
-    let card = ephemeral
+    let mut card = ephemeral
         .get(&card_id)
         .cloned()
         .expect("just registered via open()");
@@ -92,6 +103,57 @@ pub async fn confirm_card(
             (StatusCode::CONFLICT, Json(ConfirmResponse::StaleOnConfirm))
         }
         Some(ConfirmOutcome::Confirmed) => {
+            let user: Option<User> = state.persistence.load_user(&card.user_id).await.ok().flatten();
+            let live = user.as_ref().is_some_and(|u| u.mode == UserMode::Live);
+            let rules = user.as_ref().map(|u| u.rules).unwrap_or_default();
+
+            // Live, token leg: nothing to place in v1 whatever the prices,
+            // so there's nothing to re-quote for either.
+            if live && card.cheap_side != CheapSide::Equity {
+                if let Err(e) = state.persistence.save_card(&card).await {
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(ConfirmResponse::LiveHandoffFailed { reason: e.to_string() }),
+                    );
+                }
+                publish_event(&mut state, &card_id, &card.user_id, CardEventKind::Confirmed).await;
+                return (
+                    StatusCode::OK,
+                    Json(ConfirmResponse::LiveActionUnavailable {
+                        reason: "only the equity leg is executable live in v1; this card's cheap side is the token leg".to_string(),
+                    }),
+                );
+            }
+
+            // Confirm always re-quotes: the card's numbers are never traded
+            // as-is. Re-run every gate under the user's rules on the latest
+            // tick; one fail and nothing happens.
+            let fresh_tick = state.tape.lock().unwrap().get(&card.symbol).cloned();
+            let requote = requote(fresh_tick.as_ref(), &rules, now);
+            if let Some(tick) = &fresh_tick {
+                card.requote = Some(QuoteSnapshot::from_tick(
+                    tick,
+                    rules.buffer_bps,
+                    tick.net_with_buffer(rules.buffer_bps),
+                    now,
+                ));
+            }
+            let (tick, net_at_confirm) = match requote {
+                Ok(pair) => pair,
+                Err(code) => {
+                    card.state = CardState::RequoteFail;
+                    let _ = state.persistence.save_card(&card).await;
+                    publish_event(&mut state, &card_id, &card.user_id, CardEventKind::RequoteFail).await;
+                    return (
+                        StatusCode::CONFLICT,
+                        Json(ConfirmResponse::RequoteFail {
+                            code,
+                            net_bps: card.requote.map(|q| q.net_bps),
+                        }),
+                    );
+                }
+            };
+
             if let Err(e) = state.persistence.save_card(&card).await {
                 return (
                     StatusCode::INTERNAL_SERVER_ERROR,
@@ -100,25 +162,9 @@ pub async fn confirm_card(
             }
             publish_event(&mut state, &card_id, &card.user_id, CardEventKind::Confirmed).await;
 
-            let user_mode = state
-                .persistence
-                .load_user(&card.user_id)
-                .await
-                .ok()
-                .flatten()
-                .map(|u| u.mode);
-
-            if user_mode == Some(UserMode::Live) {
-                if card.cheap_side != CheapSide::Equity {
-                    return (
-                        StatusCode::OK,
-                        Json(ConfirmResponse::LiveActionUnavailable {
-                            reason: "only the equity leg is executable live in v1; this card's cheap side is the token leg".to_string(),
-                        }),
-                    );
-                }
-                let fresh_tick = state.tape.lock().unwrap().get(&card.symbol).cloned();
-                match hand_off_to_exec(&state, &card, fresh_tick).await {
+            if live {
+                // gauge-exec re-quotes once more on its side before placing.
+                match hand_off_to_exec(&state, &card, tick).await {
                     Ok(()) => (
                         StatusCode::OK,
                         Json(ConfirmResponse::Confirmed { filled_at_price: None }),
@@ -129,41 +175,37 @@ pub async fn confirm_card(
                     ),
                 }
             } else {
-                let confirm_tick = state.tape.lock().unwrap().get(&card.symbol).cloned();
-                let filled_at_price = match confirm_tick {
-                    Some(tick) => {
-                        let mut ledger = PaperLedger::new();
-                        let fill = ledger.record_fill(&card, &tick, now).clone();
-                        let price = fill.fill_price;
-                        let _ = state.persistence.save_fill(&fill).await;
-                        Some(price)
-                    }
-                    None => None,
-                };
+                let mut ledger = PaperLedger::new();
+                let fill = ledger
+                    .record_fill(&card, &tick, net_at_confirm, rules.paper_notional_usd, now)
+                    .clone();
+                let _ = state.persistence.save_fill(&fill).await;
                 (
                     StatusCode::OK,
-                    Json(ConfirmResponse::Confirmed { filled_at_price }),
+                    Json(ConfirmResponse::Confirmed { filled_at_price: Some(fill.fill_price) }),
                 )
             }
         }
     }
 }
 
-/// Calls gauge-exec's POST /execute. No `side` field — gauge-exec derives
-/// Buy/Sell from `cheap_side` itself (its own execute::order_side_for) and
-/// is the authoritative enforcer of "only the equity leg trades live in
-/// v1," not this handler. The `cheap_side == Equity` check above is a
-/// fast-path so gauge-api doesn't burn a network round trip on a request
-/// gauge-exec would reject anyway — not the safety boundary itself.
-/// `cheap_side` is sent as a plain JSON value rather than importing
-/// gauge-exec's types — gauge-api deliberately doesn't depend on
-/// gauge-exec's crate, only its wire contract.
-async fn hand_off_to_exec(
-    state: &AppState,
-    card: &Card,
-    fresh_tick: Option<shared_types::BasisTick>,
-) -> Result<(), String> {
-    let fresh_tick = fresh_tick.ok_or_else(|| "no cached tape tick to re-quote against".to_string())?;
+/// The confirm re-quote: the fresh tick and its net if every gate passes,
+/// else the failing code (`None` when there's no quote at all).
+fn requote(
+    fresh_tick: Option<&BasisTick>,
+    rules: &GateRules,
+    now_ms: u64,
+) -> Result<(BasisTick, f64), Option<SkipCode>> {
+    let tick = fresh_tick.ok_or(None)?;
+    match gates::check(tick, rules, now_ms) {
+        GateOutcome::Pass { net_bps } => Ok((tick.clone(), net_bps)),
+        GateOutcome::Fail(code) => Err(Some(code)),
+        // A halted name has no trustworthy price: treat as stale.
+        GateOutcome::Halted => Err(Some(SkipCode::Stale)),
+    }
+}
+
+async fn hand_off_to_exec(state: &AppState, card: &Card, fresh_tick: BasisTick) -> Result<(), String> {
     state
         .http
         .post(format!("{}/execute", state.exec_url))
@@ -223,25 +265,45 @@ async fn publish_event(state: &mut AppState, card_id: &str, user_id: &str, kind:
 /// on a timer. Each event is `{"card_id", "user_id", "kind"}`; the client
 /// still fetches the card body from GET /cards, this is only the "something
 /// changed" signal (same "dumb push, smart fetch" split as gauge-notif).
+/// One stream per user: `event: card` for their card lifecycle changes,
+/// `event: reason` for skip-code changes on the names they watch (every
+/// name if they have no saved universe yet). A missed event is caught up
+/// by the next GET /cards; this is a "now" signal, not a log.
 pub async fn stream_cards(
-    State(state): State<AppState>,
+    State(mut state): State<AppState>,
     Query(query): Query<CardsQuery>,
 ) -> Sse<impl Stream<Item = Result<Event, axum::Error>>> {
     let user_id = query.user_id;
-    let receiver = state.card_events.subscribe();
-    let stream = BroadcastStream::new(receiver).filter_map(move |msg| {
+    let watched: Option<std::collections::HashSet<String>> = state
+        .persistence
+        .load_user(&user_id)
+        .await
+        .ok()
+        .flatten()
+        .filter(|u| !u.universe.is_empty())
+        .map(|u| u.universe.difference(&u.mutes).cloned().collect());
+
+    let cards = BroadcastStream::new(state.card_events.subscribe()).filter_map(move |msg| {
         let user_id = user_id.clone();
         async move {
             match msg {
-                // A lagged receiver dropped some events — nothing to send
-                // for those; the client's next GET /cards fetch catches up.
                 Err(_lagged) => None,
                 Ok(event) if event.user_id != user_id => None,
-                Ok(event) => Some(Event::default().json_data(&event)),
+                Ok(event) => Some(Event::default().event("card").json_data(&event)),
             }
         }
     });
-    Sse::new(stream).keep_alive(KeepAlive::default())
+    let reasons = BroadcastStream::new(state.reason_events.subscribe()).filter_map(move |msg| {
+        let watched = watched.clone();
+        async move {
+            match msg {
+                Err(_lagged) => None,
+                Ok(event) if watched.as_ref().is_some_and(|w| !w.contains(&event.symbol)) => None,
+                Ok(event) => Some(Event::default().event("reason").json_data(&event)),
+            }
+        }
+    });
+    Sse::new(futures_util::stream::select(cards, reasons)).keep_alive(KeepAlive::default())
 }
 
 #[cfg(test)]
@@ -271,6 +333,8 @@ mod tests {
             universe: Default::default(),
             mutes: Default::default(),
             kill_switch: false,
+            rules: Default::default(),
+            notify: Default::default(),
         }
     }
 
@@ -286,6 +350,9 @@ mod tests {
             state: CardState::Open,
             opened_at_ms: now_ms(),
             ttl_ms: 75_000,
+            mode: None,
+            quote: None,
+            requote: None,
         }
     }
 
@@ -301,6 +368,11 @@ mod tests {
             clip_max: 100.0,
             decision: Decision::CardEligible,
             ts_ms: now_ms(),
+            fee_bps: 3.5,
+            slip_bps: 2.1,
+            buffer_bps: 2.0,
+            depth_usd: 420_000.0,
+            quote_age_ms: 300,
         }
     }
 
@@ -538,5 +610,188 @@ mod tests {
         let text = String::from_utf8(chunk.to_vec()).unwrap();
         assert!(text.contains("alices-card"), "got: {text}");
         assert!(!text.contains("bobs-card"), "got: {text}");
+    }
+
+    async fn confirm(state: AppState, card_id: &str) -> (StatusCode, ConfirmResponse) {
+        let response = router(state)
+            .oneshot(
+                auth_header(Request::builder().method("POST").uri(format!("/cards/{card_id}/confirm")))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let status = response.status();
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        (status, serde_json::from_slice(&body).unwrap())
+    }
+
+    /// META on Thu 25: the gap collapsed between card and confirm.
+    #[tokio::test]
+    async fn a_requote_under_the_floor_closes_the_card_without_a_fill() {
+        let user_id = unique_id("alice");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_user(&user(&user_id, UserMode::Paper)).await.unwrap();
+        state.persistence.save_card(&card(&card_id, &user_id, CheapSide::Equity)).await.unwrap();
+        let mut collapsed = tick("HOOD");
+        collapsed.basis_bps = 9.0; // 9.0 − 3.5 − 2.1 − 2.0 = 1.4 < 2.0
+        state.tape.lock().unwrap().insert("HOOD".to_string(), collapsed);
+
+        let (status, parsed) = confirm(state.clone(), &card_id).await;
+        assert_eq!(status, StatusCode::CONFLICT);
+        match parsed {
+            ConfirmResponse::RequoteFail { code, net_bps } => {
+                assert_eq!(code, Some(SkipCode::Dust));
+                assert!((net_bps.unwrap() - 1.4).abs() < 1e-9);
+            }
+            other => panic!("{other:?}"),
+        }
+        let saved = state.clone().persistence.load_card(&card_id).await.unwrap().unwrap();
+        assert_eq!(saved.state, CardState::RequoteFail);
+        assert!(saved.requote.is_some());
+        let fills = state.clone().persistence.load_all_fills().await.unwrap();
+        assert!(fills.iter().all(|f| f.card_id != card_id), "nothing fills");
+    }
+
+    /// Confirm always re-quotes: no quote to re-check means no fill.
+    #[tokio::test]
+    async fn confirming_with_no_fresh_quote_is_a_requote_fail() {
+        let user_id = unique_id("alice");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_user(&user(&user_id, UserMode::Paper)).await.unwrap();
+        state.persistence.save_card(&card(&card_id, &user_id, CheapSide::Equity)).await.unwrap();
+
+        let (status, parsed) = confirm(state, &card_id).await;
+        assert_eq!(status, StatusCode::CONFLICT);
+        assert_eq!(parsed, ConfirmResponse::RequoteFail { code: None, net_bps: None });
+    }
+
+    #[tokio::test]
+    async fn a_paper_fill_records_net_at_card_and_confirm_and_the_notional() {
+        let user_id = unique_id("alice");
+        let card_id = unique_id("card");
+        let mut state = test_state().await;
+        let mut u = user(&user_id, UserMode::Paper);
+        u.rules.paper_notional_usd = 25_000.0;
+        state.persistence.save_user(&u).await.unwrap();
+        state.persistence.save_card(&card(&card_id, &user_id, CheapSide::Equity)).await.unwrap();
+        state.tape.lock().unwrap().insert("HOOD".to_string(), tick("HOOD"));
+
+        let (status, _) = confirm(state.clone(), &card_id).await;
+        assert_eq!(status, StatusCode::OK);
+        let fills = state.clone().persistence.load_all_fills().await.unwrap();
+        let fill = fills.iter().find(|f| f.card_id == card_id).expect("filled");
+        assert_eq!(fill.net_at_card_bps, 90.0);
+        assert!((fill.net_at_confirm_bps - (120.0 - 7.6)).abs() < 1e-9);
+        assert_eq!(fill.notional_usd, 25_000.0);
+    }
+
+    #[tokio::test]
+    async fn the_stream_carries_named_reason_events_for_watched_names() {
+        let user_id = unique_id("alice");
+        let mut state = test_state().await;
+        let mut u = user(&user_id, UserMode::Paper);
+        u.universe = ["HOOD".to_string()].into();
+        state.persistence.save_user(&u).await.unwrap();
+
+        let response = router(state.clone())
+            .oneshot(
+                auth_header(Request::builder().uri(format!("/cards/stream?user_id={user_id}")))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let mut body = response.into_body().into_data_stream();
+
+        let mut unwatched = tick("COIN");
+        unwatched.decision = Decision::Skip(SkipCode::Stale);
+        let mut watched = tick("HOOD");
+        watched.decision = Decision::Skip(SkipCode::Thin);
+        state.reason_events.send(shared_types::ReasonEvent::from_tick(&unwatched).unwrap()).unwrap();
+        state.reason_events.send(shared_types::ReasonEvent::from_tick(&watched).unwrap()).unwrap();
+
+        let chunk = tokio::time::timeout(std::time::Duration::from_secs(3), body.next())
+            .await
+            .expect("timed out waiting for an SSE event")
+            .expect("stream ended")
+            .expect("chunk read error");
+        let text = String::from_utf8(chunk.to_vec()).unwrap();
+        assert!(text.contains("event: reason"), "got: {text}");
+        assert!(text.contains("\"symbol\":\"HOOD\"") && text.contains("\"gate\":\"depth\""), "got: {text}");
+        assert!(!text.contains("COIN"), "unwatched names are filtered: {text}");
+    }
+
+    #[tokio::test]
+    async fn stats_report_evaluations_outcomes_and_cap_usage() {
+        let user_id = unique_id("alice");
+        let mut state = test_state().await;
+        state.persistence.save_user(&user(&user_id, UserMode::Paper)).await.unwrap();
+        state.persistence.save_card(&card(&unique_id("card"), &user_id, CheapSide::Equity)).await.unwrap();
+        let day = crate::carder::runner::stats_day(now_ms());
+        let before = state.persistence.load_stats(day).await.unwrap();
+        state.persistence.record_evaluation(day, "dust").await.unwrap();
+
+        let response = router(state)
+            .oneshot(
+                auth_header(Request::builder().uri(format!("/stats?user_id={user_id}")))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let stats: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert!(stats["evaluations"].as_u64().unwrap() > before.get("evaluations").copied().unwrap_or(0));
+        assert!(stats["outcomes"]["dust"].as_u64().unwrap() >= 1);
+        assert_eq!(stats["cap"], serde_json::json!({ "limit": 3, "used": 1, "pending": 1 }));
+    }
+
+    #[tokio::test]
+    async fn history_lists_every_card_with_its_outcome() {
+        let user_id = unique_id("alice");
+        let taken = unique_id("card");
+        let skipped = unique_id("card");
+        let mut state = test_state().await;
+        state.persistence.save_user(&user(&user_id, UserMode::Paper)).await.unwrap();
+        state.persistence.save_card(&card(&taken, &user_id, CheapSide::Equity)).await.unwrap();
+        let mut s = card(&skipped, &user_id, CheapSide::Equity);
+        s.state = CardState::Rejected;
+        state.persistence.save_card(&s).await.unwrap();
+        state.tape.lock().unwrap().insert("HOOD".to_string(), tick("HOOD"));
+        assert_eq!(confirm(state.clone(), &taken).await.0, StatusCode::OK);
+
+        let response = router(state)
+            .oneshot(
+                auth_header(Request::builder().uri(format!("/history?user_id={user_id}")))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let rows: Vec<serde_json::Value> = serde_json::from_slice(&body).unwrap();
+        assert_eq!(rows.len(), 2);
+        let by_id = |id: &str| rows.iter().find(|r| r["card_id"] == id).unwrap().clone();
+        assert_eq!(by_id(&taken)["outcome"], "taken");
+        assert_eq!(by_id(&taken)["fill_price"], 50.0);
+        assert_eq!(by_id(&skipped)["outcome"], "skipped");
+    }
+
+    #[tokio::test]
+    async fn health_is_public_and_reports_exec_down() {
+        let response = router(test_state().await)
+            .oneshot(Request::builder().uri("/health").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let health: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(health["redis"]["ok"], true);
+        assert_eq!(health["exec"]["ok"], false, "test exec_url points nowhere");
+        assert_eq!(health["status"], "degraded");
     }
 }

@@ -129,6 +129,11 @@ mod tests {
             clip_max: 100.0,
             decision,
             ts_ms: 5_000,
+            fee_bps: 3.5,
+            slip_bps: 2.1,
+            buffer_bps: 2.0,
+            depth_usd: 420_000.0,
+            quote_age_ms: 300,
         }
     }
 

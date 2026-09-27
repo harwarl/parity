@@ -6,7 +6,7 @@ use futures_util::StreamExt;
 use redis::AsyncCommands;
 use redis::aio::ConnectionManagerConfig;
 use redis::streams::{StreamReadOptions, StreamReadReply};
-use shared_types::{BasisTick, CARD_EVENTS_CHANNEL, CardEvent, TICK_STREAM_KEY};
+use shared_types::{BasisTick, CARD_EVENTS_CHANNEL, CardEvent, Decision, ReasonEvent, TICK_STREAM_KEY};
 use tokio::sync::broadcast;
 
 /// Same fix as gauge-carder's tick_consumer.rs: the default 500ms response
@@ -22,9 +22,17 @@ const RESPONSE_TIMEOUT: Duration = Duration::from_secs(30);
 /// build its own complete cache, not compete for a share of them. Plain
 /// XREAD, tracking its own last-seen id, starting from "$" (skip backlog —
 /// this is a cache of current state, not a log that needs replaying).
-pub async fn run_tape_consumer(redis_url: String, tape: Arc<Mutex<HashMap<String, BasisTick>>>) {
+///
+/// Also announces reasons: when a name's market decision changes to a
+/// skip code, one `ReasonEvent` goes to this process's SSE clients (one per
+/// name per state change, not per tick).
+pub async fn run_tape_consumer(
+    redis_url: String,
+    tape: Arc<Mutex<HashMap<String, BasisTick>>>,
+    reasons: broadcast::Sender<ReasonEvent>,
+) {
     loop {
-        match tape_consumer_loop(&redis_url, &tape).await {
+        match tape_consumer_loop(&redis_url, &tape, &reasons).await {
             Ok(()) => unreachable!("tape_consumer_loop only returns on error"),
             Err(e) => {
                 eprintln!("gauge-api: tape consumer error, reconnecting in 1s: {e}");
@@ -37,6 +45,7 @@ pub async fn run_tape_consumer(redis_url: String, tape: Arc<Mutex<HashMap<String
 async fn tape_consumer_loop(
     redis_url: &str,
     tape: &Arc<Mutex<HashMap<String, BasisTick>>>,
+    reasons: &broadcast::Sender<ReasonEvent>,
 ) -> redis::RedisResult<()> {
     let client = redis::Client::open(redis_url)?;
     let config = ConnectionManagerConfig::new().set_response_timeout(Some(RESPONSE_TIMEOUT));
@@ -55,12 +64,25 @@ async fn tape_consumer_loop(
                 last_id = entry.id.clone();
                 if let Some(payload) = entry.get::<String>("payload") {
                     if let Ok(tick) = serde_json::from_str::<BasisTick>(&payload) {
-                        tape.lock().unwrap().insert(tick.symbol.clone(), tick);
+                        let previous = tape.lock().unwrap().insert(tick.symbol.clone(), tick.clone());
+                        if let Some(event) = reason_on_change(previous.map(|p| p.decision), &tick) {
+                            // No SSE clients connected is not an error.
+                            let _ = reasons.send(event);
+                        }
                     }
                 }
             }
         }
     }
+}
+
+/// A reason event only when the name moves into a skip code it wasn't
+/// already in — pure, so it's testable without Redis.
+pub fn reason_on_change(previous: Option<Decision>, tick: &BasisTick) -> Option<ReasonEvent> {
+    if previous == Some(tick.decision) {
+        return None;
+    }
+    ReasonEvent::from_tick(tick)
 }
 
 /// Subscribes to gauge-carder's (and gauge-api's own) card lifecycle
@@ -96,4 +118,41 @@ async fn card_event_relay_loop(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use shared_types::{CheapSide, Session, SkipCode};
+
+    fn tick(decision: Decision) -> BasisTick {
+        BasisTick {
+            symbol: "HOOD".into(),
+            share_mid: 118.40,
+            token_per_share: 118.93,
+            basis_bps: 44.8,
+            net_bps: 36.3,
+            cheap_side: CheapSide::Equity,
+            session: Session::Rth,
+            clip_max: 20.0,
+            decision,
+            ts_ms: 1,
+            fee_bps: 3.5,
+            slip_bps: 3.0,
+            buffer_bps: 2.0,
+            depth_usd: 45_000.0,
+            quote_age_ms: 400,
+        }
+    }
+
+    #[test]
+    fn a_reason_is_announced_once_per_state_change() {
+        let thin = Decision::Skip(SkipCode::Thin);
+        let event = reason_on_change(None, &tick(thin)).expect("first sight of a skip");
+        assert_eq!(event.code, SkipCode::Thin);
+        assert_eq!(event.gate, "depth");
+        assert_eq!(reason_on_change(Some(thin), &tick(thin)), None, "same state, no repeat");
+        assert!(reason_on_change(Some(Decision::CardEligible), &tick(thin)).is_some());
+        assert_eq!(reason_on_change(Some(thin), &tick(Decision::CardEligible)), None, "cards aren't reasons");
+    }
 }

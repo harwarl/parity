@@ -27,7 +27,7 @@ pub fn evaluate(user: &User, tick: &BasisTick, cards_opened_today: u32) -> Polic
     if user.mode == UserMode::Watcher {
         return PolicyOutcome::Drop(DropReason::WatcherMode);
     }
-    if cards_opened_today >= user.daily_card_cap {
+    if cards_opened_today >= user.effective_daily_cap() {
         return PolicyOutcome::Drop(DropReason::DailyCapReached);
     }
 
@@ -60,6 +60,8 @@ mod tests {
             universe: HashSet::new(),
             mutes: HashSet::new(),
             kill_switch: false,
+            rules: Default::default(),
+            notify: Default::default(),
         }
     }
 
@@ -75,6 +77,11 @@ mod tests {
             clip_max,
             decision: Decision::CardEligible,
             ts_ms: 1_000,
+            fee_bps: 3.5,
+            slip_bps: 2.1,
+            buffer_bps: 2.0,
+            depth_usd: 420_000.0,
+            quote_age_ms: 300,
         }
     }
 

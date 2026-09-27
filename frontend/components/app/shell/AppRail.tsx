@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ACTIVE, ROWS } from "@/lib/gauge/model";
+import { useApiActiveCard } from "@/hooks/useApiActiveCard";
 import { RailIcon, type RailIconName } from "./RailIcon";
 
 type Item = { href: string; label: string; tip: string; icon: RailIconName; badge?: boolean };
 
-const main: Item[] = [
+const mainItems: Item[] = [
   { href: "/dashboard", label: "Home", tip: "Home", icon: "home" },
   { href: "/dashboard/watchlist", label: "Watchlist", tip: `Watchlist · ${ROWS.length}`, icon: "watchlist" },
   { href: "/dashboard/card", label: "Active card", tip: `Active card · ${ACTIVE.sym}`, icon: "card", badge: true },
@@ -41,6 +42,13 @@ function RailLink({ item, active }: { item: Item; active: boolean }) {
 /** 76px sticky icon rail (design.md §5B.2). Bottom bar below md. */
 export function AppRail() {
   const pathname = usePathname();
+  // The lime badge only while a card is actually open (always in sample mode).
+  const api = useApiActiveCard();
+  const main = mainItems.map((item) =>
+    item.icon !== "card" || !api
+      ? item
+      : { ...item, badge: api.card !== null, tip: api.card ? `Active card · ${api.card.sym}` : "Active card · none open" },
+  );
   const router = useRouter();
   const isActive = (href: string) =>
     href === "/dashboard" ? pathname === href : pathname.startsWith(href);

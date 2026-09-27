@@ -86,12 +86,15 @@ async fn execute_handler(
     Ok(Json(result))
 }
 
-/// The only route gauge-exec exposes — everything else about it (session
+/// `/execute` is the only real route — everything else about it (session
 /// gate, live gate, re-quote, credentials) is invisible to callers on
-/// purpose. gauge-api is meant to be the only caller.
+/// purpose. gauge-api is meant to be the only caller. `/health` is a bare
+/// liveness check for gauge-api's System health; it says nothing about
+/// credentials or the MCP connection.
 pub fn router(state: ServerState) -> Router {
     Router::new()
         .route("/execute", post(execute_handler))
+        .route("/health", axum::routing::get(|| async { "ok" }))
         .with_state(state)
 }
 
@@ -125,6 +128,11 @@ mod tests {
                 clip_max: 100.0,
                 decision: Decision::CardEligible,
                 ts_ms: 5_000,
+                fee_bps: 3.5,
+                slip_bps: 2.1,
+                buffer_bps: 2.0,
+                depth_usd: 420_000.0,
+                quote_age_ms: 300,
             },
         })
     }

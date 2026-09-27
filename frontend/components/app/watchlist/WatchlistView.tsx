@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RULES, stateCounts, type GateState } from "@/lib/gauge/model";
+import { stateCounts, type GateState } from "@/lib/gauge/model";
+import { useRules } from "@/hooks/useRules";
 import { formatBps, formatSignedBps } from "@/lib/format";
 import { Panel } from "@/components/ui/Panel";
 import { useLive } from "@/components/app/shell/LiveMarketProvider";
@@ -21,7 +22,8 @@ const heads = ["Name", "Cash", "Token/sh", "Gap", "Fees", "Slip", "Buffer", "Net
 
 /** Watchlist (design.md §5B.5): filter rail, search + sort, table, detail. */
 export function WatchlistView() {
-  const { rows: ROWS, latency } = useLive();
+  const { rows: ROWS, latency, source } = useLive();
+  const RULES = useRules();
   const counts = stateCounts(ROWS);
   const [filter, setFilter] = useState<Filter>("ALL");
   const [sort, setSort] = useState<Sort>("Net");
@@ -61,7 +63,7 @@ export function WatchlistView() {
     { key: "DUST", label: "Dust", count: counts.DUST, color: stateHex("DUST") },
   ];
   const title = `${filter === "ALL" ? "All names" : filter} · ${rows.length}`;
-  const current = ROWS.find((r) => r.sym === selected) ?? ROWS[0];
+  const current = ROWS.find((r) => r.sym === selected) ?? ROWS[0] ?? null;
 
   return (
     <div className="app-rows grid gap-5 lg:grid-cols-[236px_1fr]">
@@ -117,9 +119,9 @@ export function WatchlistView() {
             <h2 id="f-feeds" className="app-cell-label">Feeds</h2>
             <dl className="mt-2 font-mono text-[12px]">
               {[
-                ["Cash · Robinhood", `${latency.quotes} ms`],
-                ["Token · Chainlink", `${latency.chainlink} s hb`],
-                ["SSE", `${latency.sse} ms`],
+                ["Cash · Robinhood", latency ? `${latency.quotes} ms` : "—"],
+                ["Token · Chainlink", latency ? `${latency.chainlink} s hb` : "—"],
+                ["SSE", latency ? `${latency.sse} ms` : "live"],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between border-b border-line-row py-2 last:border-b-0">
                   <dt className="text-muted">{k}</dt>
@@ -169,7 +171,7 @@ export function WatchlistView() {
         <Panel>
           <div className="app-ph">
             <h2 className="app-ph-label" aria-live="polite">{title}</h2>
-            <span className="app-meta">click a row for detail · ILLUSTRATIVE</span>
+            <span className="app-meta">click a row for detail{source === "sample" ? " · ILLUSTRATIVE" : ""}</span>
           </div>
           <div className="overflow-x-auto">
             <div className="min-w-[980px]">
@@ -180,7 +182,13 @@ export function WatchlistView() {
                   </span>
                 ))}
               </div>
-              {rows.length === 0 && (
+              {ROWS.length === 0 && source === "api" && (
+                <p className="px-[22px] py-10 text-center text-[14px] text-muted">
+                  No prices yet. gauge-api is up, but nothing is publishing ticks (start it with{" "}
+                  <code className="font-mono text-ink-2">make up-sim</code> in dev).
+                </p>
+              )}
+              {ROWS.length > 0 && rows.length === 0 && (
                 <p className="px-[22px] py-10 text-center text-[14px] text-muted">
                   No names match &ldquo;{query}&rdquo;. Clear the search or pick another state.
                 </p>
@@ -225,7 +233,7 @@ export function WatchlistView() {
           </div>
         </Panel>
 
-        <DetailPanel key={current.sym} row={current} />
+        {current && <DetailPanel key={current.sym} row={current} />}
       </div>
     </div>
   );

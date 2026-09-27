@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Pill } from "@/components/ui/Pill";
-import { RthLeft } from "@/components/app/ui/LiveClock";
+import { RthPill } from "@/components/app/ui/RthPill";
+import { SourceBadge } from "@/components/app/ui/SourceBadge";
+import { CapPill, FeedsPill } from "@/components/app/ui/StatusPills";
 import { ModeToggle } from "./ModeToggle";
 
 type StatusPill = "rth" | "cap" | "feeds";
@@ -22,13 +23,12 @@ export function TopBar({ title, context, pills = [], actions }: TopBarProps) {
         <p className="font-mono text-[12px] text-dim [&_b]:font-normal [&_b]:text-ink">{context}</p>
       </div>
       <div className="flex flex-wrap items-center gap-2.5">
+        <SourceBadge />
         {pills.includes("rth") && (
-          <Pill size="sm" tone="lime" dot="live">
-            RTH · <RthLeft /> left
-          </Pill>
+          <RthPill />
         )}
-        {pills.includes("cap") && <Pill size="sm">Cap 1/3</Pill>}
-        {pills.includes("feeds") && <Pill size="sm">Feeds 6/6 OK</Pill>}
+        {pills.includes("cap") && <CapPill />}
+        {pills.includes("feeds") && <FeedsPill />}
         {actions}
         <ModeToggle />
       </div>

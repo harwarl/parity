@@ -10,6 +10,7 @@
 //! check.
 
 pub mod clock;
+pub mod dev_sim;
 pub mod feeds;
 pub mod halt;
 pub mod publish;

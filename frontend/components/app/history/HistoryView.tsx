@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { DERIVED, LEDGER, RULES, SESSIONS, pnl, sessionPnl, type Outcome } from "@/lib/gauge/model";
-import { LEDGER_ROWS, timeline } from "@/lib/gauge/ledger";
+import { DERIVED, pnl, sessionPnl, type Outcome } from "@/lib/gauge/model";
+import { timeline } from "@/lib/gauge/ledger";
+import { useLedger } from "@/hooks/useLedger";
+import { shortCardId } from "@/lib/gauge/adapt";
+import { useGauge } from "@/components/app/shell/GaugeProvider";
+import { useRules } from "@/hooks/useRules";
 import { formatSignedBps, formatSignedUsd } from "@/lib/format";
 import { Panel } from "@/components/ui/Panel";
 import { CapPips, type PipKind } from "@/components/app/ui/CapPips";
@@ -26,36 +30,79 @@ const pipOf: Record<Outcome, PipKind> = {
 };
 const cols = "grid-cols-[.9fr_.7fr_1fr_.8fr_.9fr_1.2fr_.8fr_.9fr]";
 
-/** History (design.md §5B.7): KPIs, cap usage, ledger + drawer. */
+const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
+
+/**
+ * History (design.md §5B.7): KPIs, cap usage, ledger + drawer. From
+ * gauge-api's /history, or the design.md ledger offline. P&L and captured
+ * bps need a close mark the backend doesn't make yet, so they read "—".
+ */
 export function HistoryView() {
+  const ledger = useLedger();
+  const rules = useRules();
+  const { user } = useGauge();
+  const all = ledger.rows;
   const [tab, setTab] = useState<Tab>("All");
-  const [selectedId, setSelectedId] = useState(LEDGER_ROWS[0].id);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const count = (o: Outcome) => all.filter((r) => r.outcome === o).length;
+  const taken = all.filter((r) => r.outcome === "TAKEN");
+  const n = {
+    total: all.length,
+    taken: taken.length,
+    skipped: count("SKIPPED"),
+    expired: count("EXPIRED"),
+    failed: count("RE-QUOTE FAIL"),
+  };
+  const avgCard = avg(taken.map((r) => r.atCard));
+  const avgConfirm = avg(taken.flatMap((r) => (r.atConfirm == null ? [] : [r.atConfirm])));
+  const r1 = (v: number) => Math.round(v * 10) / 10;
 
   const tabs: { key: Tab; count: number }[] = [
-    { key: "All", count: DERIVED.total },
-    { key: "Taken", count: DERIVED.taken },
-    { key: "Skipped", count: DERIVED.skipped },
-    { key: "Expired", count: DERIVED.expired },
-    { key: "Fail", count: DERIVED.failed },
+    { key: "All", count: n.total },
+    { key: "Taken", count: n.taken },
+    { key: "Skipped", count: n.skipped },
+    { key: "Expired", count: n.expired },
+    { key: "Fail", count: n.failed },
   ];
-  const rows = tab === "All" ? LEDGER_ROWS : LEDGER_ROWS.filter((r) => r.outcome === tabOutcome[tab]);
-  const sel = LEDGER_ROWS.find((r) => r.id === selectedId) ?? LEDGER_ROWS[0];
+  const rows = tab === "All" ? all : all.filter((r) => r.outcome === tabOutcome[tab]);
+  const sel = all.find((r) => r.id === selectedId) ?? all[0];
 
   const kpis = [
-    { label: "Paper P&L", value: formatSignedUsd(DERIVED.pnl), sub: `${DERIVED.taken} taken cards`, lime: true },
-    { label: "Hit rate", value: `${Math.round((DERIVED.positive / DERIVED.taken) * 100)}%`, sub: `${DERIVED.positive} of ${DERIVED.taken} positive` },
-    { label: "Avg net @ card", value: DERIVED.avgCard.toFixed(1), sub: "bps · taken" },
+    ledger.pnlKnown
+      ? { label: "Paper P&L", value: formatSignedUsd(DERIVED.pnl), sub: `${DERIVED.taken} taken cards`, lime: true }
+      : { label: "Paper P&L", value: "—", sub: "needs the close mark" },
+    ledger.pnlKnown
+      ? { label: "Hit rate", value: `${Math.round((DERIVED.positive / DERIVED.taken) * 100)}%`, sub: `${DERIVED.positive} of ${DERIVED.taken} positive` }
+      : { label: "Hit rate", value: "—", sub: "needs the close mark" },
+    { label: "Avg net @ card", value: avgCard == null ? "—" : avgCard.toFixed(1), sub: "bps · taken" },
     {
       label: "Avg net @ confirm",
-      value: DERIVED.avgConfirm.toFixed(1),
-      sub: `bps · re-quote drift ${(Math.round(DERIVED.avgConfirm * 10) / 10 - Math.round(DERIVED.avgCard * 10) / 10).toFixed(1)}`,
+      value: avgConfirm == null ? "—" : avgConfirm.toFixed(1),
+      sub:
+        avgCard != null && avgConfirm != null
+          ? `bps · re-quote drift ${(r1(avgConfirm) - r1(avgCard)).toFixed(1)}`
+          : "bps · taken",
     },
     {
       label: "Cards",
-      value: String(DERIVED.total),
-      sub: `${DERIVED.taken} taken · ${DERIVED.skipped} skip · ${DERIVED.expired} exp · ${DERIVED.failed} fail`,
+      value: String(n.total),
+      sub: `${n.taken} taken · ${n.skipped} skip · ${n.expired} exp · ${n.failed} fail`,
     },
   ];
+
+  if (all.length === 0) {
+    return (
+      <Panel className="p-10">
+        <p className="g-eyebrow">History</p>
+        <p className="mt-3 font-display text-[28px] font-bold tracking-[-0.04em] text-ink">No cards yet.</p>
+        <p className="mt-2 max-w-[520px] text-[15px] leading-relaxed text-muted">
+          Every card lands here whatever happens to it: taken, skipped, expired or re-quote failed, with its net at
+          card and at confirm.
+        </p>
+      </Panel>
+    );
+  }
 
   return (
     <div className="app-rows flex flex-col gap-5">
@@ -74,17 +121,20 @@ export function HistoryView() {
       <Panel className="grid items-center gap-x-6 gap-y-5 p-[22px] md:grid-cols-[180px_repeat(5,1fr)]">
         <div>
           <h2 className="app-ph-label">Cap usage</h2>
-          <p className="mt-1 font-mono text-[11px] text-dim">cards per session · max 3</p>
+          <p className="mt-1 font-mono text-[11px] text-dim">cards per session · max {rules.cap}</p>
         </div>
-        {SESSIONS.map((s) => {
-          const cards = LEDGER.filter((e) => e.session === s).map((e) => pipOf[e.outcome]);
-          const pips = [...cards, ...Array<PipKind>(RULES.cap - cards.length).fill("empty")];
-          const p = sessionPnl(s);
+        {ledger.sessions.map((s) => {
+          const cards = all
+            .filter((e) => e.session === s)
+            .sort((a, b) => (a.openedAt ?? 0) - (b.openedAt ?? 0))
+            .map((e) => pipOf[e.outcome]);
+          const pips = [...cards, ...Array<PipKind>(Math.max(0, rules.cap - cards.length)).fill("empty")].slice(0, Math.max(rules.cap, cards.length));
+          const p = ledger.pnlKnown ? sessionPnl(s) : null;
           return (
-            <div key={s} role="img" aria-label={`${s}: ${cards.length} of 3 cards, ${formatSignedUsd(p)}`}>
+            <div key={s} role="img" aria-label={`${s}: ${cards.length} of ${rules.cap} cards${p == null ? "" : `, ${formatSignedUsd(p)}`}`}>
               <div className="mb-2 flex justify-between font-mono text-[12px]">
                 <span className="text-ink-2">{s}</span>
-                <span className={p >= 0 ? "text-accent" : "text-neg"}>{formatSignedUsd(p)}</span>
+                <span className={p == null ? "text-dim" : p >= 0 ? "text-accent" : "text-neg"}>{p == null ? "—" : formatSignedUsd(p)}</span>
               </div>
               <CapPips pips={pips} size={8} />
             </div>
@@ -110,7 +160,10 @@ export function HistoryView() {
                 </button>
               ))}
             </div>
-            <span className="app-meta">ILLUSTRATIVE · notional $100k</span>
+            <span className="app-meta">
+              {ledger.source === "sample" ? "ILLUSTRATIVE · " : ""}notional $
+              {Math.round((user?.rules.paper_notional_usd ?? 100_000) / 1000)}k
+            </span>
           </div>
           <div className="overflow-x-auto">
             <div className="min-w-[760px]">
@@ -142,7 +195,7 @@ export function HistoryView() {
                           <span className="font-body text-[14px] font-bold text-ink">{r.sym}</span>
                         </span>
                         <span className="text-right text-ink">{r.atCard.toFixed(1)}</span>
-                        <span className={`text-right ${r.atConfirm != null && r.atConfirm < RULES.floor ? "text-neg" : "text-ink"}`}>
+                        <span className={`text-right ${r.atConfirm != null && r.atConfirm < rules.floor ? "text-neg" : "text-ink"}`}>
                           {r.atConfirm?.toFixed(1) ?? "—"}
                         </span>
                         <span><OutcomePill outcome={r.outcome} /></span>
@@ -164,14 +217,16 @@ export function HistoryView() {
         <aside aria-label="Card detail" className="self-start xl:sticky xl:top-6">
           <Panel key={sel.id} featured className="p-[22px]" style={{ animation: "j-rise .35s ease-out both" }}>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[12px] text-dim">{sel.id}</span>
+              <span className="font-mono text-[12px] text-dim" title={sel.id}>{shortCardId(sel.id)}</span>
               <OutcomePill outcome={sel.outcome} />
             </div>
             <div className="mt-4 flex items-center gap-3">
               <TokenBadge sym={sel.sym} size={40} />
               <div>
                 <p className="text-[18px] font-bold text-ink">{sel.sym}</p>
-                <p className="font-mono text-[11px] text-dim">{sel.session} Sep · {sel.time} ET · paper</p>
+                <p className="font-mono text-[11px] text-dim">
+                  {sel.session} · {sel.time} ET · {sel.mode === "Live" ? "live" : "paper"}
+                </p>
               </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-2.5">
@@ -186,7 +241,7 @@ export function HistoryView() {
               ))}
             </div>
             <ol className="mt-5 flex flex-col gap-3">
-              {timeline(sel).map((item, i) => (
+              {timeline(sel, rules.floor).map((item, i) => (
                 <li key={i} className="grid grid-cols-[18px_1fr_auto] gap-2">
                   <span
                     aria-hidden

@@ -1,4 +1,7 @@
-import { RULES, type GateState, type WatchRow } from "@/lib/gauge/model";
+"use client";
+
+import { type GateState, type WatchRow } from "@/lib/gauge/model";
+import { useRules } from "@/hooks/useRules";
 import { formatBps, formatSignedBps } from "@/lib/format";
 import { DataRow } from "@/components/ui/DataRow";
 import { Panel } from "@/components/ui/Panel";
@@ -16,9 +19,10 @@ const reason: Record<GateState, string> = {
 
 /** Watchlist detail (featured). Rises in (J9) whenever the selection changes. */
 export function DetailPanel({ row }: { row: WatchRow }) {
+  const RULES = useRules();
   const gates = [
     { name: "Feed", pass: row.age <= RULES.maxAge },
-    { name: "Session", pass: true },
+    { name: "Session", pass: row.state !== "CLOSED" },
     { name: "Depth", pass: row.depth >= RULES.minDepth },
     { name: "Net", pass: row.net >= RULES.floor },
   ];
@@ -45,9 +49,9 @@ export function DetailPanel({ row }: { row: WatchRow }) {
           <DataRow label="Cash mid" value={row.cash.toFixed(2)} />
           <DataRow label="Token / share" value={row.token.toFixed(2)} />
           <DataRow label="|gap|" value={row.absGap.toFixed(1)} />
-          <DataRow label="− fees 3.5" value={formatBps(-RULES.fees)} tone="neg" />
+          <DataRow label={`− fees ${RULES.fees.toFixed(1)}`} value={formatBps(-RULES.fees)} tone="neg" />
           <DataRow label="− slippage" value={formatBps(-row.slip)} tone="neg" />
-          <DataRow label="− buffer 2.0" value={formatBps(-RULES.buffer)} tone="neg" />
+          <DataRow label={`− buffer ${RULES.buffer.toFixed(1)}`} value={formatBps(-RULES.buffer)} tone="neg" />
           <div className="g-row !border-b-0 !py-3">
             <span>Net</span>
             <span className={`!text-[18px] ${row.net >= RULES.floor ? "!text-accent" : "!text-dim"}`}>

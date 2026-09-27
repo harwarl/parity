@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useGauge } from "./GaugeProvider";
 
 export type Mode = "paper" | "live";
 
@@ -40,18 +41,35 @@ function subscribe(listener: () => void) {
 }
 
 /**
- * Paper/Live is one global setting in production (design.md §11); the mock's
- * per-artboard state is not reproduced. Remembered per viewer.
+ * Paper/Live is one global setting (design.md §11). Online, it's the
+ * viewer's `mode` in gauge-api — what the carder and confirm actually read;
+ * offline it's remembered per browser. The Agentic Account link has no
+ * backend yet (blocked on the real Trading MCP), so it stays local.
  */
 export function ModeProvider({ children }: { children: ReactNode }) {
-  const mode = useSyncExternalStore(subscribe, read, () => "paper" as Mode);
+  const gauge = useGauge();
+  const localMode = useSyncExternalStore(subscribe, read, () => "paper" as Mode);
   const [linkedFlag, setLinkedFlag] = useState(false);
+  const online = gauge.status === "online" && gauge.user !== null;
+  const mode: Mode = online ? (gauge.user!.mode === "Live" ? "live" : "paper") : localMode;
 
-  const setMode = useCallback((next: Mode) => write(next), []);
-  const setLinked = useCallback((next: boolean) => {
-    setLinkedFlag(next);
-    if (!next && read() === "live") write("paper");
-  }, []);
+  const { user, saveUser } = gauge;
+  const setMode = useCallback(
+    (next: Mode) => {
+      write(next);
+      if (online && user) {
+        saveUser({ ...user, mode: next === "live" ? "Live" : "Paper" }).catch(() => undefined);
+      }
+    },
+    [online, user, saveUser],
+  );
+  const setLinked = useCallback(
+    (next: boolean) => {
+      setLinkedFlag(next);
+      if (!next && mode === "live") setMode("paper");
+    },
+    [mode, setMode],
+  );
 
   return (
     <ModeContext.Provider value={{ mode, setMode, linked: linkedFlag || mode === "live", setLinked }}>

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { RULES, stateCounts } from "@/lib/gauge/model";
+import { stateCounts } from "@/lib/gauge/model";
+import { useRules } from "@/hooks/useRules";
 import { formatCost, formatSignedBps } from "@/lib/format";
 import { Panel } from "@/components/ui/Panel";
 import { Pill } from "@/components/ui/Pill";
@@ -17,7 +18,8 @@ const heads = ["Name", "Cash mid", "Token/share", "Gap", "Costs", "Net", "Depth"
 
 /** Home · Live gap board (design.md §5B.10). CSS grid with table roles. */
 export function GapBoard() {
-  const { rows, hist, latency } = useLive();
+  const { rows, hist, latency, source } = useLive();
+  const RULES = useRules();
   const counts = stateCounts(rows);
   return (
     <Panel>
@@ -26,9 +28,9 @@ export function GapBoard() {
         meta={
           <>
             <Pill size="sm" tone="lime" dot="live">
-              SSE · {latency.sse} ms
+              {latency ? `SSE · ${latency.sse} ms` : "SSE · live"}
             </Pill>
-            <span className="app-meta tracking-[0.16em]">ILLUSTRATIVE</span>
+            {source === "sample" && <span className="app-meta tracking-[0.16em]">ILLUSTRATIVE</span>}
             <StatePill state="CARD">Card {counts.CARD}</StatePill>
             <StatePill state="THIN">Thin {counts.THIN}</StatePill>
             <StatePill state="STALE">Stale {counts.STALE}</StatePill>
@@ -52,6 +54,14 @@ export function GapBoard() {
               </span>
             ))}
           </div>
+          {rows.length === 0 && source === "api" && (
+            <p role="row" className="py-10 text-center text-[14px] text-muted">
+              <span role="cell">
+                No prices yet. gauge-api is up, but nothing is publishing ticks (in dev:{" "}
+                <code className="font-mono text-ink-2">make up-sim</code>).
+              </span>
+            </p>
+          )}
           {rows.map((r) => (
             <div
               key={r.sym}
@@ -86,7 +96,7 @@ export function GapBoard() {
                 {r.age.toFixed(1)}s
               </span>
               <span role="cell" className="flex justify-end">
-                <Sparkline row={r} values={hist[r.sym]} />
+                <Sparkline row={r} values={hist[r.sym] ?? Array(24).fill(r.net)} />
               </span>
               <span role="cell" className="flex justify-end">
                 <StatePill state={r.state} />
@@ -97,7 +107,7 @@ export function GapBoard() {
       </div>
       <div className="flex flex-wrap justify-between gap-3 border-t border-line-row px-[22px] py-3.5 font-mono text-[11px] text-dim">
         <span>
-          costs = fees 3.5 + slippage + buffer 2.0 · floor: net ≥ 2.0 bps · depth ≥ $100k · age ≤ 2.0 s
+          costs = fees {RULES.fees.toFixed(1)} + slippage + buffer {RULES.buffer.toFixed(1)} · floor: net ≥ {RULES.floor.toFixed(1)} bps · depth ≥ ${RULES.minDepth}k · age ≤ {RULES.maxAge.toFixed(1)} s
         </span>
         <span>evaluated every tick · gates in order: feed → session → depth → net</span>
       </div>

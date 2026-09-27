@@ -1,18 +1,39 @@
+"use client";
+
 import Link from "next/link";
-import { DERIVED, WHY_NO_CARD } from "@/lib/gauge/model";
+import { WHY_NO_CARD } from "@/lib/gauge/model";
+import { useGauge } from "@/components/app/shell/GaugeProvider";
+import { useLedger } from "@/hooks/useLedger";
 import { Panel } from "@/components/ui/Panel";
 import { PanelHead } from "@/components/app/ui/PanelHead";
 import { stateHex } from "@/components/app/ui/StatePill";
 
-/** Home · Outcomes · 13 cards, plus why-no-card over today's evaluations. */
+/** Home · Outcomes of closed cards, plus why-no-card over today's evaluations (ledger + /stats). */
 export function OutcomesModule() {
-  const n = DERIVED.closed;
+  const { rows, source } = useLedger();
+  const { stats } = useGauge();
+  const closed = rows.filter((r) => r.outcome !== "ACTIVE");
+  const n = closed.length;
+  const count = (o: string) => closed.filter((r) => r.outcome === o).length;
   const outcomes = [
-    { label: "Taken", count: DERIVED.taken, color: "#B2D450" },
-    { label: "Skipped", count: DERIVED.skipped, color: "#C9CBCF" },
-    { label: "Expired", count: DERIVED.expired, color: "#5A5D62" },
-    { label: "Re-quote fail", count: DERIVED.failed, color: "#FF6B5E" },
+    { label: "Taken", count: count("TAKEN"), color: "#B2D450" },
+    { label: "Skipped", count: count("SKIPPED"), color: "#C9CBCF" },
+    { label: "Expired", count: count("EXPIRED"), color: "#5A5D62" },
+    { label: "Re-quote fail", count: count("RE-QUOTE FAIL"), color: "#FF6B5E" },
   ];
+
+  // Why no card: today's market-wide skips, as shares of all skips.
+  let why = WHY_NO_CARD;
+  if (source === "api") {
+    const o = stats?.outcomes ?? {};
+    const codes = ["DUST", "THIN", "STALE", "CLOSED"] as const;
+    const total = codes.reduce((a, c) => a + (o[c.toLowerCase()] ?? 0), 0);
+    why = codes.map((state) => ({
+      state,
+      pct: total ? Math.round(((o[state.toLowerCase()] ?? 0) / total) * 100) : 0,
+    }));
+  }
+
   return (
     <Panel className="flex flex-col">
       <PanelHead
@@ -41,7 +62,7 @@ export function OutcomesModule() {
                 {o.label}
               </span>
               <span className="font-mono text-[13px] text-ink">
-                {o.count} <span className="text-dim">· {Math.round((o.count / n) * 100)}%</span>
+                {o.count} <span className="text-dim">· {n ? Math.round((o.count / n) * 100) : 0}%</span>
               </span>
             </li>
           ))}
@@ -50,7 +71,7 @@ export function OutcomesModule() {
       <div className="mt-auto border-t border-line-row px-[22px] pt-4 pb-5">
         <p className="app-cell-label mb-3">Why no card · today&apos;s evaluations</p>
         <ul className="flex flex-col gap-2.5">
-          {WHY_NO_CARD.map((w) => (
+          {why.map((w) => (
             <li key={w.state} className="grid grid-cols-[64px_1fr_42px] items-center gap-3 font-mono text-[11px]">
               <span style={{ color: stateHex(w.state) }}>{w.state}</span>
               <span className="h-1.5 overflow-hidden rounded-full bg-track">

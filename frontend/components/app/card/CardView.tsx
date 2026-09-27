@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ACTIVE, RULES, rowBySym } from "@/lib/gauge/model";
+import Link from "next/link";
+import { etClock, shortCardId } from "@/lib/gauge/adapt";
 import { formatSignedBps } from "@/lib/format";
 import { Panel } from "@/components/ui/Panel";
 import { useMode } from "@/components/app/shell/ModeProvider";
-import { useCountdown } from "@/hooks/useCountdown";
+import { useGauge } from "@/components/app/shell/GaugeProvider";
+import { useConfirmFlow } from "@/hooks/useConfirmFlow";
+import { useRules } from "@/hooks/useRules";
+import { ConfirmResultNote } from "./ConfirmResultNote";
 import { CountdownRing } from "@/components/app/ui/CountdownRing";
 import { ModePill } from "@/components/app/ui/ModePill";
 import { PanelHead } from "@/components/app/ui/PanelHead";
@@ -14,69 +17,87 @@ import { TokenBadge } from "@/components/app/ui/TokenBadge";
 import { BothLegsChart } from "./BothLegsChart";
 import { HaircutWaterfall } from "./HaircutWaterfall";
 
-type Phase = 0 | 1 | 2 | 3 | 4;
-
-/** Active card (design.md §5B.6, J5–J8). */
+/** Active card (design.md §5B.6, J5–J8), from gauge-api (sample offline). */
 export function CardView() {
-  const row = rowBySym(ACTIVE.sym);
   const { mode } = useMode();
+  const { stats, user } = useGauge();
+  const rules = useRules();
+  const notional = user?.rules.paper_notional_usd ?? 100_000;
   const live = mode === "live";
-  const [phase, setPhase] = useState<Phase>(0);
-  const [shimmer, setShimmer] = useState(false);
-  const { t, reset } = useCountdown(phase > 0);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const flow = useConfirmFlow();
+  const { card, t, phase, result, shimmer } = flow;
+  const apiMode = flow.source === "api";
 
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  if (!card) {
+    return (
+      <Panel className="flex flex-col items-start gap-3 p-10">
+        <p className="g-eyebrow">No open card</p>
+        <p className="font-display text-[32px] font-bold tracking-[-0.04em] text-ink">Nothing to confirm right now.</p>
+        <p className="max-w-[520px] text-[15px] leading-relaxed text-muted">
+          A card opens when a name clears all four gates under your rules (net ≥ {rules.floor.toFixed(1)} bps,
+          depth ≥ ${rules.minDepth}k, quotes ≤ {rules.maxAge.toFixed(1)} s, regular hours). It lives for 75 seconds.
+        </p>
+        <Link href="/dashboard/history" className="g-btn g-btn-secondary g-btn-xs mt-2">
+          See History →
+        </Link>
+      </Panel>
+    );
+  }
 
-  // J6 · tap → re-quote (shimmer) → gate re-check → fill.
-  const run = () => {
-    if (phase > 0) return;
-    setPhase(1);
-    setShimmer(false);
-    timers.current = [
-      setTimeout(() => {
-        setPhase(2);
-        setShimmer(true);
-      }, 700),
-      setTimeout(() => setPhase(3), 1400),
-      setTimeout(() => setPhase(4), 2100),
-    ];
-  };
-  const skip = () => {
-    timers.current.forEach(clearTimeout);
-    setPhase(0);
-    setShimmer(false);
-    reset();
-  };
-
-  const requoted = phase >= 2;
-  const net = requoted ? ACTIVE.requote.net : row.net;
-  const cash = requoted ? ACTIVE.requote.cash : row.cash;
+  const re = card.requote;
+  const failed = result !== null && result.kind !== "filled" && result.kind !== "sent";
+  const shownNet = phase >= 2 && re ? re.net : card.net;
+  const shownCash = phase >= 2 && re ? re.cash : card.cash;
+  const capLine = apiMode && stats ? `cap now ${stats.cap.used}/${stats.cap.limit}` : "cap now 2/3";
+  const et = (ms: number) => `${etClock(ms)}.${String(ms % 1000).padStart(3, "0")}`;
 
   const steps = [
-    { name: "You tap Do it", meta: "14:02:41.090" },
-    { name: "Re-quote both legs", meta: `cash ${ACTIVE.requote.cash.toFixed(2)} · token ${ACTIVE.requote.token.toFixed(2)}` },
-    { name: "Re-check 4 gates", meta: `net ${ACTIVE.requote.net} ≥ 2.0 · RTH · $${row.depth}k · 1/3` },
+    { name: "You tap Do it", meta: re ? et(re.at) : "now" },
+    { name: "Re-quote both legs", meta: re ? `cash ${re.cash.toFixed(2)} · token ${re.token.toFixed(2)}` : "re-quoting…" },
+    {
+      name: "Re-check 4 gates",
+      meta: re ? `net ${re.net.toFixed(1)} ${re.net >= rules.floor ? "≥" : "<"} ${rules.floor.toFixed(1)}` : "…",
+    },
     live
       ? { name: "Send order · Trading MCP", meta: "one cash-equity order" }
-      : { name: "Paper fill at confirm mid", meta: `$${ACTIVE.requote.cash.toFixed(2)} · no money moves` },
+      : { name: "Paper fill at confirm mid", meta: re ? `$${re.cash.toFixed(2)} · no money moves` : "—" },
   ];
-  const stepStatus = (k: number) => (phase === 4 || phase > k ? "done" : phase === k ? "now" : "wait");
+  // The step a failed confirm stopped at is drawn with a ✕.
+  const failAt = failed ? Math.max(phase, 1) : null;
+  const stepStatus = (k: number) =>
+    failAt !== null
+      ? k < failAt
+        ? "done"
+        : k === failAt
+          ? "fail"
+          : "wait"
+      : phase === 4 || phase > k
+        ? "done"
+        : phase === k
+          ? "now"
+          : "wait";
 
   const audit = [
-    { time: "14:02:18.180", kind: "FEED", color: "#80848A", msg: "cash mid 182.40 · Robinhood quotes", value: "age 0.3 s" },
-    { time: "14:02:18.201", kind: "FEED", color: "#80848A", msg: "token/share 182.71 · Chainlink", value: "hb 1.1 s" },
-    { time: "14:02:18.244", kind: "GAP", color: "#C9CBCF", msg: "|gap| 17.0 bps · token rich", value: "" },
-    { time: "14:02:18.245", kind: "HAIRCUT", color: "#FF6B5E", msg: "fees 3.5 · slip 2.1 · buffer 2.0", value: "−7.6" },
-    { time: "14:02:18.246", kind: "GATES", color: "#B2D450", msg: "net 9.4 ≥ 2.0 · RTH · $420k ≥ $100k · 1/3", value: "4/4" },
-    { time: "14:02:18.412", kind: "CARD", color: "#B2D450", msg: `emitted ${ACTIVE.id} · expires ${ACTIVE.expires}`, value: "75 s" },
-    { time: "14:02:18.460", kind: "SSE", color: "#80848A", msg: "pushed to 1 client", value: "48 ms" },
+    { time: et(card.openedAt), kind: "FEED", color: "#80848A", msg: `cash mid ${card.cash.toFixed(2)} · token/share ${card.token.toFixed(2)}`, value: `age ${card.ageS.toFixed(1)} s` },
+    { time: et(card.openedAt), kind: "GAP", color: "#C9CBCF", msg: `|gap| ${card.gap.toFixed(1)} bps`, value: "" },
     {
-      time: "14:02:41.000",
+      time: et(card.openedAt),
+      kind: "HAIRCUT",
+      color: "#FF6B5E",
+      msg: `fees ${card.fees.toFixed(1)} · slip ${card.slip.toFixed(1)} · buffer ${card.buffer.toFixed(1)}`,
+      value: `−${(card.fees + card.slip + card.buffer).toFixed(1)}`,
+    },
+    { time: et(card.openedAt), kind: "GATES", color: "#B2D450", msg: `net ${card.net.toFixed(1)} ≥ ${rules.floor.toFixed(1)} · RTH · $${card.depthK}k ≥ $${rules.minDepth}k`, value: "4/4" },
+    { time: et(card.openedAt), kind: "CARD", color: "#B2D450", msg: `emitted ${shortCardId(card.id)} · expires ${etClock(card.expiresAt)}`, value: "75 s" },
+    ...(re
+      ? [{ time: et(re.at), kind: "RE-QUOTE", color: re.net >= rules.floor ? "#B2D450" : "#FF6B5E", msg: `cash ${re.cash.toFixed(2)} · token ${re.token.toFixed(2)} · net ${re.net.toFixed(1)}`, value: result ? (failed ? "fail" : "clears") : "…" }]
+      : []),
+    {
+      time: "now",
       kind: "NOW",
       color: "#F9F7F4",
-      msg: phase > 0 ? "confirm in progress" : "awaiting your tap",
-      value: `${t} s left`,
+      msg: result ? (failed ? "closed · nothing placed" : "done") : phase > 0 ? "confirm in progress" : "awaiting your tap",
+      value: result ? "" : `${t} s left`,
     },
   ];
 
@@ -107,17 +128,17 @@ export function CardView() {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <TokenBadge sym={row.sym} size={40} />
+              <TokenBadge sym={card.sym} size={40} />
               <div>
-                <p className="text-[17px] font-bold text-ink">{row.sym}</p>
-                <p className="text-[13px] text-dim">{row.name} · token rich</p>
+                <p className="text-[17px] font-bold text-ink">{card.sym}</p>
+                <p className="text-[13px] text-dim">{card.name}</p>
               </div>
             </div>
             <ModePill />
           </div>
 
           <div className="flex flex-wrap items-center gap-7">
-            <CountdownRing t={t} size={200} label={phase > 0 ? "HELD · CONFIRMING" : "UNTIL EXPIRY"} />
+            <CountdownRing t={t} size={200} label={phase > 0 && !result ? "HELD · CONFIRMING" : "UNTIL EXPIRY"} />
             <div>
               <p className="app-cell-label">Net after costs</p>
               <p className="mt-2 flex items-baseline gap-2">
@@ -125,20 +146,21 @@ export function CardView() {
                   className="font-display text-[64px] leading-none font-extrabold tracking-[-0.05em] text-accent"
                   style={{ textShadow: "0 0 30px rgba(178,212,80,.4)" }}
                 >
-                  {formatSignedBps(net)}
+                  {formatSignedBps(shownNet)}
                 </span>
                 <span className="font-mono text-[13px] text-dim">bps</span>
               </p>
               <p className="mt-3 font-mono text-[12px] text-dim">
-                floor 2.0 · headroom <span className="text-accent">{formatSignedBps(net - RULES.floor)} bps</span>
+                floor {rules.floor.toFixed(1)} · headroom{" "}
+                <span className={shownNet >= rules.floor ? "text-accent" : "text-neg"}>{formatSignedBps(shownNet - rules.floor)} bps</span>
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-2.5">
             {[
-              ["Cash mid", `$${cash.toFixed(2)}`],
-              ["Token / share", `$${row.token.toFixed(2)}`],
+              ["Cash mid", `$${shownCash.toFixed(2)}`],
+              ["Token / share", `$${(phase >= 2 && re ? re.token : card.token).toFixed(2)}`],
               ["Leg", "Cash only"],
             ].map(([k, v]) => (
               <div key={k} className="app-cell !px-4 !py-3.5">
@@ -158,57 +180,61 @@ export function CardView() {
                     className={`grid size-[22px] flex-none place-items-center rounded-full font-mono text-[11px] ${
                       st === "done"
                         ? "border border-accent/60 bg-accent/15 text-accent"
+                        : st === "fail"
+                          ? "border border-neg/60 bg-neg/15 text-neg"
                         : st === "now"
                           ? "border-[1.5px] border-accent text-accent shadow-[0_0_12px_rgba(178,212,80,.7)]"
                           : "border border-ink/18 text-dim"
                     }`}
                   >
-                    {st === "done" ? "✓" : st === "now" ? "•" : k}
+                    {st === "done" ? "✓" : st === "fail" ? "✕" : st === "now" ? "•" : k}
                   </span>
                   <span className={`flex-1 text-[14px] ${st === "wait" ? "text-muted" : "text-ink"}`}>{s.name}</span>
-                  <span className="text-right font-mono text-[11px] text-dim">{phase >= k ? s.meta : "—"}</span>
+                  <span className="text-right font-mono text-[11px] text-dim">{phase >= k || st === "fail" ? s.meta : "—"}</span>
                 </li>
               );
             })}
           </ol>
 
-          {phase === 4 && (
-            <p role="status" className="rounded-inset border border-accent/35 bg-accent/8 px-4 py-3 text-[14px] text-ink">
-              {live
-                ? "Order sent to your Agentic Account through the Robinhood Trading MCP · cap now 2/3."
-                : `Paper fill recorded at $${ACTIVE.requote.cash.toFixed(2)} · cap now 2/3 · see History.`}
-            </p>
-          )}
+          {result && <ConfirmResultNote result={result} live={live} capLine={capLine} />}
 
           <div className="flex gap-2.5">
-            <button
-              type="button"
-              onClick={run}
-              disabled={phase > 0}
-              aria-disabled={phase > 0}
-              className="g-btn g-btn-primary flex-1 disabled:cursor-default disabled:opacity-80"
-            >
-              {phase === 0 ? "Do it" : phase === 4 ? "Done" : "Confirming…"}
-            </button>
-            <button type="button" onClick={skip} className="g-btn g-btn-secondary">
-              Skip
-            </button>
+            {result ? (
+              <button type="button" onClick={flow.dismiss} className="g-btn g-btn-secondary flex-1">
+                Done
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={flow.doIt}
+                  disabled={phase > 0}
+                  aria-disabled={phase > 0}
+                  className="g-btn g-btn-primary flex-1 disabled:cursor-default disabled:opacity-80"
+                >
+                  {phase === 0 ? "Do it" : "Confirming…"}
+                </button>
+                <button type="button" onClick={flow.skip} disabled={phase > 0} className="g-btn g-btn-secondary">
+                  Skip
+                </button>
+              </>
+            )}
           </div>
           <p className="text-[13px] leading-relaxed text-dim">
-            The model does not place. Do it re-quotes both legs and re-checks every gate. If net falls under 2.0 bps,
-            nothing happens.
+            The model does not place. Do it re-quotes both legs and re-checks every gate. If net falls under{" "}
+            {rules.floor.toFixed(1)} bps, nothing happens.
           </p>
         </Panel>
 
         <div className="flex min-w-0 flex-col gap-5">
-          <BothLegsChart />
-          <HaircutWaterfall />
+          {!apiMode && <BothLegsChart />}
+          <HaircutWaterfall gap={card.gap} fees={card.fees} slip={card.slip} buffer={card.buffer} floor={rules.floor} />
         </div>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[7fr_5fr]">
         <Panel className="min-w-0">
-          <PanelHead label={`Audit trail · ${ACTIVE.id}`} meta={<span className="app-meta">immutable · exported with History</span>} />
+          <PanelHead label={`Audit trail · ${shortCardId(card.id)}`} meta={<span className="app-meta">immutable · exported with History</span>} />
           <div className="overflow-x-auto">
             <ol className="min-w-[640px] px-[22px] pb-2">
               {audit.map((a, i) => (
@@ -242,7 +268,7 @@ export function CardView() {
           <div className="mt-auto px-[22px] pt-5 pb-4">
             <div className="g-row !border-b-0 border-t border-line-row">
               <span>Size</span>
-              <span className={live ? "!text-thin" : ""}>{live ? "[ORDER_SIZE]" : "$100,000 notional · paper"}</span>
+              <span className={live ? "!text-thin" : ""}>{live ? "[ORDER_SIZE]" : `$${(apiMode ? notional : 100_000).toLocaleString("en-US")} notional · paper`}</span>
             </div>
           </div>
         </Panel>

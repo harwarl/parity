@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { NOW } from "@/lib/gauge/model";
-import { LiveClock } from "@/components/app/ui/LiveClock";
+import { LiveClock, LiveDay } from "@/components/app/ui/LiveClock";
 import { CountdownProvider } from "@/components/app/shell/CountdownProvider";
 import { LiveStrip } from "@/components/app/shell/LiveStrip";
 import { TopBar } from "@/components/app/shell/TopBar";
@@ -25,7 +24,7 @@ export default function HomePage() {
         title="Home"
         context={
           <>
-            {NOW.day} · <b>
+            <LiveDay /> · <b>
               <LiveClock /> ET
             </b>
           </>

@@ -25,12 +25,18 @@ GAUGE_API_TOKEN ?= dev-token
 SERVICES := exec api
 
 ENV_exec := GAUGE_EXEC_ADDR=$(GAUGE_EXEC_ADDR)
-ENV_api  := REDIS_URL=$(REDIS_URL) GAUGE_API_TOKEN=$(GAUGE_API_TOKEN) GAUGE_API_ADDR=$(GAUGE_API_ADDR) GAUGE_EXEC_URL=$(GAUGE_EXEC_URL)
+# `make up GAUGE_DEV_SIM=1` (or `make up-sim`) feeds simulated prices for
+# design.md's sample names through the real engine — dev only, see
+# gauge-api/src/market/dev_sim.rs. Off by default.
+GAUGE_DEV_SIM ?= 0
 
-.PHONY: help build redis-check up down restart status logs clean
+ENV_api  := REDIS_URL=$(REDIS_URL) GAUGE_API_TOKEN=$(GAUGE_API_TOKEN) GAUGE_API_ADDR=$(GAUGE_API_ADDR) GAUGE_EXEC_URL=$(GAUGE_EXEC_URL) GAUGE_DEV_SIM=$(GAUGE_DEV_SIM)
+
+.PHONY: help build redis-check up up-sim down restart status logs clean
 
 help:
 	@echo "make up            build, then start every gauge-* service in the background"
+	@echo "make up-sim        same, with simulated dev prices feeding the tick bus"
 	@echo "make down          stop every service this Makefile started"
 	@echo "make restart       down, then up"
 	@echo "make status        show which services are running"
@@ -70,6 +76,9 @@ start-%: $(RUN_DIR)
 		sleep 0.2; \
 		echo "started gauge-$* (pid $$(cat $(RUN_DIR)/$*.pid)), log: $(RUN_DIR)/$*.log"; \
 	fi
+
+up-sim:
+	@$(MAKE) --no-print-directory up GAUGE_DEV_SIM=1
 
 down:
 	@for s in $(SERVICES); do \

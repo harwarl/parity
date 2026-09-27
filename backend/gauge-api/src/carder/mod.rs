@@ -7,6 +7,7 @@
 //! before the merge, just at `crate::carder::*` instead of `gauge_carder::*`.
 
 pub mod card_store;
+pub mod gates;
 pub mod index;
 pub mod paper_ledger;
 pub mod persistence;

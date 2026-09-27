@@ -67,7 +67,7 @@ Core computation (spec 5.1–5.2):
 4. `net_bps` = |basis_bps| − fee_bps − slip(clip) − buffer_bps
 5. `cheap_side` ∈ {equity, token, none}
 
-Skip codes: `Stale / Closed / Thin / Dust`. Halt reasons: `MultiplierJump / OraclePaused / FeedStale / ZeroDepth`.
+Skip codes: `Stale / Closed / Thin / Dust`, checked in that order after the halts (feed → session → depth → net); `Closed` is any session outside RTH. Halt reasons: `MultiplierJump / OraclePaused / FeedStale / ZeroDepth`.
 
 Fixture tests (mandatory, not optional): 1.0× baseline, ~1.008× dividend, 10:1 split (continuity of `token_per_share` across the split is the actual assertion), and an unexplained-multiplier-jump case that must halt rather than card.
 
@@ -84,11 +84,27 @@ Time budgets it's responsible for enforcing (spec section 7):
 
 Per matching user, applies policy: clip size = `min(user.max_clip, nav × name_pct, tick.clip_max)`, drops if clip < $15 (Dust), enforces the daily card cap (default 3), respects session (`rth` = live-eligible, `ext`/overnight/weekend = watch/paper only), respects personal mute/kill-switch state.
 
-Owns the card lifecycle: `open → confirmed | rejected | expired | stale_on_confirm`, TTL ~75s, idempotency on `card_id`. Also owns the **paper ledger** — fills recorded against confirm-tick mid, never card-tick mid. State is Redis-backed (`carder::persistence`), so it survives a restart and is the same data whether a card was opened by the background loop or confirmed/rejected through an HTTP request.
+Owns the card lifecycle: `open → confirmed | rejected | expired | stale_on_confirm | requote_fail`, TTL 75s, idempotency on `card_id`. Also owns the **paper ledger** — fills recorded against confirm-tick mid, never card-tick mid. State is Redis-backed (`carder::persistence`), so it survives a restart and is the same data whether a card was opened by the background loop or confirmed/rejected through an HTTP request.
 
 Time budget it enforces: tick vs confirm — 75s TTL, else `expired`/`stale_on_confirm`.
 
-**`mod routes`** — the only HTTP surface the frontend talks to. Endpoints roughly: `GET /tape` (public), `GET /cards`, `GET /cards/stream` (SSE), `POST /cards/:id/confirm`, `POST /cards/:id/skip`, `GET /log`, and the `You` tab settings (mode, clip size, universe, mutes, MCP connection status, kill switch). Every route but `/tape` requires a bearer token — service-level auth, not per-user identity (still undecided).
+**`mod routes`** — the only HTTP surface the frontend talks to:
+
+| Route | Frontend screen |
+| --- | --- |
+| `GET /tape` (public) | Watchlist / gap board: prices, fees · slip · buffer, depth, quote age, decision |
+| `GET /health` (public) | System health: Redis, gauge-exec, tape freshness |
+| `GET /cards?user_id=` | Active card (snapshot at open and at the re-quote) |
+| `GET /cards/stream?user_id=` (SSE) | `event: card` lifecycle changes; `event: reason` skip-code changes on watched names |
+| `POST /cards/:id/confirm` · `/skip` | Do it / Skip |
+| `GET /history?user_id=` | History: every card, outcome, net @card/@confirm, fill |
+| `GET /stats?user_id=` | Today: evaluations, outcome histogram ("why no card"), cap used/pending |
+| `GET /log?user_id=` | raw paper fills |
+| `GET\|PUT /users/:id/settings` | Settings: mode, gates (`rules`), notional, notifications, universe, cap 1–3 |
+
+Every route but `/tape` and `/health` requires a bearer token — service-level auth, not per-user identity (still undecided).
+
+**Per-user gates.** `mod engine` publishes measurements plus a market-default decision (the public tape). Each user's own rules — floor, buffer, max quote age, min depth — are applied by `carder::gates` in the order feed → session → depth → net, both when a card opens and again on confirm against the fresh tick ("confirm always re-quotes"). A user can be stricter or looser than the tape; a `Halt` always wins. A re-quote that fails any gate closes the card as `RequoteFail`. One active card per user at a time.
 
 On confirm, hands off to `gauge-exec` **over HTTP** and relays status back — `gauge-api` itself never holds or sees MCP credentials. That handoff staying a real network call, not a function call, is exactly why `gauge-exec` could be merged in too but deliberately wasn't (§5).
 

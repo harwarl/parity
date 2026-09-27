@@ -58,6 +58,24 @@ impl CardStore {
         self.cards.get(card_id)
     }
 
+    /// The user's open card that's still inside its TTL, if any. One active
+    /// card at a time: while this is `Some`, no new card opens for them.
+    pub fn open_card_for(&self, user_id: &str, now_ms: u64) -> Option<&Card> {
+        self.cards.values().find(|c| {
+            c.user_id == user_id
+                && c.state == CardState::Open
+                && now_ms.saturating_sub(c.opened_at_ms) <= c.ttl_ms
+        })
+    }
+
+    /// Replaces the in-memory copy with the persisted one. The HTTP side
+    /// confirms/skips cards in Redis without telling this store, so the
+    /// store is reconciled before acting on a card it thinks is open.
+    /// Doesn't touch the daily count (the card was already counted).
+    pub fn sync(&mut self, card: Card) {
+        self.cards.insert(card.card_id.clone(), card);
+    }
+
     pub fn cards_for_user(&self, user_id: &str) -> Vec<&Card> {
         self.cards.values().filter(|c| c.user_id == user_id).collect()
     }
@@ -130,6 +148,9 @@ mod tests {
             state: CardState::Open,
             opened_at_ms,
             ttl_ms,
+            mode: None,
+            quote: None,
+            requote: None,
         }
     }
 
@@ -197,5 +218,20 @@ mod tests {
         let alice_cards = store.cards_for_user("alice");
         assert_eq!(alice_cards.len(), 1);
         assert_eq!(alice_cards[0].card_id, "c1");
+    }
+
+    #[test]
+    fn only_an_open_card_inside_its_ttl_counts_as_the_active_one() {
+        let mut store = CardStore::new();
+        store.open(card("a", "u", 1_000, 75_000));
+        assert_eq!(store.open_card_for("u", 50_000).map(|c| c.card_id.as_str()), Some("a"));
+        assert!(store.open_card_for("u", 76_001).is_none(), "past its TTL");
+        assert!(store.open_card_for("someone-else", 50_000).is_none());
+
+        let mut confirmed = card("a", "u", 1_000, 75_000);
+        confirmed.state = CardState::Confirmed;
+        store.sync(confirmed);
+        assert!(store.open_card_for("u", 50_000).is_none(), "confirmed elsewhere");
+        assert_eq!(store.cards_opened_today("u", 50_000), 1, "sync doesn't recount");
     }
 }

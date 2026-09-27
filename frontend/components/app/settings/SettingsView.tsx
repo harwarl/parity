@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { RULES, WATCHLIST, evaluate } from "@/lib/gauge/model";
+import { ApiError } from "@/lib/api/client";
+import type { ApiUser } from "@/lib/api/types";
+import { rowFromTick } from "@/lib/gauge/adapt";
+import { useGauge } from "@/components/app/shell/GaugeProvider";
+import { useLive } from "@/components/app/shell/LiveMarketProvider";
 import { Panel } from "@/components/ui/Panel";
 import { Pill } from "@/components/ui/Pill";
 import { ModeToggle } from "@/components/app/shell/ModeToggle";
@@ -33,6 +38,47 @@ const DEFAULTS: Form = {
 };
 
 const num = (s: string) => Number(s.replace(/,/g, "")) || 0;
+const fmt1 = (v: number) => v.toFixed(1);
+
+/** The saved account, in the form's units ($k, s, "100,000"). */
+function formFromUser(u: ApiUser): Form {
+  return {
+    floor: fmt1(u.rules.floor_bps),
+    buffer: fmt1(u.rules.buffer_bps),
+    maxAge: fmt1(u.rules.max_quote_age_ms / 1000),
+    minDepth: String(Math.round(u.rules.min_depth_usd / 1000)),
+    cap: u.daily_card_cap,
+    notional: u.rules.paper_notional_usd.toLocaleString("en-US"),
+    watch: [...u.universe].sort((a, b) => WATCHLIST.findIndex((w) => w.sym === a) - WATCHLIST.findIndex((w) => w.sym === b)),
+    notify: {
+      push: u.notify.push_on_card,
+      sound: u.notify.sound_on_card,
+      email: u.notify.daily_summary_email,
+      stale: u.notify.stale_feed_alert,
+    },
+  };
+}
+
+function userFromForm(u: ApiUser, f: Form): ApiUser {
+  return {
+    ...u,
+    daily_card_cap: f.cap,
+    universe: f.watch,
+    rules: {
+      floor_bps: num(f.floor),
+      buffer_bps: num(f.buffer),
+      max_quote_age_ms: Math.round(num(f.maxAge) * 1000),
+      min_depth_usd: num(f.minDepth) * 1000,
+      paper_notional_usd: num(f.notional),
+    },
+    notify: {
+      push_on_card: f.notify.push,
+      sound_on_card: f.notify.sound,
+      daily_summary_email: f.notify.email,
+      stale_feed_alert: f.notify.stale,
+    },
+  };
+}
 const sections = [
   ["mode", "Mode & account"],
   ["gates", "Gates"],
@@ -51,12 +97,51 @@ function SectionHead({ title, meta, id }: { title: string; meta?: React.ReactNod
   );
 }
 
-/** Settings (design.md §5B.9, §5B.12 G): live preview, dirty state, Save / Revert. */
+/**
+ * Settings (design.md §5B.9, §5B.12 G): live preview, dirty state, Save /
+ * Revert. Online, the form loads from and saves to the viewer's account in
+ * gauge-api (a refused value shows the API's reason); offline it's local.
+ */
 export function SettingsView() {
   const { mode, linked, setLinked, setMode } = useMode();
+  const gauge = useGauge();
+  const { now } = useLive();
+  const online = gauge.status === "online" && gauge.user !== null;
   const [saved, setSaved] = useState<Form>(DEFAULTS);
   const [form, setForm] = useState<Form>(DEFAULTS);
   const [justSaved, setJustSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Load the account once it arrives (derived state, no effect).
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  if (online && gauge.user && loadedFor !== gauge.user.user_id) {
+    const f = formFromUser(gauge.user);
+    setLoadedFor(gauge.user.user_id);
+    setSaved(f);
+    setForm(f);
+  }
+
+  const save = async () => {
+    setSaveError(null);
+    if (!online || !gauge.user) {
+      setSaved(form);
+      setJustSaved(true);
+      return;
+    }
+    setSaving(true);
+    try {
+      const u = await gauge.saveUser(userFromForm(gauge.user, form));
+      const f = formFromUser(u);
+      setSaved(f);
+      setForm(f);
+      setJustSaved(true);
+    } catch (e) {
+      setSaveError(e instanceof ApiError && e.status === 422 ? e.message : "Couldn't reach gauge-api. Nothing was saved.");
+    } finally {
+      setSaving(false);
+    }
+  };
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetDone, setResetDone] = useState(false);
 
@@ -67,8 +152,23 @@ export function SettingsView() {
   };
   const changed = (k: keyof Form) => JSON.stringify(form[k]) !== JSON.stringify(saved[k]);
 
-  // Header preview: which watched names would card under these rules, now.
+  // Header preview: which watched names would card under these rules, now
+  // (live ticks online, the sample watchlist offline).
   const carding = useMemo(() => {
+    if (online) {
+      const rules = {
+        floor_bps: num(form.floor),
+        buffer_bps: num(form.buffer),
+        max_quote_age_ms: num(form.maxAge) * 1000,
+        min_depth_usd: num(form.minDepth) * 1000,
+        paper_notional_usd: num(form.notional),
+      };
+      return gauge.tape
+        .filter((t) => form.watch.includes(t.symbol))
+        .map((t) => rowFromTick(t, rules, Math.max(gauge.tapeAt, now)))
+        .filter((r) => r.state === "CARD")
+        .map((r) => r.sym);
+    }
     const rules = {
       fees: RULES.fees,
       buffer: num(form.buffer),
@@ -81,7 +181,7 @@ export function SettingsView() {
       .map((w) => evaluate(w, rules))
       .filter((r) => r.state === "CARD")
       .map((r) => r.sym);
-  }, [form]);
+  }, [form, online, gauge.tape, gauge.tapeAt, now]);
 
   const gateFields: { key: "floor" | "buffer" | "maxAge" | "minDepth"; label: string; help: string; unit: string }[] = [
     { key: "floor", label: "Net floor", help: "Minimum net bps after all costs. Below it: DUST.", unit: "bps" },
@@ -105,26 +205,31 @@ export function SettingsView() {
             <button
               type="button"
               disabled={!dirty}
-              onClick={() => setForm(saved)}
+              onClick={() => {
+                setForm(saved);
+                setSaveError(null);
+              }}
               className="g-btn g-btn-secondary g-btn-xs disabled:cursor-default disabled:opacity-50"
             >
               Revert
             </button>
             <button
               type="button"
-              disabled={!dirty && !justSaved}
-              onClick={() => {
-                setSaved(form);
-                setJustSaved(true);
-              }}
+              disabled={saving || (!dirty && !justSaved)}
+              onClick={save}
               className="g-btn g-btn-primary g-btn-xs disabled:cursor-default disabled:opacity-50"
             >
-              {justSaved && !dirty ? "Saved ✓" : "Save changes"}
+              {saving ? "Saving…" : justSaved && !dirty ? "Saved ✓" : "Save changes"}
             </button>
           </>
         }
       />
 
+      {saveError && (
+        <p role="alert" className="mb-5 rounded-inset border border-neg/40 bg-neg/8 px-5 py-3 text-[14px] text-ink">
+          Not saved: {saveError}
+        </p>
+      )}
       <div className="grid gap-7 lg:grid-cols-[220px_1fr]">
         <nav aria-label="Settings sections" className="self-start lg:sticky lg:top-6">
           <ul className="flex flex-wrap gap-1 lg:flex-col">

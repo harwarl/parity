@@ -73,11 +73,21 @@ async fn main() {
 
     let state = AppState::new(persistence, exec_url, api_token);
 
-    tokio::spawn(background::run_tape_consumer(redis_url.clone(), state.tape.clone()));
+    tokio::spawn(background::run_tape_consumer(
+        redis_url.clone(),
+        state.tape.clone(),
+        state.reason_events.clone(),
+    ));
     tokio::spawn(background::run_card_event_relay(
         redis_url.clone(),
         state.card_events.clone(),
     ));
+    if market::dev_sim::enabled() {
+        tokio::spawn(market::dev_sim::run(
+            redis_url.clone(),
+            std::time::Duration::from_secs(1),
+        ));
+    }
     tokio::spawn(carder::runner::run(redis_url, carder_consumer_name));
 
     let app = routes::router(state);

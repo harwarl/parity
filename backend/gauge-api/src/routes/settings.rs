@@ -24,13 +24,16 @@ pub async fn put_settings(
     State(mut state): State<AppState>,
     Path(user_id): Path<String>,
     Json(mut user): Json<User>,
-) -> Result<Json<User>, StatusCode> {
+) -> Result<Json<User>, (StatusCode, String)> {
     user.user_id = user_id;
+    // Out-of-range gates (a 4th card, a negative floor, …) are refused,
+    // not clamped, so the Settings screen can show why.
+    user.validate().map_err(|reason| (StatusCode::UNPROCESSABLE_ENTITY, reason))?;
     state
         .persistence
         .save_user(&user)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     Ok(Json(user))
 }
 
@@ -57,6 +60,8 @@ mod tests {
             universe: HashSet::from(["HOOD".to_string()]),
             mutes: HashSet::new(),
             kill_switch: false,
+            rules: Default::default(),
+            notify: Default::default(),
         }
     }
 
@@ -140,5 +145,50 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn gate_rules_round_trip_and_a_fourth_card_is_refused() {
+        let user_id = unique_id("alice");
+        let app = router(test_state().await);
+        let put = |body: User| {
+            Request::builder()
+                .method("PUT")
+                .uri(format!("/users/{user_id}/settings"))
+                .header("authorization", "Bearer test-token")
+                .header("content-type", "application/json")
+                .body(Body::from(serde_json::to_vec(&body).unwrap()))
+                .unwrap()
+        };
+
+        let mut u = user(&user_id);
+        u.rules.floor_bps = 3.5;
+        u.rules.min_depth_usd = 50_000.0;
+        u.notify.sound_on_card = true;
+        let ok = app.clone().oneshot(put(u.clone())).await.unwrap();
+        assert_eq!(ok.status(), StatusCode::OK);
+        let body = ok.into_body().collect().await.unwrap().to_bytes();
+        let saved: User = serde_json::from_slice(&body).unwrap();
+        assert_eq!(saved.rules.floor_bps, 3.5);
+        assert!(saved.notify.sound_on_card);
+
+        u.daily_card_cap = 4;
+        let refused = app.oneshot(put(u)).await.unwrap();
+        assert_eq!(refused.status(), StatusCode::UNPROCESSABLE_ENTITY);
+        let body = refused.into_body().collect().await.unwrap().to_bytes();
+        assert!(String::from_utf8_lossy(&body).contains("daily_card_cap"));
+    }
+
+    /// Users saved before gate rules existed still load, with defaults.
+    #[test]
+    fn a_user_without_rules_deserialises_with_defaults() {
+        let legacy = serde_json::json!({
+            "user_id": "old", "mode": "Paper", "nav_usd": 500.0, "max_clip_usd": 50.0,
+            "name_pct": 0.2, "daily_card_cap": 3, "universe": ["HOOD"], "mutes": [],
+            "kill_switch": false
+        });
+        let user: User = serde_json::from_value(legacy).unwrap();
+        assert_eq!(user.rules, shared_types::GateRules::default());
+        assert_eq!(user.notify, shared_types::NotifyPrefs::default());
     }
 }

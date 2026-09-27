@@ -11,6 +11,16 @@ pub struct Fill {
     /// card-tick mid the card was opened against (ARCHITECTURE.md §2.3).
     pub fill_price: f64,
     pub filled_at_ms: u64,
+    /// Net under the user's rules when the card opened, and at the confirm
+    /// re-quote (History's @card / @confirm). 0 on older records.
+    #[serde(default)]
+    pub net_at_card_bps: f64,
+    #[serde(default)]
+    pub net_at_confirm_bps: f64,
+    /// The user's paper notional at fill time — what captured bps turn
+    /// into paper P&L against. 0 on older records.
+    #[serde(default)]
+    pub notional_usd: f64,
 }
 
 /// Paper fills only. A live fill's price and `broker_order_id` come from
@@ -25,7 +35,16 @@ impl PaperLedger {
         Self { fills: Vec::new() }
     }
 
-    pub fn record_fill(&mut self, card: &Card, confirm_tick: &BasisTick, now_ms: u64) -> &Fill {
+    /// `net_at_confirm_bps` is the re-quote's net under the user's rules
+    /// (`gates::check`), which only the caller knows.
+    pub fn record_fill(
+        &mut self,
+        card: &Card,
+        confirm_tick: &BasisTick,
+        net_at_confirm_bps: f64,
+        notional_usd: f64,
+        now_ms: u64,
+    ) -> &Fill {
         let fill_price = match card.cheap_side {
             CheapSide::Equity => confirm_tick.share_mid,
             CheapSide::Token | CheapSide::Neither => confirm_tick.token_per_share,
@@ -38,6 +57,9 @@ impl PaperLedger {
             clip_usd: card.clip_usd,
             fill_price,
             filled_at_ms: now_ms,
+            net_at_card_bps: card.net_bps,
+            net_at_confirm_bps,
+            notional_usd,
         });
         self.fills.last().expect("just pushed")
     }
@@ -70,6 +92,9 @@ mod tests {
             state: CardState::Confirmed,
             opened_at_ms: 1_000,
             ttl_ms: 75_000,
+            mode: None,
+            quote: None,
+            requote: None,
         }
     }
 
@@ -85,6 +110,11 @@ mod tests {
             clip_max: 100.0,
             decision: Decision::CardEligible,
             ts_ms: 40_000,
+            fee_bps: 3.5,
+            slip_bps: 2.1,
+            buffer_bps: 2.0,
+            depth_usd: 420_000.0,
+            quote_age_ms: 300,
         }
     }
 
@@ -92,14 +122,14 @@ mod tests {
     fn fills_at_confirm_tick_mid_for_the_cheap_side_not_the_card_tick() {
         let mut ledger = PaperLedger::new();
         // Card opened against a different (stale) mid than what confirm sees.
-        let fill = ledger.record_fill(&card(), &tick(50.0, 49.4), 40_000);
+        let fill = ledger.record_fill(&card(), &tick(50.0, 49.4), 8.9, 100_000.0, 40_000);
         assert_eq!(fill.fill_price, 49.4);
     }
 
     #[test]
     fn fills_are_queryable_per_user() {
         let mut ledger = PaperLedger::new();
-        ledger.record_fill(&card(), &tick(50.0, 49.4), 40_000);
+        ledger.record_fill(&card(), &tick(50.0, 49.4), 8.9, 100_000.0, 40_000);
         assert_eq!(ledger.fills_for("alice").count(), 1);
         assert_eq!(ledger.fills_for("bob").count(), 0);
     }
@@ -115,6 +145,9 @@ mod tests {
             clip_usd: 40.0,
             fill_price: 49.4,
             filled_at_ms: 40_000,
+            net_at_card_bps: 9.4,
+            net_at_confirm_bps: 8.9,
+            notional_usd: 100_000.0,
         }]);
         assert_eq!(ledger.fills_for("alice").count(), 1);
         assert_eq!(ledger.fills_for("alice").next().unwrap().fill_price, 49.4);

@@ -51,6 +51,8 @@ mod tests {
             universe: universe.iter().map(|s| s.to_string()).collect::<HashSet<_>>(),
             mutes: mutes.iter().map(|s| s.to_string()).collect::<HashSet<_>>(),
             kill_switch: false,
+            rules: Default::default(),
+            notify: Default::default(),
         }
     }
 

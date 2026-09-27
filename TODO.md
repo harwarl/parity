@@ -6,7 +6,7 @@ What's left before the backend is a real, self-running flow rather than a tested
 
 ## Blocking — the flow doesn't run end to end without these
 
-- [ ] **`mod market`'s poll loop.** Nothing currently fetches RHJ/Chainlink/depth on an interval, runs it through `mod engine`, and publishes to Redis Streams. `gauge-api` only does a Redis connectivity check at startup. Every tick this project has ever processed was pushed manually via `redis-cli XADD` for testing — without this loop, no real tick is ever produced.
+- [ ] **`mod market`'s poll loop.** (For dev, `make up-sim` / `GAUGE_DEV_SIM=1` feeds simulated quotes for design.md's sample names through the real engine and tick bus — see `market/dev_sim.rs`. It is not the real loop.) Nothing currently fetches RHJ/Chainlink/depth on an interval, runs it through `mod engine`, and publishes to Redis Streams. `gauge-api` only does a Redis connectivity check at startup. Every tick this project has ever processed was pushed manually via `redis-cli XADD` for testing — without this loop, no real tick is ever produced.
 - [ ] **`gauge-exec`'s real `TradingMcpClient`.** Currently `NotImplementedClient` — every gate (rth, live/pause, re-quote, side) is real and enforced, but the actual `review_equity_order` / `place_equity_order` call always fails on purpose rather than pretending to succeed. Blocked on having the real Robinhood Agentic Trading MCP protocol (connection details, tool schemas, auth flow) to build against — nothing in this repo currently has that.
 
 ---
@@ -24,13 +24,18 @@ What's left before the backend is a real, self-running flow rather than a tested
 
 ---
 
-## Frontend — deliberately not wired yet
+## Frontend — wired, with these gaps
 
-- [ ] **`SignalCard`'s "Confirm & Do It" doesn't call the real `POST /cards/:id/confirm`.** Real backend cards have a server-decided `clip_usd` (from `mod carder`'s policy); the current UI has the user pick their own clip as the buy action. That's a genuine UX-model mismatch, not an oversight — needs a product decision on which model wins before wiring it for real. Also currently untestable in practice since no real cards exist without the market poll loop above.
-- [ ] **Settings ("You" page) stays local-only**, by its own existing code comment — every control is local UI state, nothing persists. Some fields map cleanly to `User` (mode, clip, universe, mutes, NAV); "min net edge to card" doesn't exist on the backend model at all.
-- [ ] **Log page stays local-only** — its `LogRow` shape (day-grouped, includes skip reasons) doesn't map cleanly onto backend `Fill`, which has no skip entries or day grouping.
+The dashboard reads and writes gauge-api through a Next proxy (`frontend/app/api/gauge`), falling back to design.md sample data (clearly badged) when the API is unreachable. See `frontend/README.md` to run the pair.
 
----
+- [ ] **Captured bps / paper P&L at session close.** History, Today and Performance show "—" for P&L and hit rate in API mode: nothing marks a paper position at the close yet. Needs a product definition of the close mark (which leg, which price).
+- [ ] **Price history.** The Card screen's "both legs" chart and the Watchlist's 60-minute chart need stored price history, which the backend doesn't keep. The Card screen hides its chart in API mode; the Watchlist chart is still a seeded illustration around the live value.
+- [ ] **Live order size.** The frontend shows `[ORDER_SIZE]` in live mode; the backend sizes live clips with `mod carder`'s policy (`clip_usd`, $15–$100). Same UX-model question as before, still open.
+- [ ] **Agentic Account link state.** Settings' "Link via Trading MCP / Linked ✓" stays local: blocked on the real MCP (see Blocking).
+- [ ] **Notifications are stored, not sent.** `User.notify` round-trips from Settings; `mod notif` doesn't exist.
+- [ ] **Reset paper ledger.** No backend endpoint; the Settings button only acknowledges.
+- [ ] **Real auth.** Each browser is its own paper account via an httpOnly cookie minted by the proxy; replace with real identity when the auth decision is made.
+- [ ] **Per-feed latencies in System health.** `/health` reports Redis, gauge-exec and tape freshness only; Robinhood/Chainlink/RPC latencies need the market poll loop.
 
 ## Already resolved (kept here so it isn't re-litigated)
 
@@ -38,3 +43,7 @@ What's left before the backend is a real, self-running flow rather than a tested
 - [x] `gauge-market`/`gauge-carder`/`gauge-engine`/`gauge-notif` merged into `gauge-api` as `mod market`/`mod carder`/`mod engine` (`mod notif` reserved for when there's real logic). `gauge-exec` stays separate — the one service holding real credentials.
 - [x] Redis Streams (`gauge:ticks`) as the tick bus; Redis Pub/Sub (`gauge:card_events`) for cross-process card lifecycle events.
 - [x] `gauge-api`'s tape cache and cards/settings/log all read/write the same Redis-backed state `mod carder`'s background loop uses — no more disconnected copies.
+- [x] Backend matches the frontend's gate model: per-user rules (`User.rules`: floor, buffer, max quote age, min depth, paper notional) checked in order feed → session → depth → net by `carder::gates`; CLOSED = any session outside RTH; the daily cap is 1–3 and a 4th card is refused on PUT.
+- [x] Confirm always re-quotes: every gate re-runs on the fresh tick under the user's rules; a fail closes the card as `RequoteFail` with nothing filled or placed.
+- [x] One active card per user at a time (every eligible tick used to open a new card, burning the cap in seconds); the TTL sweep no longer overwrites a card the HTTP side already confirmed/skipped as `Expired`.
+- [x] `GET /history`, `GET /stats`, `GET /health`, and `event: reason` on the SSE stream.

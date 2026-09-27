@@ -2,12 +2,15 @@ use crate::market::clock::now_ms;
 use shared_types::DepthSnapshot;
 
 /// Assumed response shape for `GET {base_url}/depth/{symbol}` — placeholder,
-/// matches `DepthSnapshot`'s $20/$50/$100 buckets.
+/// matches `DepthSnapshot`'s $20/$50/$100 buckets plus the top-of-book size
+/// the depth gate reads (as unverified as the rest of this shape).
 #[derive(serde::Deserialize)]
 struct DepthResponse {
     at_20: f64,
     at_50: f64,
     at_100: f64,
+    #[serde(default)]
+    top_of_book_usd: f64,
 }
 
 pub struct DepthClient {
@@ -39,6 +42,7 @@ impl DepthClient {
             at_50: body.at_50,
             at_100: body.at_100,
             updated_at_ms: now_ms(),
+            top_of_book_usd: body.top_of_book_usd,
         })
     }
 }

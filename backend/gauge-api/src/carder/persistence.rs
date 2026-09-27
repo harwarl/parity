@@ -9,6 +9,12 @@ use crate::carder::paper_ledger::Fill;
 const CARD_KEY_PREFIX: &str = "gauge:carder:cards:";
 const USER_KEY_PREFIX: &str = "gauge:carder:users:";
 const FILL_KEY_PREFIX: &str = "gauge:carder:fills:";
+/// One hash per UTC day: `evaluations` plus one field per outcome
+/// (`card`, `stale`, `closed`, `thin`, `dust`, `halt`). Market-level — one
+/// increment per tick, not per user — so it's written only by the carder's
+/// consumer-group loop, which sees each tick exactly once cluster-wide.
+const STATS_KEY_PREFIX: &str = "gauge:stats:";
+const STATS_TTL_SECS: i64 = 8 * 86_400;
 
 /// The only place gauge-carder's state touches I/O. `CardStore`,
 /// `PaperLedger`, and policy stay pure and unit-testable; this is a
@@ -58,6 +64,32 @@ impl RedisStore {
 
     pub async fn load_all_fills(&mut self) -> redis::RedisResult<Vec<Fill>> {
         load_all(&mut self.conn, FILL_KEY_PREFIX).await
+    }
+
+    /// Counts one evaluated tick and its market-level outcome for `day`.
+    pub async fn record_evaluation(&mut self, day: u64, outcome: &str) -> redis::RedisResult<()> {
+        let key = format!("{STATS_KEY_PREFIX}{day}");
+        redis::pipe()
+            .hincr(&key, "evaluations", 1)
+            .ignore()
+            .hincr(&key, outcome, 1)
+            .ignore()
+            .expire(&key, STATS_TTL_SECS)
+            .ignore()
+            .query_async::<()>(&mut self.conn)
+            .await
+    }
+
+    /// Every counter for `day` (empty if nothing was evaluated).
+    pub async fn load_stats(&mut self, day: u64) -> redis::RedisResult<std::collections::HashMap<String, u64>> {
+        self.conn.hgetall(format!("{STATS_KEY_PREFIX}{day}")).await
+    }
+
+    /// Round-trip time to Redis, for /health.
+    pub async fn ping_ms(&mut self) -> redis::RedisResult<u64> {
+        let started = std::time::Instant::now();
+        let _: String = redis::cmd("PING").query_async(&mut self.conn).await?;
+        Ok(started.elapsed().as_millis() as u64)
     }
 
     /// Announces a card lifecycle change on `CARD_EVENTS_CHANNEL`. Anyone —

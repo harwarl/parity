@@ -78,11 +78,18 @@ fn is_unexplained_multiplier_jump(prev: &ChainlinkQuote, current: &ChainlinkQuot
     (price_ratio / multiplier_ratio - 1.0).abs() > MULTIPLIER_JUMP_TOLERANCE
 }
 
-/// The whole of `gauge-engine`'s public surface: given one tick's raw inputs
+/// The whole of the engine's public surface: given one tick's raw inputs
 /// (plus the previous Chainlink quote, needed only to classify a multiplier
 /// move as a real corporate action vs a bad tick), returns the measured
-/// `BasisTick` and its `Decision`. Pure — no clock, no retries, no state kept
-/// between calls; `prev_chainlink` is handed in by the caller, not fetched.
+/// `BasisTick` and its market-default `Decision`. Pure — no clock, no
+/// retries, no state kept between calls; `prev_chainlink` is handed in by
+/// the caller, not fetched.
+///
+/// Halts first (they suppress the tick entirely), then the four gates in
+/// the order the product documents them: feed → session → depth → net.
+/// The first gate to fail is the code. Session means regular hours only:
+/// the cash leg can't be placed live outside RTH, so no card is emitted
+/// that couldn't be acted on.
 pub fn evaluate(
     rhj: &RhjQuote,
     chainlink: &ChainlinkQuote,
@@ -96,6 +103,10 @@ pub fn evaluate(
     let (share_mid, token_per_share, basis_bps) = measure(rhj, chainlink);
     let side = cheap_side(share_mid, token_per_share);
     let max_clip = clip_max(depth);
+    let slip_bps = slip_bps_for_clip(haircut, clip_usd);
+    let net_bps = basis_bps.abs() - haircut.fee_bps - slip_bps - haircut.buffer_bps;
+    let leg_skew_ms = rhj.updated_at_ms.abs_diff(chainlink.updated_at_ms);
+    let quote_age_ms = ts_ms.saturating_sub(rhj.updated_at_ms.min(chainlink.updated_at_ms));
 
     let decision = if chainlink.oracle_paused {
         Decision::Halt(HaltReason::OraclePaused)
@@ -104,26 +115,19 @@ pub fn evaluate(
     } else if prev_chainlink.is_some_and(|prev| is_unexplained_multiplier_jump(prev, chainlink))
     {
         Decision::Halt(HaltReason::MultiplierJump)
-    } else if session == Session::Weekend {
-        Decision::Skip(SkipCode::Closed)
-    } else if rhj.updated_at_ms.abs_diff(chainlink.updated_at_ms) > DEAD_FEED_MS {
+    } else if leg_skew_ms > DEAD_FEED_MS {
         Decision::Halt(HaltReason::FeedStale)
-    } else if rhj.updated_at_ms.abs_diff(chainlink.updated_at_ms) > STALE_AGREEMENT_MS {
+    } else if leg_skew_ms > STALE_AGREEMENT_MS {
         Decision::Skip(SkipCode::Stale)
+    } else if session != Session::Rth {
+        Decision::Skip(SkipCode::Closed)
     } else if max_clip < clip_usd {
         Decision::Skip(SkipCode::Thin)
+    } else if net_bps <= 0.0 || net_bps < haircut.floor_bps {
+        Decision::Skip(SkipCode::Dust)
     } else {
-        let slip_bps = slip_bps_for_clip(haircut, clip_usd);
-        let net_bps = basis_bps.abs() - haircut.fee_bps - slip_bps - haircut.buffer_bps;
-        if net_bps <= 0.0 {
-            Decision::Skip(SkipCode::Dust)
-        } else {
-            Decision::CardEligible
-        }
+        Decision::CardEligible
     };
-
-    let slip_bps = slip_bps_for_clip(haircut, clip_usd);
-    let net_bps = basis_bps.abs() - haircut.fee_bps - slip_bps - haircut.buffer_bps;
 
     BasisTick {
         symbol: rhj.symbol.clone(),
@@ -136,6 +140,11 @@ pub fn evaluate(
         clip_max: max_clip,
         decision,
         ts_ms,
+        fee_bps: haircut.fee_bps,
+        slip_bps,
+        buffer_bps: haircut.buffer_bps,
+        depth_usd: depth.top_of_book_usd,
+        quote_age_ms,
     }
 }
 
@@ -168,6 +177,7 @@ mod tests {
             at_50: 500.0,
             at_100: 500.0,
             updated_at_ms: 1_000,
+            top_of_book_usd: 250_000.0,
         }
     }
 
@@ -178,6 +188,7 @@ mod tests {
             slip_bps_at_20: 1.0,
             slip_bps_at_50: 2.0,
             slip_bps_at_100: 4.0,
+            floor_bps: 2.0,
         }
     }
 
@@ -233,5 +244,54 @@ mod tests {
         let current = chainlink(50.0, 10.0 * 1e18);
         let tick = evaluate(&rhj, &current, Some(&prev), &depth(), Session::Rth, &haircut(), 50.0, 1_000);
         assert_eq!(tick.decision, Decision::Halt(HaltReason::MultiplierJump));
+    }
+
+    /// A 60 bp gap in regular hours clears the default haircut and floor.
+    fn wide(session: Session) -> BasisTick {
+        let rhj = rhj(50.0, 50.0);
+        let chainlink = chainlink(50.3, 1e18);
+        evaluate(&rhj, &chainlink, None, &depth(), session, &haircut(), 50.0, 1_500)
+    }
+
+    #[test]
+    fn a_wide_gap_in_rth_is_card_eligible_with_costs_broken_out() {
+        let tick = wide(Session::Rth);
+        assert_eq!(tick.decision, Decision::CardEligible);
+        assert_eq!(tick.fee_bps, 2.0);
+        assert_eq!(tick.slip_bps, 2.0); // the $50 bucket
+        assert_eq!(tick.buffer_bps, 1.0);
+        assert_eq!(tick.depth_usd, 250_000.0);
+        assert_eq!(tick.quote_age_ms, 500);
+        assert!((tick.net_bps - (tick.basis_bps.abs() - 5.0)).abs() < 1e-9);
+    }
+
+    /// Session means regular hours only, not just "not the weekend".
+    #[test]
+    fn any_session_outside_rth_is_closed() {
+        for session in [Session::Ext, Session::Overnight, Session::Weekend] {
+            assert_eq!(wide(session).decision, Decision::Skip(SkipCode::Closed), "{session:?}");
+        }
+    }
+
+    /// Gates run feed → session → depth → net: an old price outside RTH
+    /// reports STALE, not CLOSED.
+    #[test]
+    fn the_feed_gate_runs_before_the_session_gate() {
+        let rhj = rhj(50.0, 50.0);
+        let mut chainlink = chainlink(50.3, 1e18);
+        chainlink.updated_at_ms = 1_000 + STALE_AGREEMENT_MS + 1;
+        let tick = evaluate(&rhj, &chainlink, None, &depth(), Session::Ext, &haircut(), 50.0, chainlink.updated_at_ms);
+        assert_eq!(tick.decision, Decision::Skip(SkipCode::Stale));
+    }
+
+    /// Positive but under the floor is still DUST.
+    #[test]
+    fn a_net_under_the_floor_is_dust() {
+        let rhj = rhj(50.0, 50.0);
+        // 6 bp gross − 5 bp costs = 1 bp net, under the 2 bp floor.
+        let chainlink = chainlink(50.03, 1e18);
+        let tick = evaluate(&rhj, &chainlink, None, &depth(), Session::Rth, &haircut(), 50.0, 1_000);
+        assert!(tick.net_bps > 0.0 && tick.net_bps < 2.0, "net = {}", tick.net_bps);
+        assert_eq!(tick.decision, Decision::Skip(SkipCode::Dust));
     }
 }

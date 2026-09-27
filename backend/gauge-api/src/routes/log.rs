@@ -47,6 +47,9 @@ mod tests {
             clip_usd: 40.0,
             fill_price: 50.0,
             filled_at_ms: now_ms(),
+            net_at_card_bps: 9.4,
+            net_at_confirm_bps: 8.9,
+            notional_usd: 100_000.0,
         }
     }
 

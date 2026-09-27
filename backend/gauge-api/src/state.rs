@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use crate::carder::persistence::RedisStore;
-use shared_types::{BasisTick, CardEvent};
+use shared_types::{BasisTick, CardEvent, ReasonEvent};
 use tokio::sync::broadcast;
 
 /// gauge-api's process state. Card/user data is no longer held locally —
@@ -28,6 +28,10 @@ pub struct AppState {
     /// not here directly, so there's one path for "how do SSE clients learn
     /// about a change" regardless of which process made it.
     pub card_events: broadcast::Sender<CardEvent>,
+    /// Local fan-out of "no card, and why" per name, fed by
+    /// `background::run_tape_consumer` on each skip-code change. Every
+    /// instance sees every tick, so no Redis hop is needed.
+    pub reason_events: broadcast::Sender<ReasonEvent>,
     /// Service-level bearer token checked by auth.rs. Proves the caller
     /// holds a valid credential to talk to gauge-api at all — it does not
     /// prove the caller is the specific user named in a request path. Real
@@ -38,12 +42,14 @@ pub struct AppState {
 impl AppState {
     pub fn new(persistence: RedisStore, exec_url: impl Into<String>, api_token: impl Into<String>) -> Self {
         let (card_events, _) = broadcast::channel(256);
+        let (reason_events, _) = broadcast::channel(256);
         Self {
             persistence,
             tape: Arc::new(Mutex::new(HashMap::new())),
             http: reqwest::Client::new(),
             exec_url: exec_url.into(),
             card_events,
+            reason_events,
             api_token: api_token.into(),
         }
     }

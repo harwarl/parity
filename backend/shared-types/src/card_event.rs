@@ -22,4 +22,5 @@ pub enum CardEventKind {
     Rejected,
     Expired,
     StaleOnConfirm,
+    RequoteFail,
 }

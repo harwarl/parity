@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GAUGE frontend
 
-## Getting Started
+Next.js app: the landing page (`/`), the docs (`/docs`) and the dashboard (`/dashboard`). The design source of truth is `design.md` and `animations.md`.
 
-First, run the development server:
+## Run it against the backend
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. backend, with simulated dev prices (needs a local redis-server)
+cd ../backend && make up-sim
+
+# 2. frontend
+cp .env.example .env.local   # GAUGE_API_URL + GAUGE_API_TOKEN (dev defaults match `make up`)
+npm install && npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000/dashboard>. The top bar shows **LIVE API** when the dashboard is reading gauge-api, and **SAMPLE DATA · API OFFLINE** when it can't reach it (it then shows design.md's sample day and retries every 10 s).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How it talks to gauge-api
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- The browser only ever calls `/api/gauge/*` (`app/api/gauge/[...path]/route.ts`). That proxy adds the bearer token and the viewer's user id server-side, forwards only an allow-list of routes, and streams SSE straight through. Neither the token nor a user id reaches the browser, so a browser can't act as another user.
+- Until real auth exists, each browser is its own paper account: an httpOnly `gauge_uid` cookie is minted on first request, and the account is created with default gates on first visit.
+- `components/app/shell/GaugeProvider.tsx` owns the connection: tape every 1 s; cards, history, stats and health every 5 s; SSE card events refresh cards at once. Polling pauses while the tab is hidden.
+- `lib/gauge/adapt.ts` maps backend ticks and cards onto the dashboard's view models, re-running the gates (feed → session → depth → net) under the viewer's own rules, the same as backend `carder::gates`.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`make up-sim` is dev only: `mod market`'s real poll loop doesn't exist yet, so without it gauge-api has no prices and the board shows "No prices yet".

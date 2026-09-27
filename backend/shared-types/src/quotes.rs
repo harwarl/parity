@@ -25,6 +25,10 @@ pub struct DepthSnapshot {
     pub at_50: f64,
     pub at_100: f64,
     pub updated_at_ms: u64,
+    /// Top-of-book size in USD — the depth gate's input (`min_depth_usd`).
+    /// The $20/$50/$100 buckets above only size the clip.
+    #[serde(default)]
+    pub top_of_book_usd: f64,
 }
 
 /// Fee/buffer/slippage inputs to the haircut. Slippage is quoted at the same
@@ -36,4 +40,8 @@ pub struct HaircutParams {
     pub slip_bps_at_20: f64,
     pub slip_bps_at_50: f64,
     pub slip_bps_at_100: f64,
+    /// Market-default net floor for the public tape (DUST below it). Users'
+    /// own floors are applied in `carder::gates`.
+    #[serde(default)]
+    pub floor_bps: f64,
 }
