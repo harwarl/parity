@@ -161,6 +161,38 @@
     color: var(--color-muted);
   }
 
+  /* Rev 2 plain-language helpers (design.md §5) */
+  .g-tech {
+    margin-left: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-dim);
+    vertical-align: middle;
+  }
+  .g-sum {
+    font-size: clamp(21px, 1.8vw, 26px);
+    line-height: 1.55;
+    color: var(--color-ink-2);
+  }
+  .g-sum b {
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .g-def {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: #0c0d10;
+    border: 1px solid rgba(249, 247, 244, 0.08);
+  }
+
   /* Panel + featured panel (design.md §6) */
   .g-panel {
     position: relative;

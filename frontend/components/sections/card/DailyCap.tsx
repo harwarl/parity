@@ -7,16 +7,16 @@ import { Panel } from "@/components/ui/Panel";
 export function DailyCap() {
   return (
     <Panel className="flex flex-col p-11 max-sm:p-6">
-      <p className="g-eyebrow">Daily cap</p>
+      <p className="g-eyebrow">Daily limit</p>
       <p className="mt-[68px] font-display text-[120px] leading-[0.9] font-extrabold tracking-[-0.06em] text-ink">
         3
       </p>
       <p className="g-p mt-4 max-w-[420px]">
-        cards a day, maximum. Fewer, better prompts beat a feed that trains you to tap.
+        prompts a day, maximum. Fewer, better prompts beat a feed that trains you to tap.
       </p>
       <div
         role="img"
-        aria-label="Daily cap: three cards, then the cap locks until tomorrow."
+        aria-label="Daily limit: three prompts, then done for today."
         className="mt-20"
       >
         <div className="grid grid-cols-3 gap-2">
@@ -32,7 +32,7 @@ export function DailyCap() {
           className="mt-4 font-mono text-[12px] tracking-[0.14em] text-accent"
           style={{ animation: "g-lock 6s ease-in-out 2.8s infinite both" }}
         >
-          3/3 · CAP LOCKED UNTIL TOMORROW
+          3/3 · DONE FOR TODAY
         </p>
       </div>
     </Panel>

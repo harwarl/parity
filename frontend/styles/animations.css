@@ -227,6 +227,137 @@
   62% { opacity: 1; }
 }
 
+/* ── Landing rev 2 (animations.md §6A) ─────────────────── */
+
+/* L1 · logo bar slides in, then ticks every 7s */
+@keyframes g-barin {
+  from { transform: translateX(-30px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+@keyframes g-barglow {
+  0%, 88%, 100% { filter: none; }
+  93%           { filter: drop-shadow(0 0 6px #b2d450); }
+}
+.g-bar {
+  animation:
+    g-barin 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both,
+    g-barglow 7s ease-in-out 1.4s infinite;
+}
+a:hover .g-bar,
+a:focus-visible .g-bar {
+  filter: drop-shadow(0 0 8px #b2d450);
+}
+
+/* L2 · overview icons */
+@keyframes g-barA {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(0.55); }
+}
+@keyframes g-barB {
+  0%, 100% { transform: scaleY(0.7); }
+  50%      { transform: scaleY(1.15); }
+}
+@keyframes g-fall {
+  0%       { transform: translateY(-10px); opacity: 0; }
+  15%      { opacity: 1; }
+  55%      { transform: translateY(14px); opacity: 1; }
+  70%, 100% { transform: translateY(16px); opacity: 0; }
+}
+@keyframes g-lockp {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.5); opacity: 0.5; }
+}
+
+/* L3 · glossary highlighter sweep (6s) */
+.g-hl {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(178, 212, 80, 0), rgba(178, 212, 80, 0.16), rgba(178, 212, 80, 0));
+  transform: translateX(-100%);
+  animation: g-hl 6s ease-in-out infinite;
+}
+@keyframes g-hl {
+  0%        { transform: translateX(-100%); }
+  18%, 100% { transform: translateX(100%); }
+}
+.g-term {
+  animation: g-term 6s ease-in-out infinite;
+}
+@keyframes g-term {
+  0%, 4%    { text-shadow: none; }
+  9%        { text-shadow: 0 0 14px rgba(178, 212, 80, 0.9); }
+  20%, 100% { text-shadow: none; }
+}
+
+/* L4 · persona cycle (9s) */
+.g-persona {
+  animation: g-persona 9s ease-in-out infinite;
+}
+@keyframes g-persona {
+  0%, 30% {
+    border-color: rgba(178, 212, 80, 0.5);
+    box-shadow: 0 0 0 1px rgba(178, 212, 80, 0.12), 0 26px 70px -28px rgba(178, 212, 80, 0.35);
+  }
+  38%, 100% {
+    border-color: rgba(249, 247, 244, 0.08);
+    box-shadow: 0 0 0 1px rgba(178, 212, 80, 0), 0 26px 70px -28px rgba(178, 212, 80, 0);
+  }
+}
+.g-plet {
+  animation: g-plet 9s ease-in-out infinite;
+}
+@keyframes g-plet {
+  0%, 30%   { color: #0b0d07; background: #b2d450; }
+  38%, 100% { color: #b2d450; background: rgba(178, 212, 80, 0); }
+}
+
+/* L5 · trust strip check sweep (8s). The ✓ badge is .g-check, not the
+ * spec's .g-tick: that class already names the hero's SMIL ticks, which
+ * reduced motion hides with display:none. */
+.g-trust svg * {
+  stroke-dasharray: 80;
+  animation: g-trace 8s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+@keyframes g-trace {
+  0%        { stroke-dashoffset: 80; }
+  14%, 82%  { stroke-dashoffset: 0; }
+  94%, 100% { stroke-dashoffset: 80; }
+}
+.g-check {
+  animation: g-check 8s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+@keyframes g-check {
+  0%, 12%   { transform: scale(0.4); opacity: 0; }
+  18%       { transform: scale(1.25); opacity: 1; }
+  24%, 82%  { transform: scale(1); opacity: 1; }
+  94%, 100% { transform: scale(0.4); opacity: 0; }
+}
+
+/* L6 · the reason words act out, one 8s clock, no delays */
+@keyframes g-rStale {
+  0%, 2%    { color: #ff6b5e; opacity: 1; }
+  12%, 20%  { color: #5a5d62; opacity: 0.45; }
+  25%, 100% { color: #ff6b5e; opacity: 1; }
+}
+@keyframes g-rClosed {
+  0%, 25%   { opacity: 1; clip-path: inset(0 0 0 0); }
+  35%, 43%  { opacity: 0.35; clip-path: inset(0 0 55% 0); }
+  50%, 100% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+@keyframes g-rThin {
+  0%, 50%   { transform: scaleX(1); opacity: 1; }
+  60%, 68%  { transform: scaleX(0.62); opacity: 0.55; }
+  75%, 100% { transform: scaleX(1); opacity: 1; }
+}
+@keyframes g-rDust {
+  0%, 75%   { opacity: 1; filter: blur(0); }
+  85%, 93%  { opacity: 0.08; filter: blur(4px); }
+  100%      { opacity: 1; filter: blur(0); }
+}
+
 /* ── Closing ──────────────────────────────────────────── */
 
 /* I1 · lines split and rejoin (6.4s) */

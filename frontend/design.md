@@ -1,13 +1,13 @@
 # GAUGE: design.md
 
-|                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status          | Landing page approved for handoff                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Rev             | 6 · 2026-09-26                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Changelog       | r6: added §5C Docs (4 screens: shell, reading typography, components, per-page specs, interactions, full copy deck); docs motion K1–K7; docs code-comment grey raised to #80848A for AA. r5: added §5B.12, the full app copy deck (every label, list and state-dependent string), exact sample-data generators with code, and the remaining geometry; META net corrected to 1.2. r4: added the app (§5B: 6 screens, shell, shared data model, interactions), app motion J1–J12, app placeholders and accessibility. r3: 4th won't-do panel is now "Go past 3 a day". r2: GAUGE will have a token; removed the "Ship a token" refusal (won't-do is now 3 panels) and the token line from the FAQ. r1: landing page with 10 sections, per-section motion, asset pack |
-| Companion files | `animations.md` (every animation, with code), `assets/` (brand, favicon, social, css, tokens, fonts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| System          | rain-design-skill-2 (v2 language). GAUGE is the reference build.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Source          | Design canvas "GAUGE": landing `Main.dc.html` (1440 × 7400, expand fill) + app `Home`, `Watchlist`, `Card`, `History`, `Token`, `Settings` + docs `DocsHome`, `DocsQuickstart`, `DocsCard`, `DocsReasons` `.dc.html` (1440 wide, interactive, linked)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status          | Landing page approved for handoff                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Rev             | 7 · 2026-09-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Changelog       | r7: landing rev 2 in plain language. New 01 Overview (executive summary, 3 panels, glossary) and 02 Who it's for (personas + trust strip); formulas moved to docs; reason codes compacted into one strip; hero, widget and every section de-jargoned (% before bps); FAQ rewritten (8 Qs); Docs links point to DocsHome; motion L1–L6 added, E1–E4 retired; artboard 1440 × 9000. r6: added §5C Docs (4 screens: shell, reading typography, components, per-page specs, interactions, full copy deck); docs motion K1–K7; docs code-comment grey raised to #80848A for AA. r5: added §5B.12, the full app copy deck (every label, list and state-dependent string), exact sample-data generators with code, and the remaining geometry; META net corrected to 1.2. r4: added the app (§5B: 6 screens, shell, shared data model, interactions), app motion J1–J12, app placeholders and accessibility. r3: 4th won't-do panel is now "Go past 3 a day". r2: GAUGE will have a token; removed the "Ship a token" refusal (won't-do is now 3 panels) and the token line from the FAQ. r1: landing page with 10 sections, per-section motion, asset pack |
+| Companion files | `animations.md` (every animation, with code), `assets/` (brand, favicon, social, css, tokens, fonts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| System          | rain-design-skill-2 (v2 language). GAUGE is the reference build.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Source          | Design canvas "GAUGE": landing `Main.dc.html` (1440 × 9000, expand fill) + app `Home`, `Watchlist`, `Card`, `History`, `Token`, `Settings` + docs `DocsHome`, `DocsQuickstart`, `DocsCard`, `DocsReasons` `.dc.html` (1440 wide, interactive, linked)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 ## 1. Product in one line
 
@@ -98,147 +98,212 @@ To switch to Satoshi, put `Satoshi-{Regular,Medium,Bold}.woff2` in `assets/fonts
 - **Hero grid.** A 48px square pattern, 3.5% cream strokes.
 - The root is `overflow: clip`, never `hidden`, so the sticky nav keeps working.
 
-## 5. Page: landing
+## 5. Page: landing (rev 2 · plain language)
 
-Container: 1200px centred. Sections are `padding-top:150px`. Panel grids use `gap:20px`.
+**Principle for rev 2:** the page explains _what GAUGE is_ before _how it works_. Plain words come first. Technical terms appear only small, in mono, beside the plain word (`.g-tech`), or they live in the docs. Formulas are not on the landing page; each "how" panel links to the matching docs section.
 
-| #   | Section             | id        | Layout                                                  | Motion (see animations.md) |
-| --- | ------------------- | --------- | ------------------------------------------------------- | -------------------------- |
-| 0   | Announcement bar    | –         | 44px, centred                                           | –                          |
-| 1   | Floating nav        | –         | sticky pill glass                                       | ping dots                  |
-| 2   | Hero                | `top`     | full-bleed 100vh, copy left, widget bottom-right        | A1–A6                      |
-| 3   | Ticker strip        | –         | full-width masked marquee                               | B1–B2                      |
-| 4   | How it works        | `how`     | header grid + 3 panels (3rd featured)                   | C1–C3                      |
-| 5   | The card            | `card`    | header grid + 7fr/5fr (featured card panel + cap panel) | D1–D4                      |
-| 6   | Reason codes        | `reasons` | header grid + 4 panels                                  | E1–E4                      |
-| 7   | Paper vs live       | `paper`   | header grid + 2 panels (live featured)                  | F1–F2                      |
-| 8   | What GAUGE won't do | `wont`    | centred header + 4 panels                               | G1–G2                      |
-| 9   | FAQ                 | `faq`     | 4fr/7fr: title left, divider rows right                 | H1–H2                      |
-| 10  | Closing CTA         | –         | lime block, inset 24px, radius 28                       | I1–I2                      |
-| 11  | Footer              | –         | 5fr/2fr/2fr/3fr + bottom bar                            | ping dot                   |
+Container: 1200px centred. Sections are `padding-top:150px` (Overview: 140). Panel grids use `gap:20px`. The artboard is 1440 × 9000 (expand fill).
 
-**Section header pattern (4–7):** `grid 1fr 1fr; gap 80px; align-items:end; margin-bottom:56px`. Left: eyebrow `0N · Title`, then an H2 in which one word is Doto. Right: the lede.
+| #   | Section                  | id         | Layout                                                             | Motion (see animations.md) |
+| --- | ------------------------ | ---------- | ------------------------------------------------------------------ | -------------------------- |
+| 0   | Announcement bar         | –          | 44px, centred                                                      | –                          |
+| 1   | Floating nav             | –          | sticky pill glass                                                  | ping dots, L1 logo         |
+| 2   | Hero                     | `top`      | full-bleed 100vh, copy left, example widget bottom-right           | A1–A6                      |
+| 3   | 01 · Overview            | `overview` | `5fr 7fr` summary (left column sticky) + 3 panels + glossary strip | L2, L3                     |
+| 4   | 02 · Who it's for        | `who`      | header grid + 3 persona panels + 4-cell trust strip                | L4, L5                     |
+| 5   | Ticker strip             | –          | full-width masked marquee, `margin-top:150px`                      | B1–B2                      |
+| 6   | 03 · How it works        | `how`      | header grid + 3 panels (3rd featured)                              | C1–C3                      |
+| 7   | 04 · The prompt          | `card`     | header grid + 7fr/5fr (featured card panel + daily-limit panel)    | D1–D4                      |
+| 8   | 05 · No prompt?          | `reasons`  | one panel, `1fr 2fr`: text + 4 word chips                          | L6                         |
+| 9   | 06 · Practice or real    | `paper`    | header grid + 2 panels (live featured)                             | F1–F2                      |
+| 10  | 07 · What GAUGE won't do | `wont`     | centred header + 4 panels                                          | G1–G2                      |
+| 11  | 08 · FAQ                 | `faq`      | 4fr/7fr: title left, divider rows right                            | H1–H2                      |
+| 12  | Closing CTA              | –          | lime block, inset 24px, radius 28                                  | I1–I2                      |
+| 13  | Footer                   | –          | 5fr/2fr/2fr/3fr + bottom bar                                       | ping dot, L1 logo          |
+
+Retired in rev 2: the four animated reason-code panels (E1–E4) and the two formula blocks.
+
+**Section header pattern (Who, How, Prompt, Practice):** `grid 1fr 1fr; gap 80px; align-items:end; margin-bottom:56px`. Left: eyebrow `0N · Title`, then an H2 in which one word is Doto. Right: the lede.
+
+**Plain-language helpers (new CSS):**
+
+| Class     | Spec                                                                                                        | Use                                                                                         |
+| --------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `.g-tech` | mono 10.5px `.12em` uppercase `--dim`, margin-left 8, nowrap                                                | A small technical tag after a plain word, e.g. "Paper `PRACTICE`", "Trading MCP `OFFICIAL`" |
+| `.g-sum`  | 26px / 1.55 `--ink-2`, `b` in `--ink` 600                                                                   | The executive summary paragraphs                                                            |
+| `.g-def`  | flex column, gap 6, padding 18/20, radius 16, `#0C0D10`, border at 8%, `position:relative; overflow:hidden` | Glossary tiles                                                                              |
 
 ### 5.0 Announcement bar
 
-44px tall. Background `linear-gradient(90deg, transparent, rgba(178,212,80,.10), transparent), #0D0F0B`, with a bottom border in lime at 18%. Contents: mono `PAPER` in lime, the sentence, and a link "See paper vs live →" in lime 600 pointing to `#paper`.
+44px tall. Background `linear-gradient(90deg, transparent, rgba(178,212,80,.10), transparent), #0D0F0B`, bottom border lime at 18%. Contents: mono `PAPER` in lime · "Every account starts in practice mode. Pretend money, real prices, nothing at risk." · link "See paper vs live →" (lime 600) to `#paper`.
 
 ### 5.1 Nav
 
 - `position:sticky; top:16px; width:1232px; height:68px; margin:16px auto -84px` (the negative margin lets the hero run under it).
-- Radius 999. Background `rgba(12,13,15,.62)` with `backdrop-filter: blur(18px) saturate(140%)`. Border at 10% cream. Shadow `0 16px 50px rgba(0,0,0,.45)` plus `inset 0 1px 0 rgba(249,247,244,.06)`.
-- **Left:** wordmark at 112×24, then pills "● Paper live" (lime ping dot) and "● RTH open" (static cream dot at 70% opacity).
-- **Centre:** How it works · The card · FAQ · Docs, with a 34px gap.
-- **Right:** "Read the docs" (secondary) and "Open GAUGE ↗" (primary), both 48px tall.
+- Radius 999, background `rgba(12,13,15,.62)` with `blur(18px) saturate(140%)`, border at 10% cream, shadow `0 16px 50px rgba(0,0,0,.45)` plus `inset 0 1px 0 rgba(249,247,244,.06)`.
+- **Left:** wordmark at 112×24 (the lime bar is `.g-bar`, animated by L1), then pills "● Paper live" (lime ping) and "● RTH open".
+- **Centre**, gap 34: Overview · How it works · The card · FAQ · Docs.
+- **Right:** "Read the docs" (secondary) and "Open GAUGE ↗" (primary), both 48px.
+- Every Docs link points to `DocsHome.dc.html`.
 
 ### 5.2 Hero
 
 - Height `min(100vh, 980px)`, `min-height: 820px`, `overflow:hidden`.
-- SVG stage 1440×980, `preserveAspectRatio="xMidYMax slice"`, `inset:0`.
-- Veils: a left gradient `90deg rgba(7,8,10,.92) 0% → .55 38% → 0 60%`, and a 120px bottom fade into `--bg`.
-- Copy column: max-width 760, gap 30, vertically centred with `padding-top:40px`. It enters on `g-rise` (1s, delay .2s). Top to bottom:
-  1. Eyebrow "Robinhood stock · Robinhood Chain stock token" in `--muted`.
-  2. H1 "Two prices." with a `<br>`, then "One gap." in Doto.
-  3. Lede, max-width 560.
-  4. CTA row: "Open GAUGE ↗" (primary) and "How it works" (secondary).
-  5. Pills: "Net gap or nothing" (lime), "3 cards a day", "75s per card", "You tap. It doesn't."
-- **Live gap widget:**
-  - Position: absolute, `right:max(32px, calc(50% - 600px)); bottom:130px`, width 360, padding 20/22. Glass: `rgba(15,17,19,.72)`, blur 16, border at 12% cream.
-  - Header: "● LIVE GAP · NVDA" with "ILLUSTRATIVE" on the right.
-  - Rows: Cash mid $182.40 · Token / share $182.71 (lime) · |Gap| 17.0 bps · Fees · slip · buffer −7.6 bps (`--neg`) · Net +9.4 bps (lime, 20px 600).
-  - Gate pills: Session ✓, Depth ✓ (lime), Cap 1/3.
-- **Sample-data maths:** (182.71 − 182.40) / 182.40 = 16.996 bps, shown as 17.0. Fees 3.5 + slippage 2.1 + buffer 2.0 = 7.6, so net = 9.4. Every screen uses these numbers.
+- SVG stage 1440×980, `preserveAspectRatio="xMidYMax slice"`. Geometry is in §8.
+- Veils: a left gradient `90deg rgba(7,8,10,.92) 0% → .55 38% → 0 60%`, and a 120px bottom fade.
+- **Copy column** (max-width 760, gap 30, `g-rise` 1s at .2s):
+  1. Eyebrow in `--muted`: "For Robinhood traders · the stock vs its onchain token".
+  2. H1, Unbounded 800 104px: "Two prices." then a break, then "One gap." in Doto 118px lime.
+  3. Lede (max-width 580): bold ink "Some stocks now trade in two places, at two prices." followed by "GAUGE watches both and pings you only when the difference is still worth it after every cost. You decide. Nothing happens unless you tap."
+  4. CTAs: "Open GAUGE ↗" (primary) · "What is GAUGE?" (secondary, to `#overview`).
+  5. Pills: "Only when it's worth it" (lime) · "3 prompts a day, max" · "75 s to decide" · "You tap. It doesn't."
+- **Example widget:**
+  - Absolute, `right:max(32px, calc(50% - 600px)); bottom:130px`, width 360, glass (`rgba(15,17,19,.72)`, blur 16, border at 12%).
+  - Header: "● LIVE EXAMPLE · NVDA" with "ILLUSTRATIVE".
+  - Rows use **percentages, not bps**: Stock on Robinhood $182.40 · Token on Robinhood Chain $182.71 (lime) · Difference 0.17% · All costs −0.08% (`--neg`) · Left for you **+0.09%** (lime, 20px 600).
+  - Pills: Market open ✓ · Enough size ✓ (lime) · 1 of 3 today.
+- **SVG labels** (mono 12, x 1222): "TOKEN PRICE" (lime, rides the token line), "THE DIFFERENCE" (15/600 lime, pulsing), "STOCK PRICE" (cream at 70%).
+- **Maths:** 17.0 bps = 0.17%; costs 7.6 bps ≈ 0.08%; left 9.4 bps ≈ 0.09%. The app and docs keep bps; the landing page shows % first.
 
-### 5.3 Ticker strip
+### 5.3 01 · Overview (new)
 
-- Top and bottom hairlines at 6%, padding 26/30.
-- Header row: mono "ROBINHOOD CHAIN STOCK TOKENS · GROSS GAP" on the left, "ILLUSTRATIVE" on the right.
-- Marquee: the list is duplicated, the track is `width:max-content`, and edges are masked `transparent → #000 10% … 90% → transparent`.
-- Chip: 52px pill with a 1px border at 9%, background `#0F1113`. Contents: a 36px round badge with the ticker in mono 10px, the symbol in mono 600 15px, the name in 14px `--dim`, and the gap in mono 14px.
-- Data: AAPL +4.1 · NVDA +17.0 · TSLA −6.3 · MSFT +2.2 · AMZN −1.8 · META +8.7 · GOOGL +3.0 · COIN −11.4.
-- Threshold |gap| ≥ 7.6 bps (the total cost): values at or above it are lime and the chip flashes; values below are `--dim`.
+- **Top grid:** `5fr 7fr`, gap 80, `align-items:start`.
+  - **Left** (`position:sticky; top:120px`): eyebrow "01 · Overview", H2 72px "What GAUGE" / "does." (Doto 80), and a mono 12 `--dim` note "THE 30-SECOND VERSION".
+  - **Right:** two `.g-sum` paragraphs, gap 28, each with `.g-reveal` (L2); the second is delayed .15s.
+    - "Some stocks now trade in two places: on **Robinhood** as the normal share, and on **Robinhood Chain** as a token that tracks it. Most of the time the two prices match. Sometimes they drift apart."
+    - "**GAUGE watches both.** When the difference is still worth acting on after every cost, it sends you a short-lived prompt. **You decide.** Nothing happens unless you tap."
+- **Three panels** (`repeat(3,1fr)`, margin-top 72): padding 36, min-height 300, gap 16. Each has a 48px icon, eyebrow, H3 and body.
 
-### 5.4 How it works
+| Panel        | Icon (48 × 48, stroke 1.6)                                                                                           | Eyebrow             | H3                     | Body                                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1            | Baseline y40; cream bar rect 10,20 10×20 rx3; lime bar rect 28,12 10×28 rx3; dashed ticks above. The bars drift (L2) | The problem         | Same stock, two prices | The share and its token don't always agree. Spotting the difference by hand is slow, and most differences vanish once you pay to trade.        |
+| 2 (featured) | Funnel `M6 8h36l-13 16v12l-10 6V24z` lime; 3 grey dots r2 falling in at x 14/24/34; lime dot r2.5 at (24,44) pulsing | What GAUGE does     | Filters out the noise  | It watches both prices all session, takes every cost off, and only prompts you when something real is left. Never more than three times a day. |
+| 3            | Lock: body rect 10,22 28×20 rx5 plus shackle `M16 22v-6a8 8 0 0 1 16 0v6` in cream; lime dot r3 at (24,32) pulsing   | What stays with you | Your money, your call  | GAUGE never holds your funds and never trades on its own. Start in practice mode with pretend money, and go live only when you want to.        |
 
-- Three panels: padding 36, min-height 460, flex column, gap 18.
-- Each panel: eyebrow `0N / Word`, H3, body, a visual, then an inset formula block (`margin-top:auto`, padding 16/18, radius 14, `--inset`, mono 14 `--ink-2`).
+- **Glossary strip** (margin-top 20): grid `180px repeat(4,1fr)`, gap 12.
+  - Label: mono 12 `.18em` ink "WORDS YOU'LL SEE" over "in plain English" (13 `--dim`).
+  - Four `.g-def` tiles: term (mono 13 lime, `.g-term`) and definition (14/1.5 `--muted`). Each tile has a `.g-hl` highlighter child (L3).
+    - bps: "One hundredth of 1%. 17 bps = 0.17%."
+    - Prompt · card: "A 75-second suggestion. Not an order."
+    - Paper: "Practice mode with pretend money. On by default."
+    - Agentic Account: "The Robinhood account type GAUGE places live orders on."
 
-| Panel                | H3                          | Visual                                     | Formula                                |
-| -------------------- | --------------------------- | ------------------------------------------ | -------------------------------------- |
-| 01 / Measure         | Cash mid vs token-per-share | 300×84 SVG ruler (C1)                      | `gap = token × mult − cash_mid`        |
-| 02 / Haircut         | Net basis points            | 14px segmented bar + labels + readout (C2) | `net = \|gap\| − fees − slip − buffer` |
-| 03 / Emit (featured) | Four gates, then a card     | 2×2 gate pills + mini card (C3)            | –                                      |
+### 5.4 02 · Who it's for (new)
 
-### 5.5 The card
+- **Header:** eyebrow "02 · Who it's for" · H2 "Who it's" / "for." (Doto) · lede "Self-directed traders who want a second pair of eyes on onchain prices, without handing over control."
+- **Personas** (`repeat(3,1fr)`): `.g-panel.g-persona`, padding 32, gap 12. Each has a 26px round letter badge (`.g-plet`, mono 12, 1px lime border at 50%), an H3 at 20px, and body text. They cycle through the featured state (L4).
+  - **A · You trade on Robinhood:** "You already buy and sell stocks yourself, and want to know when the onchain price drifts from the one you see."
+  - **B · You hold stock tokens:** "You own Robinhood Chain stock tokens and want a heads-up when they trade away from the real share."
+  - **C · You're curious, not reckless:** "You want to learn how onchain stocks behave in practice mode, before a single real dollar moves."
+- **Trust strip** (margin-top 20): `.g-panel.g-trust`, `role="list"`, `aria-label="Why you can trust it"`, grid `repeat(4,1fr)`.
+  - Each cell: padding 28, flex, gap 14, right hairline at 7% (except the last). Inside: a 24px lime stroke icon (1.6), a title (15/700) followed by a `.g-tick` ✓ badge (18px round, lime 14% fill), and a sub-line (14/1.5 `--muted`).
+  - `--d` staggers the cells for L5.
 
-- **Left panel (featured, 7fr):** padding 44, flex row, gap 44. A 1px scan light runs along the top edge (D4).
-- **Card mock:**
-  - 360px wide, radius 22, `--inset` fill, 12% border, padding 24, gap 18, shadow `0 30px 80px -20px rgba(0,0,0,.8)`. `position:relative; overflow:hidden` so the shimmer (D2) is clipped.
-  - Header: "CARD · NVDA" and a "● PAPER" pill.
-  - Countdown ring (D1): 124px, r 54, stroke 7, track `#1C1F23`, lime arc with round caps and `drop-shadow(0 0 6px rgba(178,212,80,.6))`. The clock inside is `m:ss` in Unbounded 700 24px.
-  - Net block: label "NET", "+9.4" in Unbounded 700 34px lime, "bps after costs".
-  - Rows: Cash mid · Token / share · Leg "Cash equity only".
-  - Re-quote line (conditional): "Re-quoted · still clears · paper fill at $182.40" in mono 12 lime.
-  - Buttons: "Do it" (primary, grows) and "Skip" (secondary).
-- **Anatomy column:** three blocks (COUNTDOWN, RE-QUOTE, DO IT), each a mono 12 lime label plus body text.
-- **Right panel (5fr):** eyebrow "Daily cap", a big "3", a caption, three 8px bars in a 3-column grid (D3), and "3/3 · CAP LOCKED UNTIL TOMORROW" (mono 12 lime) animated in.
-- **Interaction (DC state):**
-  - `t` starts at 52 and ticks down every 1s. At 0 it resets to 75 and `requoted` is cleared.
-  - When `t` reaches 31, `requoted` is set to true (auto-demo).
-  - "Do it" sets `requoted = true`. "Skip" resets `t = 75` and `requoted = false`.
+| Cell | `--d` | Icon                                                            | Title               | Sub                                                      |
+| ---- | ----- | --------------------------------------------------------------- | ------------------- | -------------------------------------------------------- |
+| 1    | 0s    | dashed page rect + 2 lines                                      | Practice by default | Paper mode is on until you switch it off.                |
+| 2    | .8s   | shield `M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z` + check | No custody          | Your money never leaves your Robinhood account.          |
+| 3    | 1.6s  | pointing hand                                                   | You tap, it doesn't | No order without your confirmation. Ever.                |
+| 4    | 2.4s  | link `M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8`  | Official connection | Live orders go through Robinhood's official Trading MCP. |
 
-### 5.6 Reason codes
+### 5.5 Ticker strip
 
-Four panels: padding 32, min-height 340, gap 20. Each has a mono gate label, a 64px visual, the Doto code, and body text (`margin-top:auto`).
+- `margin-top:150px`, top and bottom hairlines at 6%, padding 26/30.
+- Header: "STOCKS GAUGE WATCHES · PRICE DIFFERENCE" followed by "(BPS = 1/100 OF 1%)" in `--dead`; "ILLUSTRATIVE" on the right.
+- Chips and data are unchanged: AAPL +4.1 · NVDA +17.0 · TSLA −6.3 · MSFT +2.2 · AMZN −1.8 · META +8.7 · GOOGL +3.0 · COIN −11.4. Values ≥ 7.6 are lime and flash (B2).
 
-| Gate    | Code   | Visual                                                               | Copy                                                                                        |
-| ------- | ------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| FEED    | STALE  | timestamp `14:31:07.112` + 4px age bar (E1)                          | One of the two prices is too old to trust. No card on a stale quote.                        |
-| SESSION | CLOSED | 28px session track, RTH window at 35%/32% width, marker (E2)         | The cash market is outside the session GAUGE trades. The token may still tick. GAUGE waits. |
-| DEPTH   | THIN   | 10 depth bars; heights 22,34,48,60,56 lime / 56,60,48,34,22 red (E3) | Not enough depth to fill without eating the gap. The book is too thin.                      |
-| NET GAP | DUST   | Doto "0.3" + 8 dots, "NET BPS" (E4)                                  | A gap exists, but after fees, slippage and buffer it rounds to nothing.                     |
+### 5.6 03 · How it works
 
-### 5.7 Paper vs live
+- **Header:** H2 "Watch." / "Subtract." / "Prompt." (Doto). Lede: "Three steps, all session long. A price difference that disappears once you pay to trade isn't worth your time, so GAUGE never shows it to you."
+- **Panels:** padding 36, min-height 460. Each ends in a **docs link row** (`margin-top:auto`, padding 14/18, radius 14, `--bg`, border at 8%, 14px `--ink-2`, with a lime "Docs →" on the right) instead of a formula.
 
-Two panels: padding 44, min-height 480. Each has H3 34px with a pill on the right, body text, a visual, and three mono rows at the bottom.
+| Panel                  | H3                         | Body                                                                                                                                       | Visual                                                                                                             | Docs link                                       |
+| ---------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| 01 / Watch             | Two prices, one stock      | GAUGE reads the stock's price on Robinhood and the token's price on Robinhood Chain, converted to one share so they compare like for like. | ruler, CASH and TOKEN dots (C1)                                                                                    | How the difference is measured → `DocsCard#gap` |
+| 02 / Subtract          | Every cost comes off first | Trading fees, the cost of filling the order and a safety margin come off the difference. What's left is the only number GAUGE trusts.      | peel bar; labels LEFT · MARGIN · FILL · FEES; readout "difference 0.17%" / "left 0.09%" (C2)                       | Every cost, itemised → `DocsCard#haircut`       |
+| 03 / Prompt (featured) | Four checks, then a prompt | Worth it after costs, market open, enough shares on offer, and under your limit of 3 a day. Miss one, and GAUGE tells you which.           | pills Worth it ✓ · Market open ✓ · Enough size ✓ · Under 3 today ✓; mini card "PROMPT · NVDA · +0.09% · 1:15" (C3) | –                                               |
 
-- **Paper** (pill "Default"): a 300px dashed ticket reading "PAPER TICKET · NVDA", "@ 182.40" (mono 22) and "confirm mid · no broker", with the "FILLED @ MID" stamp (F1). Rows: Fill price / Confirm mid · Broker / None · Risk / Zero.
-- **Live** (featured, lime pill "Agentic Account only"): a 440×64 route with nodes YOU (x10), CONFIRM (x150, lime), MCP (x290) and ROBINHOOD (x430). The rail runs at y 21, is 2px, and has a gradient that is lime in the middle. The packet and tap ring are F2. Rows: Orders per card / 1 · Route / Robinhood Trading MCP · Trigger / Your tap (lime).
-- "Robinhood" appears as a text label only. Never draw their logo.
+### 5.7 04 · The prompt
 
-### 5.8 What GAUGE won't do
+- **Header:** H2 "75 seconds." / "Your call." (Doto "call."). Lede: "A prompt (we call it a card) is a suggestion, not an order. You have 75 seconds. When you tap Do it, GAUGE checks both prices again first. If it's no longer worth it, nothing happens."
+- **Card mock:** geometry unchanged from rev 1.
+  - Net label "LEFT AFTER COSTS", value "+9.4", unit "bps · 0.09%".
+  - Rows: Stock $182.40 · Token $182.71 · Trades: The stock only.
+- **Anatomy:**
+  - COUNTDOWN: "75 seconds, then it's gone. No stale cards waiting in a queue."
+  - FRESH PRICES: "Tapping pulls both prices again before anything moves."
+  - DO IT: "The only path to an order is your tap. GAUGE never trades on its own."
+- **Daily-limit panel:** "3" plus "prompts a day, maximum. Fewer, better prompts beat a feed that trains you to tap." The lock line reads "3/3 · DONE FOR TODAY".
+- **Interaction:** unchanged (t from 52, auto re-quote at 31, Do it / Skip).
 
-- Centred header: eyebrow, H2 84px "The token is **not** / the share." (Doto "not", G2), and a lede of max-width 640.
-- Four panels: padding 32, min-height 220. Each has a 28px ✕ icon (circle stroke `--neg` at 60%, cross 1.6px, G1), an H3 at 19px and body text at 15px.
-- Items: Hold your funds · Go past 3 a day ("The cap is a gate, not a suggestion. The fourth card never exists.") · Hedge both legs · Place without Do it.
-- GAUGE will have a token. Never claim otherwise. Token copy is not written yet: [TOKEN_DETAILS].
+### 5.8 05 · No prompt? (compact, replaces the four reason panels)
 
-### 5.9 FAQ
+- **One panel:** padding 36/40, grid `1fr 2fr`, gap 40, centred.
+  - **Left** (gap 14): eyebrow "05 · No prompt?", H3 in Unbounded 800 32px/1.1 "GAUGE tells you why, in one word.", and the link "All reason codes in the docs →" (lime 600 15px) to `DocsReasons.dc.html`.
+  - **Right:** `repeat(4,1fr)` chips at gap 12. Each chip: padding 18/20, radius 16, `#0C0D10`, border at 8%, gap 8. Code in Doto 900 30px in its colour; meaning at 14px `--muted`.
 
-- Left column: eyebrow, Doto "FAQ" at 84px, one line of body text.
-- Right column: rows with a top border and a 1px bottom border at 10%. The button is full-width, padding 26/0, 20px 600, with a lime `+`/`−` on the right. Focus ring: 2px lime, offset 4.
-- The first item is open by default. One item is open at a time, and the button carries `aria-expanded`.
-- The answer is 16px `--muted` with 60px of right padding. It enters on H1 and has the H2 scan line below it.
+| Code   | Colour     | Meaning                    | Act-out (L6, 8 s loop)           |
+| ------ | ---------- | -------------------------- | -------------------------------- |
+| STALE  | `--neg`    | Price too old to trust     | greys out, 0–25%                 |
+| CLOSED | `--closed` | Stock market is closed     | dims, lower half clipped, 25–50% |
+| THIN   | `--thin`   | Not enough shares on offer | squeezes to 62% width, 50–75%    |
+| DUST   | `--muted`  | Too small after costs      | dissolves, 75–100%               |
 
-### 5.10 Closing CTA
+### 5.9 06 · Practice or real
 
-- Section padding is 150px top and 24px sides. The block is lime, radius 28, padding 120/40/110, centred, gap 36.
-- Background art: two identical brand-line paths (ink stroke 2.5, one dashed 6/8) over the whole block at 20% opacity, animated by I1.
-- Contents:
-  - Mono eyebrow "GAUGE · CASH VS TOKEN · CONFIRM-GATED" at 70% ink.
-  - H2 "NO GAP. / NO CARD." (I2).
-  - Lede at 78% ink, max-width 600.
-  - Buttons: "Open GAUGE ↗" (ink fill, lime text) and "Read the docs" (transparent, 1.5px ink border at 50%).
+- **Header:** H2 "Practice first." / "Live when you say." (Doto "Live"). Lede: "Paper mode is practice with pretend money. Live mode is real. Both use the same checks and the same prompt; only what happens after your tap changes."
+- **Paper** (pill "Default"):
+  - H3 "Paper" with `.g-tech` "PRACTICE".
+  - Body: "Records a pretend trade at the price when you confirmed. No broker, no order, no money moves. Build a track record before anything is real."
+  - Ticket and stamp as F1.
+  - Rows: Price / At your tap · Broker / None · Risk / Zero.
+- **Live** (featured, pill "Agentic Account only"):
+  - H3 "Live" with `.g-tech` "REAL MONEY".
+  - Body: "Places one order for the stock through Robinhood's official trading connection, only after you confirm. It never also trades the token."
+  - Route as F2.
+  - Rows: Orders per prompt / 1 · Route / Robinhood Trading MCP `OFFICIAL` · Trigger / Your tap.
+- "Robinhood" appears as a text label only; never draw their logo.
 
-### 5.11 Footer
+### 5.10 07 · What GAUGE won't do
 
-- Padding 90/48.
-- Top grid: `5fr 2fr 2fr 3fr`, with a bottom hairline at 8%.
-  - **Brand block:** wordmark 150×32, "Two prices. One gap. You tap.", and a "● Paper live" pill.
-  - **PRODUCT:** How it works, The card, Reason codes, Paper vs live.
-  - **RESOURCES:** Docs, FAQ, Open GAUGE.
-  - **Right column:** a "● Watches Robinhood Chain" pill and `[CONTACT_EMAIL]`.
-- Bottom bar: the disclaimer (13px `--dim`) and "© 2026 GAUGE".
+- **Header:** H2 84px "The token is **not** / the share." (Doto "not", G2). Lede: "The token tracks the stock, but it isn't the stock. GAUGE only uses its price as a signal, and it never acts on its own."
+- **Four panels** (G1 delays 0 / .35 / .7 / 1.05 s):
+  - Hold your money: "Your money stays in your own Robinhood account. GAUGE never takes custody."
+  - Go past 3 a day: "The daily limit is a rule, not a suggestion. A fourth prompt never exists."
+  - Trade both sides: "Live is one order for the stock. GAUGE never also trades the token."
+  - Trade without your tap: "No tap, no order. GAUGE suggests. You decide."
+- GAUGE will have a token. Never claim otherwise. Token copy is not written yet: `[TOKEN_DETAILS]`.
+
+### 5.11 08 · FAQ
+
+- Layout, interaction and motion are unchanged (first item open, one open at a time, H1/H2 motion).
+- Eight plain-language questions:
+
+| Q                                         | A                                                                                                                                                                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What is GAUGE, in one sentence?           | GAUGE watches a stock on Robinhood and its token on Robinhood Chain, and tells you when their prices drift far enough apart to be worth acting on after costs.                                          |
+| Does GAUGE trade on its own?              | No. GAUGE only suggests. An order is placed only after you tap Do it, and only if the prices still hold up when it checks again.                                                                        |
+| Why am I not getting any prompts?         | Usually because nothing is worth it after costs. GAUGE shows you one word saying why: STALE (price too old), CLOSED (market closed), THIN (not enough shares on offer) or DUST (too small after costs). |
+| Does GAUGE hold my money?                 | No. Your money stays in your own Robinhood account. GAUGE never takes custody and never trades the token.                                                                                               |
+| What is a basis point (bps)?              | One hundredth of one percent. A 17 bps difference is 0.17%. GAUGE uses bps because the differences it looks for are small.                                                                              |
+| Is the token the same as the stock?       | No. The token tracks the stock, but it is not the share. GAUGE uses the token only as a price to compare against.                                                                                       |
+| Why only 3 prompts a day?                 | Fewer, better prompts. The limit is built in so GAUGE never turns into a feed you tap out of habit.                                                                                                     |
+| Paper or live: which should I start with? | Paper. It is practice with pretend money and is on by default. Switch to live when your record says so, on a Robinhood Agentic Account.                                                                 |
+
+### 5.12 Closing CTA
+
+- Geometry and motion are unchanged (I1, I2).
+- Eyebrow: "GAUGE · STOCK VS TOKEN · YOU DECIDE".
+- H2: "NO GAP. / NO CARD."
+- Lede: "Start in practice mode. See what GAUGE catches. Go live on your Agentic Account when your record says so."
+- Buttons: "Open GAUGE ↗" · "Read the docs" (to `DocsHome.dc.html`).
+
+### 5.13 Footer
+
+- The layout is unchanged. The wordmark's lime bar is `.g-bar` (L1).
+- PRODUCT links: Overview · How it works · The prompt · Practice or real.
+- RESOURCES links: Docs (`DocsHome.dc.html`) · FAQ · Open GAUGE.
+- Disclaimer: "GAUGE is not affiliated with Robinhood. Signals, not advice. Paper by default. The token is not the share."
 
 ## 5B. App (6 screens)
 
@@ -1248,74 +1313,75 @@ event: reason · DRAFT
 | Token line        | `M640 470 C720 466,780 482,850 470 S960 400,1030 386 S1130 378,1200 364 S1330 350,1440 346`, stroke `gFadeL` (lime fading in), width 2.5, plus a copy at width 10, 35% opacity, blur σ4 |
 | Gap bracket       | x 1200, from y 364 to 448: a rect 10 wide at 18% lime plus a dashed line `3 4`                                                                                                          |
 | Markers           | a lime dot at (1200,364) r5 with a halo r14; a cream dot at (1200,448) r5                                                                                                               |
-| Labels            | mono 12, letter-spacing 2, x 1222: "TOKEN / SHARE" at y 352 (lime), "GAP · LIVE" at y 412 (15px 600 lime), "CASH MID" at y 468 (cream at 70%)                                           |
+| Labels            | mono 12, letter-spacing 2, x 1222: "TOKEN PRICE" at y 352 (lime), "THE DIFFERENCE" at y 412 (15px 600 lime), "STOCK PRICE" at y 468 (cream at 70%) (rev 2 plain labels)                 |
 | Veils             | left gradient plus a bottom fade (HTML, outside the SVG)                                                                                                                                |
 
 ## 9. Motion summary
 
-| ID  | Where      | Name                        | Period                 | Meaning                                   |
-| --- | ---------- | --------------------------- | ---------------------- | ----------------------------------------- |
-| A1  | Hero       | Line draw-in                | 2.4s once              | Feeds come online                         |
-| A2  | Hero       | Token breathe + bracket     | 6s                     | The gap widens and narrows                |
-| A3  | Hero       | Travelling tick             | 4s                     | Live ticks on the token feed              |
-| A4  | Hero       | Cash flow dashes            | 2.2s                   | Live cash feed                            |
-| A5  | Hero       | Gap pulse                   | 1.6s / 3s              | The live value                            |
-| A6  | Hero       | Copy rise                   | 1s once                | –                                         |
-| B1  | Ticker     | Marquee                     | 48s                    | Names being watched                       |
-| B2  | Ticker     | Threshold flash             | 4.2s                   | A gap crossed cost                        |
-| C1  | Measure    | Ruler                       | 4s                     | Measuring the gap                         |
-| C2  | Haircut    | Peel                        | 5s                     | Costs removed from the gross              |
-| C3  | Emit       | Gates + mini card           | 5.4s                   | All four gates pass, then a card          |
-| D1  | Card       | Countdown ring              | 75s (JS)               | Card lifetime                             |
-| D2  | Card       | Re-quote shimmer            | 1.1s once              | Fresh prices on confirm                   |
-| D3  | Card       | Cap fill + lock             | 6s                     | 3 a day                                   |
-| D4  | Card       | Top scan                    | 5s                     | Live panel                                |
-| E1  | Reasons    | Age bar                     | 4.4s                   | STALE                                     |
-| E2  | Reasons    | Session marker              | 6.6s                   | CLOSED                                    |
-| E3  | Reasons    | Depth drain                 | 3.6s                   | THIN                                      |
-| E4  | Reasons    | Dissolve                    | 3.2s                   | DUST                                      |
-| F1  | Paper      | Stamp                       | 4.8s                   | Paper fill at mid                         |
-| F2  | Live       | Packet + tap                | 5.2s                   | One order, only after your tap            |
-| G1  | Won't      | ✕ draw                      | 6s                     | The refusals                              |
-| G2  | Won't      | "not" flicker               | 5.6s                   | The thesis line                           |
-| H1  | FAQ        | Answer rise                 | .6s once               | –                                         |
-| H2  | FAQ        | Scan line                   | 3.4s                   | The open row                              |
-| I1  | Closing    | Lines split/rejoin          | 6.4s                   | Gap opens, then closes                    |
-| I2  | Closing    | Headline snap               | 6.4s                   | "No gap" at the meeting point             |
-| Z   | Global     | Edge glows / ping           | 38–46s / 2.4s          | Atmosphere / live                         |
-| J1  | App        | Live dot                    | 2.4s                   | Feed or mode is live                      |
-| J2  | App        | Active card scan            | 4.6s                   | A card is open                            |
-| J3  | Home       | CARD row pulse              | 3s                     | The name that carded                      |
-| J4  | Home       | Pending cap pip             | 2s                     | Card pending against the cap              |
-| J5  | Home, Card | Countdown ring              | 75s (JS)               | Card lifetime; holds during confirm       |
-| J6  | Card       | Confirm sequence            | 0/.7/1.4/2.1s          | Tap → re-quote → gates → fill             |
-| J7  | Home, Card | Re-quote shimmer            | 1.1s once              | Fresh prices                              |
-| J8  | Card       | Waterfall grow              | .5–.6s staggered       | Costs peel off gross                      |
-| J9  | Watchlist  | Detail chart draw           | 1.2s                   | New name selected                         |
-| J10 | History    | Drawer rise                 | .35s                   | Card detail                               |
-| J11 | Token      | Mark orbit / breathe / dash | 40 / 26 / 5 / 3s       | Pre-launch, no data yet                   |
-| J12 | App        | Micro-transitions           | .15–1s                 | Tooltip, switch, hover, arc               |
-| K1  | Docs       | Live dot                    | 2.4s                   | The live-strip copy in Quickstart         |
-| K2  | Docs       | Diagram flow                | 1.6s / 1.4s            | Direction of the lifecycle and gate order |
-| K3  | Docs home  | Architecture connectors     | 1.2s                   | Data direction between services           |
-| K4  | Docs       | Waterfall grow              | .5–.6s staggered, once | Costs peel off gross                      |
-| K5  | Reasons    | DUST dissolve               | 3.2s                   | A gap that rounds to nothing              |
-| K6  | Docs       | Copy feedback               | 1.6s                   | Label "Copied ✓"                          |
-| K7  | Docs       | Hover transitions           | .3s                    | Tiles and links                           |
+| ID  | Where        | Name                        | Period                  | Meaning                                                  |
+| --- | ------------ | --------------------------- | ----------------------- | -------------------------------------------------------- |
+| A1  | Hero         | Line draw-in                | 2.4s once               | Feeds come online                                        |
+| A2  | Hero         | Token breathe + bracket     | 6s                      | The gap widens and narrows                               |
+| A3  | Hero         | Travelling tick             | 4s                      | Live ticks on the token feed                             |
+| A4  | Hero         | Cash flow dashes            | 2.2s                    | Live cash feed                                           |
+| A5  | Hero         | Gap pulse                   | 1.6s / 3s               | The live value                                           |
+| A6  | Hero         | Copy rise                   | 1s once                 | –                                                        |
+| B1  | Ticker       | Marquee                     | 48s                     | Names being watched                                      |
+| B2  | Ticker       | Threshold flash             | 4.2s                    | A gap crossed cost                                       |
+| C1  | Measure      | Ruler                       | 4s                      | Measuring the gap                                        |
+| C2  | Haircut      | Peel                        | 5s                      | Costs removed from the gross                             |
+| C3  | Emit         | Gates + mini card           | 5.4s                    | All four gates pass, then a card                         |
+| D1  | Card         | Countdown ring              | 75s (JS)                | Card lifetime                                            |
+| D2  | Card         | Re-quote shimmer            | 1.1s once               | Fresh prices on confirm                                  |
+| D3  | Card         | Cap fill + lock             | 6s                      | 3 a day                                                  |
+| D4  | Card         | Top scan                    | 5s                      | Live panel                                               |
+| E1  | Reasons      | Age bar                     | 4.4s                    | STALE · **retired rev 2**                                |
+| E2  | Reasons      | Session marker              | 6.6s                    | CLOSED · **retired rev 2**                               |
+| E3  | Reasons      | Depth drain                 | 3.6s                    | THIN · **retired rev 2**                                 |
+| E4  | Reasons      | Dissolve                    | 3.2s                    | DUST · **retired rev 2**                                 |
+| F1  | Paper        | Stamp                       | 4.8s                    | Paper fill at mid                                        |
+| F2  | Live         | Packet + tap                | 5.2s                    | One order, only after your tap                           |
+| G1  | Won't        | ✕ draw                      | 6s                      | The refusals                                             |
+| G2  | Won't        | "not" flicker               | 5.6s                    | The thesis line                                          |
+| H1  | FAQ          | Answer rise                 | .6s once                | –                                                        |
+| H2  | FAQ          | Scan line                   | 3.4s                    | The open row                                             |
+| I1  | Closing      | Lines split/rejoin          | 6.4s                    | Gap opens, then closes                                   |
+| I2  | Closing      | Headline snap               | 6.4s                    | "No gap" at the meeting point                            |
+| Z   | Global       | Edge glows / ping           | 38–46s / 2.4s           | Atmosphere / live                                        |
+| L1  | Landing      | Logo bar slide-in + glow    | .9s once, then 7s       | The needle settles, then ticks                           |
+| L2  | Overview     | Summary reveal + icon loops | scroll / 4.2 / 3 / 2.6s | Two prices drift; only one thing gets through; your call |
+| L3  | Overview     | Glossary highlighter        | 6s                      | Read the terms in order                                  |
+| L4  | Who it's for | Persona cycle               | 9s                      | Each audience in turn                                    |
+| L5  | Trust strip  | Icon trace + ✓              | 8s                      | Each promise is checked                                  |
+| L6  | No prompt?   | Words act out               | 8s, one clock           | STALE / CLOSED / THIN / DUST shown literally             |
+| J1  | App          | Live dot                    | 2.4s                    | Feed or mode is live                                     |
+| J2  | App          | Active card scan            | 4.6s                    | A card is open                                           |
+| J3  | Home         | CARD row pulse              | 3s                      | The name that carded                                     |
+| J4  | Home         | Pending cap pip             | 2s                      | Card pending against the cap                             |
+| J5  | Home, Card   | Countdown ring              | 75s (JS)                | Card lifetime; holds during confirm                      |
+| J6  | Card         | Confirm sequence            | 0/.7/1.4/2.1s           | Tap → re-quote → gates → fill                            |
+| J7  | Home, Card   | Re-quote shimmer            | 1.1s once               | Fresh prices                                             |
+| J8  | Card         | Waterfall grow              | .5–.6s staggered        | Costs peel off gross                                     |
+| J9  | Watchlist    | Detail chart draw           | 1.2s                    | New name selected                                        |
+| J10 | History      | Drawer rise                 | .35s                    | Card detail                                              |
+| J11 | Token        | Mark orbit / breathe / dash | 40 / 26 / 5 / 3s        | Pre-launch, no data yet                                  |
+| J12 | App          | Micro-transitions           | .15–1s                  | Tooltip, switch, hover, arc                              |
+| K1  | Docs         | Live dot                    | 2.4s                    | The live-strip copy in Quickstart                        |
+| K2  | Docs         | Diagram flow                | 1.6s / 1.4s             | Direction of the lifecycle and gate order                |
+| K3  | Docs home    | Architecture connectors     | 1.2s                    | Data direction between services                          |
+| K4  | Docs         | Waterfall grow              | .5–.6s staggered, once  | Costs peel off gross                                     |
+| K5  | Reasons      | DUST dissolve               | 3.2s                    | A gap that rounds to nothing                             |
+| K6  | Docs         | Copy feedback               | 1.6s                    | Label "Copied ✓"                                         |
+| K7  | Docs         | Hover transitions           | .3s                     | Tiles and links                                          |
 
 ## 10. Copy
 
-- Voice: short, declarative, rule-like. No em-dashes, no emoji.
-- Key lines: "Two prices. One gap." · "No gap, no card." · "The token is not the share." · "You tap. It doesn't." · "The model does not place."
-- Section H2s:
-  - "Measure. Haircut. Emit."
-  - "75 seconds. One tap."
-  - "No card? You get a reason."
-  - "Paper first. Live when you say."
-  - "The token is not the share."
-  - "FAQ"
-  - "NO GAP. NO CARD."
-- Disclaimer: "GAUGE is not affiliated with Robinhood. Signals, not advice. Paper by default. The token is not the share."
+- **Voice:** plain first, then precise. Short and declarative. No em-dashes, no emoji. Say what it is before how it works. Put technical terms small, beside the plain word, or in the docs.
+- **Key lines:** "Two prices. One gap." · "Some stocks now trade in two places, at two prices." · "You decide. Nothing happens unless you tap." · "No gap, no card." · "The token is not the share." · "You tap. It doesn't."
+- **Landing H2s:** "What GAUGE does." · "Who it's for." · "Watch. Subtract. Prompt." · "75 seconds. Your call." · "GAUGE tells you why, in one word." · "Practice first. Live when you say." · "The token is not the share." · "FAQ" · "NO GAP. NO CARD."
+- **Numbers:** the landing page shows percentages first (0.17% → 0.09%); the app and docs use bps; the glossary bridges the two (17 bps = 0.17%).
+- **Words to avoid on the landing page:** cash mid, token-per-share, multiplier, haircut, depth, RTH, leg, re-quote, emit. Use instead: stock price, token price, costs, shares on offer, market open, check again, prompt.
+- **Disclaimer:** "GAUGE is not affiliated with Robinhood. Signals, not advice. Paper by default. The token is not the share."
 - Every price is sample data and labelled ILLUSTRATIVE.
 
 ## 11. Open placeholders

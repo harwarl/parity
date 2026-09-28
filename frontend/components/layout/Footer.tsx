@@ -26,7 +26,7 @@ export function Footer() {
     <footer className="g-wrap pt-[90px] pb-12">
       <div className="grid gap-12 border-b border-ink/8 pb-16 sm:grid-cols-2 lg:grid-cols-[5fr_2fr_2fr_3fr] lg:gap-6">
         <div>
-          <Wordmark width={150} />
+          <Wordmark width={150} animated />
           <p className="mt-5 text-[16px] text-muted">Two prices. One gap. You tap.</p>
           <Pill size="sm" dot="live" className="mt-6">
             Paper live

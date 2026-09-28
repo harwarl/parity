@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { sample } from "@/config/site";
-import { formatClock, formatSignedBps } from "@/lib/format";
+import { formatClock, formatSignedBps, formatPct } from "@/lib/format";
 import { DataRow } from "@/components/ui/DataRow";
 import { Pill } from "@/components/ui/Pill";
 
@@ -85,23 +85,23 @@ export function CardMock() {
           </span>
         </div>
         <div>
-          <p className="g-label !text-[10px]">NET</p>
+          <p className="g-label !text-[10px]">LEFT AFTER COSTS</p>
           <p className="mt-1 font-display text-[34px] leading-none font-bold tracking-[-0.04em] text-accent">
             {formatSignedBps(sample.netBps)}
           </p>
-          <p className="mt-2.5 font-mono text-[12px] text-dim">bps after costs</p>
+          <p className="mt-2.5 font-mono text-[12px] text-dim">bps · {formatPct(sample.netBps)}</p>
         </div>
       </div>
 
       <div>
-        <DataRow label="Cash mid" value={`$${sample.cashMid}`} />
-        <DataRow label="Token / share" value={`$${sample.tokenPerShare}`} />
-        <DataRow label="Leg" value="Cash equity only" className="!border-b-0" />
+        <DataRow label="Stock" value={`$${sample.cashMid}`} />
+        <DataRow label="Token" value={`$${sample.tokenPerShare}`} />
+        <DataRow label="Trades" value="The stock only" className="!border-b-0" />
       </div>
 
       {requoted && (
         <p className="font-mono text-[12px] text-accent" role="status">
-          Re-quoted · still clears · paper fill at ${sample.cashMid}
+          Prices checked again · still worth it · practice fill at ${sample.cashMid}
         </p>
       )}
 

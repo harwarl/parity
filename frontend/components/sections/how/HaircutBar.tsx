@@ -1,8 +1,10 @@
 import { sample } from "@/config/site";
+import { formatPct } from "@/lib/format";
 
 /**
- * C2 · Haircut peel (5s). Gross 17.0 splits into net 9.4 | buffer 2.0 |
- * slip 2.1 | fees 3.5. Costs peel right to left, then "net 9.4 bps" lights.
+ * C2 · Haircut peel (5s). The 0.17% difference splits into left 0.09% |
+ * margin | fill | fees. Costs peel right to left, then "left 0.09%" lights.
+ * (Rev 2 labels; widths are still 9.4 | 2.0 | 2.1 | 3.5 bps.)
  */
 const segments = [
   { key: "buffer", pct: 11.8, alpha: 0.45, delay: 1.2 },
@@ -14,7 +16,7 @@ export function HaircutBar() {
   return (
     <div
       role="img"
-      aria-label={`Gross gap ${sample.gapBps.toFixed(1)} basis points minus fees ${sample.feesBps}, slippage ${sample.slipBps} and buffer ${sample.bufferBps} leaves net ${sample.netBps} basis points.`}
+      aria-label={`A ${formatPct(sample.gapBps)} difference, minus fees, the cost of filling and a safety margin, leaves ${formatPct(sample.netBps)}.`}
       className="mt-3"
     >
       <div className="flex h-3.5 overflow-hidden rounded-full bg-track">
@@ -32,15 +34,15 @@ export function HaircutBar() {
         ))}
       </div>
       <div className="mt-3 flex justify-between font-mono text-[10px] tracking-[0.16em] text-dim">
-        <span>NET</span>
-        <span>BUF {sample.bufferBps.toFixed(1)}</span>
-        <span>SLIP {sample.slipBps.toFixed(1)}</span>
-        <span>FEES {sample.feesBps.toFixed(1)}</span>
+        <span>LEFT</span>
+        <span>MARGIN</span>
+        <span>FILL</span>
+        <span>FEES</span>
       </div>
       <div className="mt-3 flex justify-between font-mono text-[13px]">
-        <span className="text-ink-2">|gap| {sample.gapBps.toFixed(1)}</span>
+        <span className="text-ink-2">difference {formatPct(sample.gapBps)}</span>
         <span className="text-dim" style={{ animation: "g-netc 5s ease-in-out infinite" }}>
-          net {sample.netBps} bps
+          left {formatPct(sample.netBps)}
         </span>
       </div>
     </div>

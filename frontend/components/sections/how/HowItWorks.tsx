@@ -1,6 +1,7 @@
 /*
  * How it works · design dials: VARIANCE 6 / MOTION 7 / DENSITY 5.
- * Header grid + 3 panels, third featured (C1–C3).
+ * Header grid + 3 panels, third featured (C1–C3). Rev 2: plain words, and
+ * each "how" panel links to its docs section instead of showing a formula.
  */
 import type { ReactNode } from "react";
 import { Panel } from "@/components/ui/Panel";
@@ -9,35 +10,38 @@ import { EmitGates } from "./EmitGates";
 import { HaircutBar } from "./HaircutBar";
 import { MeasureRuler } from "./MeasureRuler";
 import { revealInRow } from "@/lib/reveal";
+import Link from "next/link";
+import { DOCS } from "@/config/docs";
 
 type Step = {
   eyebrow: string;
   title: string;
   body: string;
   visual: ReactNode;
-  formula?: string;
+  /** Rev 2: formulas live in the docs; the panel links there. */
+  docs?: { label: string; href: string };
   featured?: boolean;
 };
 
 const steps: Step[] = [
   {
-    eyebrow: "01 / Measure",
-    title: "Cash mid vs token-per-share",
-    body: "The gap is the Robinhood cash mid against the chain token priced per share. The multiplier only touches the chain feed.",
+    eyebrow: "01 / Watch",
+    title: "Two prices, one stock",
+    body: "GAUGE reads the stock's price on Robinhood and the token's price on Robinhood Chain, converted to one share so they compare like for like.",
     visual: <MeasureRuler />,
-    formula: "gap = token × mult − cash_mid",
+    docs: { label: "How the difference is measured", href: `${DOCS.card}#gap` },
   },
   {
-    eyebrow: "02 / Haircut",
-    title: "Net basis points",
-    body: "Take the absolute gap, then subtract fees, slippage and a buffer. What survives is the only number GAUGE trusts.",
+    eyebrow: "02 / Subtract",
+    title: "Every cost comes off first",
+    body: "Trading fees, the cost of filling the order and a safety margin come off the difference. What's left is the only number GAUGE trusts.",
     visual: <HaircutBar />,
-    formula: "net = |gap| − fees − slip − buffer",
+    docs: { label: "Every cost, itemised", href: `${DOCS.card}#haircut` },
   },
   {
-    eyebrow: "03 / Emit",
-    title: "Four gates, then a card",
-    body: "A card only when the net gap, the session, the depth and your cap of 3 a day all pass. Otherwise you get a reason.",
+    eyebrow: "03 / Prompt",
+    title: "Four checks, then a prompt",
+    body: "Worth it after costs, market open, enough shares on offer, and under your limit of 3 a day. Miss one, and GAUGE tells you which.",
     visual: <EmitGates />,
     featured: true,
   },
@@ -47,17 +51,17 @@ export function HowItWorks() {
   return (
     <section id="how" data-motion className="g-wrap relative pt-[150px]">
       <SectionHeader
-        eyebrow="01 · How it works"
+        eyebrow="03 · How it works"
         title={
           <>
-            Measure.
+            Watch.
             <br />
-            Haircut.
+            Subtract.
             <br />
-            <span className="g-dot">Emit.</span>
+            <span className="g-dot">Prompt.</span>
           </>
         }
-        lede="Three steps, every tick. A gap that looks good before costs is not a gap. GAUGE only speaks when what's left after fees, slippage and a buffer is still worth your tap."
+        lede="Three steps, all session long. A price difference that disappears once you pay to trade isn't worth your time, so GAUGE never shows it to you."
       />
       <div className="grid gap-5 lg:grid-cols-3">
         {steps.map((step, i) => (
@@ -71,10 +75,14 @@ export function HowItWorks() {
             <h3 className="g-h3">{step.title}</h3>
             <p className="g-p">{step.body}</p>
             {step.visual}
-            {step.formula && (
-              <code className="g-inset mt-auto block font-mono text-[14px] leading-[1.45] text-ink-2">
-                {step.formula}
-              </code>
+            {step.docs && (
+              <Link
+                href={step.docs.href}
+                className="mt-auto flex items-center justify-between gap-3 rounded-inset border border-ink/8 bg-bg px-[18px] py-3.5 text-[14px] text-ink-2 transition-colors hover:border-accent/40 hover:text-ink"
+              >
+                {step.docs.label}
+                <span className="flex-none font-semibold text-accent">Docs →</span>
+              </Link>
             )}
           </Panel>
         ))}

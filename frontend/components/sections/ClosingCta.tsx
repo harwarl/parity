@@ -43,7 +43,7 @@ export function ClosingCta() {
         </svg>
 
         <p className="relative font-mono text-[12px] tracking-[0.22em] text-accent-ink/70 uppercase">
-          GAUGE · Cash vs token · Confirm-gated
+          GAUGE · Stock vs token · You decide
         </p>
         <h2
           className="relative font-display text-[clamp(52px,9.44vw,136px)] leading-[0.92] font-extrabold tracking-[-0.055em] text-accent-ink"
@@ -54,8 +54,8 @@ export function ClosingCta() {
           NO CARD.
         </h2>
         <p className="relative max-w-[600px] text-[19px] leading-[1.6] text-accent-ink/78">
-          Start in paper. Watch the gates work. Go live on your Agentic Account when the record
-          says so.
+          Start in practice mode. See what GAUGE catches. Go live on your Agentic Account when your
+          record says so.
         </p>
         <div className="relative flex flex-wrap justify-center gap-3">
           <Button href={urls.app} variant="ink" external>

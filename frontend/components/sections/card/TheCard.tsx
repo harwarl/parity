@@ -10,23 +10,23 @@ import { revealInRow } from "@/lib/reveal";
 
 const anatomy = [
   { label: "Countdown", body: "75 seconds, then it's gone. No stale cards waiting in a queue." },
-  { label: "Re-quote", body: "Confirm pulls fresh prices for both legs before anything moves." },
-  { label: "Do it", body: "The only path to an order is your tap. The model never places." },
+  { label: "Fresh prices", body: "Tapping pulls both prices again before anything moves." },
+  { label: "Do it", body: "The only path to an order is your tap. GAUGE never trades on its own." },
 ];
 
 export function TheCard() {
   return (
     <section id="card" data-motion className="g-wrap relative pt-[150px]">
       <SectionHeader
-        eyebrow="02 · The card"
+        eyebrow="04 · The prompt"
         title={
           <>
             75 seconds.
             <br />
-            One <span className="g-dot">tap.</span>
+            Your <span className="g-dot">call.</span>
           </>
         }
-        lede="A card is a proposal, not an order. It lives for 75 seconds. When you tap Do it, GAUGE re-quotes both prices first. If the net gap no longer clears, nothing happens."
+        lede="A prompt (we call it a card) is a suggestion, not an order. You have 75 seconds. When you tap Do it, GAUGE checks both prices again first. If it's no longer worth it, nothing happens."
       />
       <div className="grid gap-5 lg:grid-cols-[7fr_5fr]">
         <Panel

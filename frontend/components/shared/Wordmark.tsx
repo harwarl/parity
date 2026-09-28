@@ -2,7 +2,16 @@
  * GAUGE wordmark, vector redraw on a 270 × 58 grid, stroke 11 (design.md §7).
  * First G bar lime, second G bar ink. Replace with the master SVG when it exists.
  */
-export function Wordmark({ width = 112, className = "" }: { width?: number; className?: string }) {
+export function Wordmark({
+  width = 112,
+  className = "",
+  animated = false,
+}: {
+  width?: number;
+  className?: string;
+  /** L1: the lime bar slides in and ticks every 7s (nav and footer). */
+  animated?: boolean;
+}) {
   const height = (width * 58) / 270;
   return (
     <svg
@@ -21,7 +30,7 @@ export function Wordmark({ width = 112, className = "" }: { width?: number; clas
         {/* second G, centre shifted +166 */}
         <path d="M211.6 12.4 A23.5 23.5 0 1 0 218.5 29" />
       </g>
-      <rect x="29" y="23.5" width="29" height="11" fill="#B2D450" />
+      <rect x="29" y="23.5" width="29" height="11" fill="#B2D450" className={animated ? "g-bar" : undefined} />
       <polygon points="62,58 85,0 108,58 96.5,58 85,23 73.5,58" fill="#F9F7F4" />
       <rect x="195" y="23.5" width="29" height="11" fill="#F9F7F4" />
       {/* E */}

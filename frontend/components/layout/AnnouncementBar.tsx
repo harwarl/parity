@@ -12,8 +12,8 @@ export function AnnouncementBar() {
     >
       <span className="font-mono text-[11px] tracking-[0.22em] text-accent">PAPER</span>
       <span>
-        Every account starts in paper.
-        <span className="max-sm:hidden"> Fills at the confirm mid, no money moves.</span>
+        Every account starts in practice mode.
+        <span className="max-sm:hidden"> Pretend money, real prices, nothing at risk.</span>
       </span>
       <a
         href="#paper"

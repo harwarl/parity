@@ -1,18 +1,18 @@
 import { sample } from "@/config/site";
-import { formatSignedBps } from "@/lib/format";
+import { formatPct } from "@/lib/format";
 import { LiveDot } from "@/components/shared/LiveDot";
 
 /**
  * C3 · Four gates light in sequence (5.4s, .5s apart). The mini card shows
  * only while all four are lit (3.02–4.54s).
  */
-const gates = ["Net gap ✓", "Session ✓", "Depth ✓", "Cap ≤ 3 ✓"];
+const gates = ["Worth it ✓", "Market open ✓", "Enough size ✓", "Under 3 today ✓"];
 
 export function EmitGates() {
   return (
     <div
       role="img"
-      aria-label="Net gap, session, depth and daily cap gates pass one after another; only then is a card emitted."
+      aria-label="Four checks pass one after another: worth it after costs, market open, enough size, under 3 today. Only then does a prompt appear."
       className="mt-auto flex flex-col gap-[18px]"
     >
       <div className="grid grid-cols-2 gap-2">
@@ -35,10 +35,10 @@ export function EmitGates() {
       >
         <span className="flex items-center gap-2.5 text-ink">
           <LiveDot />
-          CARD · {sample.symbol}
+          PROMPT · {sample.symbol}
         </span>
         <span className="text-accent">
-          {formatSignedBps(sample.netBps)} BPS · 75S
+          {formatPct(sample.netBps, { signed: true })} · 1:15
         </span>
       </div>
     </div>

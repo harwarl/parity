@@ -1,11 +1,11 @@
 # GAUGE: animations.md
 
-|            |                                                                                                                                                                                                                                                                                             |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rev        | 5 · 2026-09-26                                                                                                                                                                                                                                                                              |
-| Changelog  | r5: added docs motion K1–K7 (§6C); removed an unused flicker keyframe from the Reason codes screen. r4: added app motion J1–J12 (§6B). r3: G1 back to 4 crosses (cap refusal added). r2: G1 drew 3 crosses (token refusal removed). r1: 28 animations across 10 sections (lively intensity) |
-| Companions | `design.md` (IDs A1–I2, J1–J12 and K1–K7 match its §9), `assets/css/animations.css` (every keyframe, copy-paste)                                                                                                                                                                            |
-| Source     | Design canvas "GAUGE": `Main.dc.html` + the 6 app artboards + the 4 docs artboards                                                                                                                                                                                                          |
+|            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rev        | 6 · 2026-09-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Changelog  | r6: landing rev 2. Added L1–L6 (logo, overview, glossary, personas, trust strip, reason words); retired E1–E4 (the reason panels were removed); C2/C3 labels changed to plain words, timing unchanged. r5: added docs motion K1–K7 (§6C); removed an unused flicker keyframe from the Reason codes screen. r4: added app motion J1–J12 (§6B). r3: G1 back to 4 crosses (cap refusal added). r2: G1 drew 3 crosses (token refusal removed). r1: 28 animations across 10 sections (lively intensity) |
+| Companions | `design.md` (IDs A1–I2, L1–L6, J1–J12 and K1–K7 match its §9), `assets/css/animations.css` (every keyframe, copy-paste)                                                                                                                                                                                                                                                                                                                                                                            |
+| Source     | Design canvas "GAUGE": `Main.dc.html` + the 6 app artboards + the 4 docs artboards                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ## 1. Rules
 
@@ -42,8 +42,8 @@ Layers, back to front (geometry in design.md §8):
 6. Cash line and cash flow overlay (A4).
 7. Gap bracket group (A2b).
 8. Cash end marker (1200,448).
-9. **Token group** (A2a): token line (A1), glow copy, travelling tick (A3), top marker with its pulsing halo (A5) and the "TOKEN / SHARE" label.
-10. Static labels: "CASH MID", plus "GAP · LIVE" pulsing (A5).
+9. **Token group** (A2a): token line (A1), glow copy, travelling tick (A3), top marker with its pulsing halo (A5) and the "TOKEN PRICE" label (rev 2; was "TOKEN / SHARE").
+10. Static labels: "STOCK PRICE", plus "THE DIFFERENCE" pulsing (A5).
 
 **Why the bracket scales from the bottom:** the cash end (y 448) is fixed and the token end rides the token group. When the token group moves down 38px, the gap shrinks from 84px to 46px, and 46/84 = 0.55. So the bracket runs `scaleY(1 → .55)` with `transform-origin:1200px 448px`, on the same 6s ease-in-out clock as the group. The two stay glued together.
 
@@ -173,7 +173,7 @@ The tick sits inside the token group, so it inherits the breathe. Use the identi
 }
 ```
 
-Used on the marker halo (1.6s) and the "GAP · LIVE" label (3s).
+Used on the marker halo (1.6s) and the "THE DIFFERENCE" label (3s).
 
 ### A6 · Copy rise
 
@@ -512,7 +512,9 @@ The overlay mounts only when `requoted` flips true. The mount restarts the anima
 
 The wrapper is a 1px strip, `overflow:hidden`, at `top:0` of the panel. The child is 50% wide with a lime gradient and `animation:g-scan 5s linear infinite`.
 
-### E1 · STALE age (4.4s)
+### E1 · STALE age (4.4s) · RETIRED rev 2
+
+The reason panels were replaced by the compact strip (L6). Kept here for reuse.
 
 ```css
 @keyframes g-age {
@@ -545,7 +547,9 @@ The wrapper is a 1px strip, `overflow:hidden`, at `top:0` of the panel. The chil
 
 Both run on `ease-in`. The bar fills as the quote ages and turns red at the same moment the timestamp dies.
 
-### E2 · CLOSED session (6.6s)
+### E2 · CLOSED session (6.6s) · RETIRED rev 2
+
+The reason panels were replaced by the compact strip (L6). Kept here for reuse.
 
 ```css
 @keyframes g-sess {
@@ -575,7 +579,9 @@ Both run on `ease-in`. The bar fills as the quote ages and turns red at the same
 - The track is 28px tall and about 221px wide, with the RTH window at `left:35%; width:32%`. The marker is a 10px dot starting at left 2px.
 - **Sync:** both run `linear` on 6.6s. The marker is inside the window from 35% to 67% of its travel, and `g-sessin` lights from 36% to 66%. When you change the track width, set `translateX` to track width − 15px.
 
-### E3 · THIN drain (3.6s)
+### E3 · THIN drain (3.6s) · RETIRED rev 2
+
+The reason panels were replaced by the compact strip (L6). Kept here for reuse.
 
 ```css
 @keyframes g-drain {
@@ -591,7 +597,9 @@ Both run on `ease-in`. The bar fills as the quote ages and turns red at the same
 
 Ten bars, `transform-origin:bottom`, each delayed by `i × 0.12s` so a wave runs across the book. Bids (first 5) are lime and asks (last 5) are red, both at 80% opacity.
 
-### E4 · DUST dissolve (3.2s)
+### E4 · DUST dissolve (3.2s) · RETIRED rev 2
+
+The reason panels were replaced by the compact strip (L6). Kept here for reuse.
 
 ```css
 @keyframes g-dustnum {
@@ -816,6 +824,314 @@ The two paths have the **same** `d` (one solid, one dashed `6 8`), so at 0% and 
 ```
 
 Uses `ease-out` on the same 6.4s clock as I1. The snap lands at 0%, exactly when the lines meet: "NO GAP."
+
+## 6A. Landing rev 2: new sections and logo
+
+These sit alongside A–I; together they cover every landing section. E1–E4 are **retired**, because the four reason panels were replaced by the compact strip (L6). Their keyframes (`g-age`, `g-stalet`, `g-sess`, `g-sessin`, `g-drain`, `g-dust`, `g-dustnum`) stay in `animations.css` for reuse, but no longer run on the page.
+
+### L1 · Logo: bar slide-in + glow (nav and footer wordmarks)
+
+```css
+@keyframes g-barin {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes g-barglow {
+  0%,
+  88%,
+  100% {
+    filter: none;
+  }
+  93% {
+    filter: drop-shadow(0 0 6px #b2d450);
+  }
+}
+.g-bar {
+  animation:
+    g-barin 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both,
+    g-barglow 7s ease-in-out 1.4s infinite;
+}
+a:hover .g-bar,
+a:focus-visible .g-bar {
+  filter: drop-shadow(0 0 8px #b2d450);
+}
+```
+
+- It applies only to the first G's lime bar (`<rect class="g-bar" x="29" y="23.5" width="29" height="11">`). The translate is in viewBox units (30 of 270, about 12px at nav size).
+- **Meaning:** the gauge needle settles into place, and then the logo "ticks" every 7 s.
+- The glow starts at 1.4s, after the slide-in ends at 1.25s.
+
+### L2 · Overview: summary reveal + icon loops
+
+```css
+.g-reveal {
+  animation: g-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-timeline: view();
+  animation-range: entry 0% entry 70%;
+}
+@keyframes g-barA {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.55);
+  }
+}
+@keyframes g-barB {
+  0%,
+  100% {
+    transform: scaleY(0.7);
+  }
+  50% {
+    transform: scaleY(1.15);
+  }
+}
+@keyframes g-fall {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(14px);
+    opacity: 1;
+  }
+  70%,
+  100% {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+@keyframes g-lockp {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+}
+```
+
+| Element                 | Animation                                      | Notes                                                                            |
+| ----------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------- |
+| Summary ¶1 / ¶2         | `g-rise` driven by scroll (`view()`), ¶2 +.15s | Browsers without `animation-timeline` play it once on load                       |
+| Problem icon, cream bar | `g-barA` 4.2s ease-in-out                      | `transform-box:fill-box; transform-origin:bottom`                                |
+| Problem icon, lime bar  | `g-barB` 4.2s ease-in-out                      | Same clock, opposite phase, so the gap between them opens and closes             |
+| Funnel dots (3)         | `g-fall` 3s ease-in, delays 0 / .6 / 1.2s      | Grey dots fall into the funnel and vanish                                        |
+| Funnel output dot       | `g-lockp` 3s ease-in-out, delay 1.6s           | Pulses once per cycle, just after the last grey dot; only one thing gets through |
+| Lock dot                | `g-lockp` 2.6s ease-in-out                     | `transform-origin:center` via fill-box                                           |
+
+### L3 · Words you'll see: highlighter sweep (6s)
+
+```css
+.g-def {
+  position: relative;
+  overflow: hidden;
+}
+.g-hl {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(178, 212, 80, 0),
+    rgba(178, 212, 80, 0.16),
+    rgba(178, 212, 80, 0)
+  );
+  transform: translateX(-100%);
+  animation: g-hl 6s ease-in-out infinite;
+}
+@keyframes g-hl {
+  0% {
+    transform: translateX(-100%);
+  }
+  18% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.g-term {
+  animation: g-term 6s ease-in-out infinite;
+}
+@keyframes g-term {
+  0%,
+  4% {
+    text-shadow: none;
+  }
+  9% {
+    text-shadow: 0 0 14px rgba(178, 212, 80, 0.9);
+  }
+  20%,
+  100% {
+    text-shadow: none;
+  }
+}
+```
+
+Delays of 0, 1.5, 3 and 4.5s go on each tile's `.g-hl` and `.g-term`. Each sweep takes about 1.1s (18% of 6s), so one tile is highlighted at a time, left to right, reading order.
+
+### L4 · Who it's for: persona cycle (9s)
+
+```css
+.g-persona {
+  animation: g-persona 9s ease-in-out infinite;
+}
+@keyframes g-persona {
+  0%,
+  30% {
+    border-color: rgba(178, 212, 80, 0.5);
+    box-shadow:
+      0 0 0 1px rgba(178, 212, 80, 0.12),
+      0 26px 70px -28px rgba(178, 212, 80, 0.35);
+  }
+  38%,
+  100% {
+    border-color: rgba(249, 247, 244, 0.08);
+    box-shadow:
+      0 0 0 1px rgba(178, 212, 80, 0),
+      0 26px 70px -28px rgba(178, 212, 80, 0);
+  }
+}
+.g-plet {
+  animation: g-plet 9s ease-in-out infinite;
+}
+@keyframes g-plet {
+  0%,
+  30% {
+    color: #0b0d07;
+    background: #b2d450;
+  }
+  38%,
+  100% {
+    color: #b2d450;
+    background: rgba(178, 212, 80, 0);
+  }
+}
+```
+
+Delays: A at 0s, B at 3s, C at 6s. Each persona is featured for 2.7s (30% of 9s), with a 0.7s fade, so exactly one panel is lit at any time. The badge letter inverts to ink on lime while its panel is featured.
+
+### L5 · Trust strip: check sweep (8s)
+
+```css
+.g-trust svg *{stroke-dasharray:80;animation:g-trace 8s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes g-trace{0%{stroke-dashoffset:80}14%,82%{stroke-dashoffset:0}94%,100%{stroke-dashoffset:80}}
+.g-tick{…;animation:g-tick 8s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes g-tick{0%,12%{transform:scale(.4);opacity:0}18%{transform:scale(1.25);opacity:1}24%,82%{transform:scale(1);opacity:1}94%,100%{transform:scale(.4);opacity:0}}
+```
+
+| Cell                | `--d` | Icon drawn by | ✓ pops at |
+| ------------------- | ----- | ------------- | --------- |
+| Practice by default | 0s    | 1.12s         | 1.44s     |
+| No custody          | .8s   | 1.92s         | 2.24s     |
+| You tap, it doesn't | 1.6s  | 2.72s         | 3.04s     |
+| Official connection | 2.4s  | 3.52s         | 3.84s     |
+
+The ✓ pops (at 18%) just after each icon finishes drawing (at 14%). All four stay drawn until 82% of each cell's own cycle, then un-draw. A dasharray of 80 is longer than every icon path's length, so each draw is complete.
+
+### L6 · No prompt? The words act out (8s, one clock)
+
+```css
+@keyframes g-rStale {
+  0%,
+  2% {
+    color: #ff6b5e;
+    opacity: 1;
+  }
+  12%,
+  20% {
+    color: #5a5d62;
+    opacity: 0.45;
+  }
+  25%,
+  100% {
+    color: #ff6b5e;
+    opacity: 1;
+  }
+}
+@keyframes g-rClosed {
+  0%,
+  25% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  35%,
+  43% {
+    opacity: 0.35;
+    clip-path: inset(0 0 55% 0);
+  }
+  50%,
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes g-rThin {
+  0%,
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  60%,
+  68% {
+    transform: scaleX(0.62);
+    opacity: 0.55;
+  }
+  75%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+@keyframes g-rDust {
+  0%,
+  75% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  85%,
+  93% {
+    opacity: 0.08;
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+```
+
+All four run at 8s `ease-in-out infinite` **with no delays**. Each keyframe holds still outside its own quarter, so they take turns without per-element delays: STALE 0–2s, CLOSED 2–4s, THIN 4–6s, DUST 6–8s. THIN needs `display:inline-block; transform-origin:left` so `scaleX` applies.
+
+| Word   | Meaning shown                       |
+| ------ | ----------------------------------- |
+| STALE  | The price goes grey and old         |
+| CLOSED | A shutter drops over the lower half |
+| THIN   | The word literally thins            |
+| DUST   | It dissolves into nothing           |
+
+### Reduced motion
+
+- L1: the bar sits in place. L2: text is visible and icons are static.
+- L3: the highlighter is parked off-tile at `translateX(-100%)`, so it is invisible.
+- L4: no panel is featured.
+- L5: icons are fully drawn (no base dashoffset) and ticks are visible.
+- L6: all four words sit at full colour.
+- No overrides are needed.
 
 ## 6B. App screens
 
@@ -1163,53 +1479,59 @@ These overrides are in `assets/css/animations.css`. They are not yet in the canv
 
 ## 11. Index
 
-| ID  | Keyframes            | Period                 | Easing                 | Section                               |
-| --- | -------------------- | ---------------------- | ---------------------- | ------------------------------------- |
-| A1  | g-draw               | 2.4s once              | .2,.7,.2,1             | Hero                                  |
-| A2  | g-lime, g-brk        | 6s                     | ease-in-out            | Hero                                  |
-| A3  | SMIL animateMotion   | 4s                     | linear                 | Hero                                  |
-| A4  | g-flow               | 2.2s                   | linear                 | Hero                                  |
-| A5  | g-gap                | 1.6s / 3s              | ease-in-out            | Hero                                  |
-| A6  | g-rise               | 1s once                | .2,.7,.2,1             | Hero                                  |
-| –   | g-breathe            | 9s                     | ease-in-out            | Hero atmosphere                       |
-| B1  | g-marq               | 48s                    | linear                 | Ticker                                |
-| B2  | g-flash              | 4.2s                   | ease-in-out            | Ticker                                |
-| C1  | g-meas, g-span       | 4s                     | ease-in-out            | How / Measure                         |
-| C2  | g-peel, g-netc       | 5s                     | ease-in-out            | How / Haircut                         |
-| C3  | g-gate, g-mini       | 5.4s                   | ease-in-out            | How / Emit                            |
-| D1  | JS + transition      | 75s                    | linear                 | Card                                  |
-| D2  | g-shimmer            | 1.1s once              | ease-out               | Card                                  |
-| D3  | g-capfill, g-lock    | 6s                     | ease-in-out            | Card / cap                            |
-| D4  | g-scan               | 5s                     | linear                 | Card panel                            |
-| E1  | g-age, g-stalet      | 4.4s                   | ease-in                | STALE                                 |
-| E2  | g-sess, g-sessin     | 6.6s                   | linear                 | CLOSED                                |
-| E3  | g-drain              | 3.6s                   | ease-in-out            | THIN                                  |
-| E4  | g-dust, g-dustnum    | 3.2s                   | ease-out / ease-in-out | DUST                                  |
-| F1  | g-stamp              | 4.8s                   | .3,1.4,.5,1            | Paper                                 |
-| F2  | g-packet, g-tap      | 5.2s                   | .6,0,.3,1 / ease-out   | Live                                  |
-| G1  | g-xdraw              | 6s                     | ease-in-out            | Won't do                              |
-| G2  | g-flicker            | 5.6s                   | linear                 | Won't do                              |
-| H1  | g-rise               | .6s once               | .2,.7,.2,1             | FAQ                                   |
-| H2  | g-scan               | 3.4s                   | linear                 | FAQ                                   |
-| I1  | g-conA, g-conB       | 6.4s                   | ease-in-out            | Closing                               |
-| I2  | g-snap               | 6.4s                   | ease-out               | Closing                               |
-| Z   | g-drift, g-ping      | 38–46s / 2.4s          | ease-in-out            | Global                                |
-| J1  | ping                 | 2.4s                   | ease-in-out            | App · live dots                       |
-| J2  | scan                 | 4.6s                   | linear                 | App · active card                     |
-| J3  | glowrow              | 3s                     | ease-in-out            | Home · CARD row                       |
-| J4  | blink                | 2s                     | ease-in-out            | Home · pending pip                    |
-| J5  | JS + transition      | 1s tick / 75s          | linear                 | Home, Card · ring                     |
-| J6  | JS timeouts          | 0 / .7 / 1.4 / 2.1s    | –                      | Card · confirm                        |
-| J7  | shimmer              | 1.1s once              | ease-out               | Home, Card                            |
-| J8  | grow                 | .5–.6s staggered       | ease-out               | Card · waterfall                      |
-| J9  | draw, rise           | 1.2s / .4s             | ease-out               | Watchlist · detail                    |
-| J10 | rise                 | .35s                   | ease-out               | History · drawer                      |
-| J11 | orbit, breathe, dash | 40 / 26 / 5 / 3s       | linear / ease-in-out   | Token · mark                          |
-| J12 | transitions          | .15–1s                 | ease                   | App · tooltip, switch, hover, arc     |
-| K1  | ping                 | 2.4s                   | ease-in-out            | Docs · Quickstart live strip          |
-| K2  | flow                 | 1.6s / 1.4s            | linear                 | Docs home lifecycle · Card gate order |
-| K3  | flow                 | 1.2s                   | linear                 | Docs home · architecture              |
-| K4  | grow                 | .5–.6s staggered, once | ease-out               | Docs · Card waterfall                 |
-| K5  | dust                 | 3.2s                   | ease-in-out            | Docs · Reasons DUST                   |
-| K6  | JS timeout           | 1.6s                   | –                      | Docs · Copy buttons                   |
-| K7  | transitions          | .3s                    | ease                   | Docs · tiles, links                   |
+| ID  | Keyframes                                | Period                  | Easing                   | Section                               |
+| --- | ---------------------------------------- | ----------------------- | ------------------------ | ------------------------------------- |
+| A1  | g-draw                                   | 2.4s once               | .2,.7,.2,1               | Hero                                  |
+| A2  | g-lime, g-brk                            | 6s                      | ease-in-out              | Hero                                  |
+| A3  | SMIL animateMotion                       | 4s                      | linear                   | Hero                                  |
+| A4  | g-flow                                   | 2.2s                    | linear                   | Hero                                  |
+| A5  | g-gap                                    | 1.6s / 3s               | ease-in-out              | Hero                                  |
+| A6  | g-rise                                   | 1s once                 | .2,.7,.2,1               | Hero                                  |
+| –   | g-breathe                                | 9s                      | ease-in-out              | Hero atmosphere                       |
+| B1  | g-marq                                   | 48s                     | linear                   | Ticker                                |
+| B2  | g-flash                                  | 4.2s                    | ease-in-out              | Ticker                                |
+| C1  | g-meas, g-span                           | 4s                      | ease-in-out              | How / Measure                         |
+| C2  | g-peel, g-netc                           | 5s                      | ease-in-out              | How / Haircut                         |
+| C3  | g-gate, g-mini                           | 5.4s                    | ease-in-out              | How / Emit                            |
+| D1  | JS + transition                          | 75s                     | linear                   | Card                                  |
+| D2  | g-shimmer                                | 1.1s once               | ease-out                 | Card                                  |
+| D3  | g-capfill, g-lock                        | 6s                      | ease-in-out              | Card / cap                            |
+| D4  | g-scan                                   | 5s                      | linear                   | Card panel                            |
+| E1  | g-age, g-stalet                          | 4.4s                    | ease-in                  | STALE · retired                       |
+| E2  | g-sess, g-sessin                         | 6.6s                    | linear                   | CLOSED · retired                      |
+| E3  | g-drain                                  | 3.6s                    | ease-in-out              | THIN · retired                        |
+| E4  | g-dust, g-dustnum                        | 3.2s                    | ease-out / ease-in-out   | DUST · retired                        |
+| F1  | g-stamp                                  | 4.8s                    | .3,1.4,.5,1              | Paper                                 |
+| F2  | g-packet, g-tap                          | 5.2s                    | .6,0,.3,1 / ease-out     | Live                                  |
+| G1  | g-xdraw                                  | 6s                      | ease-in-out              | Won't do                              |
+| G2  | g-flicker                                | 5.6s                    | linear                   | Won't do                              |
+| H1  | g-rise                                   | .6s once                | .2,.7,.2,1               | FAQ                                   |
+| H2  | g-scan                                   | 3.4s                    | linear                   | FAQ                                   |
+| I1  | g-conA, g-conB                           | 6.4s                    | ease-in-out              | Closing                               |
+| I2  | g-snap                                   | 6.4s                    | ease-out                 | Closing                               |
+| Z   | g-drift, g-ping                          | 38–46s / 2.4s           | ease-in-out              | Global                                |
+| J1  | ping                                     | 2.4s                    | ease-in-out              | App · live dots                       |
+| J2  | scan                                     | 4.6s                    | linear                   | App · active card                     |
+| J3  | glowrow                                  | 3s                      | ease-in-out              | Home · CARD row                       |
+| J4  | blink                                    | 2s                      | ease-in-out              | Home · pending pip                    |
+| J5  | JS + transition                          | 1s tick / 75s           | linear                   | Home, Card · ring                     |
+| J6  | JS timeouts                              | 0 / .7 / 1.4 / 2.1s     | –                        | Card · confirm                        |
+| J7  | shimmer                                  | 1.1s once               | ease-out                 | Home, Card                            |
+| J8  | grow                                     | .5–.6s staggered        | ease-out                 | Card · waterfall                      |
+| J9  | draw, rise                               | 1.2s / .4s              | ease-out                 | Watchlist · detail                    |
+| J10 | rise                                     | .35s                    | ease-out                 | History · drawer                      |
+| J11 | orbit, breathe, dash                     | 40 / 26 / 5 / 3s        | linear / ease-in-out     | Token · mark                          |
+| J12 | transitions                              | .15–1s                  | ease                     | App · tooltip, switch, hover, arc     |
+| K1  | ping                                     | 2.4s                    | ease-in-out              | Docs · Quickstart live strip          |
+| K2  | flow                                     | 1.6s / 1.4s             | linear                   | Docs home lifecycle · Card gate order |
+| K3  | flow                                     | 1.2s                    | linear                   | Docs home · architecture              |
+| K4  | grow                                     | .5–.6s staggered, once  | ease-out                 | Docs · Card waterfall                 |
+| K5  | dust                                     | 3.2s                    | ease-in-out              | Docs · Reasons DUST                   |
+| K6  | JS timeout                               | 1.6s                    | –                        | Docs · Copy buttons                   |
+| K7  | transitions                              | .3s                     | ease                     | Docs · tiles, links                   |
+| L1  | g-barin, g-barglow                       | .9s once, then 7s       | .2,.7,.2,1 / ease-in-out | Landing · logo (nav, footer)          |
+| L2  | g-rise (view), g-barA/B, g-fall, g-lockp | scroll / 4.2 / 3 / 2.6s | mixed                    | Landing · Overview                    |
+| L3  | g-hl, g-term                             | 6s                      | ease-in-out              | Landing · glossary                    |
+| L4  | g-persona, g-plet                        | 9s                      | ease-in-out              | Landing · Who it's for                |
+| L5  | g-trace, g-tick                          | 8s                      | ease-in-out              | Landing · trust strip                 |
+| L6  | g-rStale, g-rClosed, g-rThin, g-rDust    | 8s                      | ease-in-out              | Landing · No prompt?                  |

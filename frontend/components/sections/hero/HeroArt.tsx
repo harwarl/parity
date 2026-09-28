@@ -25,7 +25,7 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
       preserveAspectRatio={compact ? "xMaxYMid slice" : "xMidYMax slice"}
       className={`absolute inset-0 size-full ${className}`}
       role="img"
-      aria-label="Two price lines: the token per share rides above the cash mid. The bracket between them at the right edge is the live gap, widening and narrowing."
+      aria-label="Two price lines: the token price rides above the stock price. The bracket between them at the right edge is the difference, widening and narrowing."
     >
       <defs>
         <radialGradient id={`${p}Atm`} cx="980" cy="1640" r="1260" gradientUnits="userSpaceOnUse">
@@ -172,7 +172,7 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
         />
         <circle cx="1200" cy="364" r="5" fill="#B2D450" />
         <text x="1222" y="352" fontSize={compact ? 14 : 12} letterSpacing="2" fill="#B2D450" style={mono}>
-          TOKEN / SHARE
+          TOKEN PRICE
         </text>
       </g>
 
@@ -186,10 +186,10 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
         fill="#B2D450"
         style={{ ...mono, animation: "g-gap 3s ease-in-out infinite" }}
       >
-        GAP · LIVE
+        THE DIFFERENCE
       </text>
       <text x="1222" y="468" fontSize={compact ? 14 : 12} letterSpacing="2" fill="#F9F7F4" fillOpacity=".7" style={mono}>
-        CASH MID
+        STOCK PRICE
       </text>
     </svg>
   );

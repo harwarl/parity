@@ -18,7 +18,7 @@ export function Navbar() {
     >
       <div className="flex items-center gap-2.5">
         <a href="#top" aria-label="GAUGE home" className="mr-2 flex items-center">
-          <Wordmark width={112} />
+          <Wordmark width={112} animated />
         </a>
         <Pill size="sm" dot="live" className="max-md:hidden">
           Paper live

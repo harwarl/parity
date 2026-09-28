@@ -44,7 +44,7 @@ export function Hero() {
           className="relative flex max-w-[760px] flex-col gap-6 sm:gap-[30px]"
           style={{ animation: "g-rise 1s var(--ease-enter) .2s both" }}
         >
-          <p className="g-eyebrow !text-muted">Robinhood stock · Robinhood Chain stock token</p>
+          <p className="g-eyebrow !text-muted">For Robinhood traders · the stock vs its onchain token</p>
 
           <h1 className="font-display text-[clamp(52px,7.22vw,104px)] leading-[0.98] font-extrabold tracking-[-0.045em] text-ink">
             Two prices.
@@ -52,30 +52,30 @@ export function Hero() {
             <span className="g-dot text-[calc(1em*118/104)]">One gap.</span>
           </h1>
 
-          <p className="g-lede max-w-[560px]">
-            <b>GAUGE watches both prices for the same name.</b> When the gap still clears fees,
-            slippage and the session, you get a card. You tap. Confirm re-quotes. The model does
-            not place.
+          <p className="g-lede max-w-[580px]">
+            <b>Some stocks now trade in two places, at two prices.</b> GAUGE watches both and pings
+            you only when the difference is still worth it after every cost. You decide. Nothing
+            happens unless you tap.
           </p>
 
           <div className="flex flex-wrap gap-3">
             <Button href={urls.app} external>
               Open GAUGE
             </Button>
-            <Button href="#how" variant="secondary">
-              How it works
+            <Button href="#overview" variant="secondary">
+              What is GAUGE?
             </Button>
           </div>
 
           <ul className="flex flex-wrap gap-2.5" aria-label="Rules">
             <li>
-              <Pill tone="lime">Net gap or nothing</Pill>
+              <Pill tone="lime">Only when it&apos;s worth it</Pill>
             </li>
             <li>
-              <Pill>3 cards a day</Pill>
+              <Pill>3 prompts a day, max</Pill>
             </li>
             <li>
-              <Pill>75s per card</Pill>
+              <Pill>75 s to decide</Pill>
             </li>
             <li>
               <Pill>You tap. It doesn&apos;t.</Pill>

@@ -13,33 +13,37 @@ import { revealInRow } from "@/lib/reveal";
 
 type Mode = {
   title: string;
+  /** Small technical tag after the plain title (.g-tech). */
+  tech: string;
   pill: string;
   body: string;
   visual: ReactNode;
-  rows: { label: string; value: string; lime?: boolean }[];
+  rows: { label: string; value: string; lime?: boolean; tech?: string }[];
   featured?: boolean;
 };
 
 const modes: Mode[] = [
   {
     title: "Paper",
+    tech: "PRACTICE",
     pill: "Default",
-    body: "Fills at the confirm mid. No broker, no order, no money moves. Build a record before anything is real.",
+    body: "Records a pretend trade at the price when you confirmed. No broker, no order, no money moves. Build a track record before anything is real.",
     visual: <PaperTicket />,
     rows: [
-      { label: "Fill price", value: "Confirm mid" },
+      { label: "Price", value: "At your tap" },
       { label: "Broker", value: "None" },
       { label: "Risk", value: "Zero" },
     ],
   },
   {
     title: "Live",
+    tech: "REAL MONEY",
     pill: "Agentic Account only",
-    body: "Places one cash-equity order through the official Robinhood Trading MCP, only after you confirm. Nothing on chain, no second leg.",
+    body: "Places one order for the stock through Robinhood's official trading connection, only after you confirm. It never also trades the token.",
     visual: <LiveRoute />,
     rows: [
-      { label: "Orders per card", value: "1" },
-      { label: "Route", value: "Robinhood Trading MCP" },
+      { label: "Orders per prompt", value: "1" },
+      { label: "Route", value: "Robinhood Trading MCP", tech: "OFFICIAL" },
       { label: "Trigger", value: "Your tap", lime: true },
     ],
     featured: true,
@@ -50,17 +54,17 @@ export function PaperVsLive() {
   return (
     <section id="paper" data-motion className="g-wrap relative pt-[150px]">
       <SectionHeader
-        eyebrow="04 · Paper vs live"
+        eyebrow="06 · Practice or real"
         title={
           <>
-            Paper first.
+            Practice first.
             <br />
             <span className="g-dot">Live</span> when
             <br />
             you say.
           </>
         }
-        lede="Both modes run the same gates and the same card. The only difference is what happens after you tap."
+        lede="Paper mode is practice with pretend money. Live mode is real. Both use the same checks and the same prompt; only what happens after your tap changes."
       />
       <div className="grid gap-5 lg:grid-cols-2">
         {modes.map((m, i) => (
@@ -71,7 +75,10 @@ export function PaperVsLive() {
             style={revealInRow(i, modes.length)}
           >
             <div className="flex items-center justify-between gap-4">
-              <h3 className="g-h3 !text-[34px]">{m.title}</h3>
+              <h3 className="g-h3 !text-[34px]">
+                {m.title}
+                <span className="g-tech">{m.tech}</span>
+              </h3>
               <Pill tone={m.featured ? "lime" : "default"}>{m.pill}</Pill>
             </div>
             <p className="g-p">{m.body}</p>
@@ -81,7 +88,16 @@ export function PaperVsLive() {
                 <DataRow
                   key={r.label}
                   label={r.label}
-                  value={r.value}
+                  value={
+                    r.tech ? (
+                      <>
+                        {r.value}
+                        <span className="g-tech">{r.tech}</span>
+                      </>
+                    ) : (
+                      r.value
+                    )
+                  }
                   tone={r.lime ? "lime" : "ink"}
                   className={i === m.rows.length - 1 ? "!border-b-0" : ""}
                 />

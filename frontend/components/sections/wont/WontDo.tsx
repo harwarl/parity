@@ -14,7 +14,7 @@ export function WontDo() {
         className="g-reveal mx-auto mb-14 flex max-w-[900px] flex-col items-center text-center"
         style={reveal({ y: 40 })}
       >
-        <p className="g-eyebrow mb-7">05 · What GAUGE won&apos;t do</p>
+        <p className="g-eyebrow mb-7">07 · What GAUGE won&apos;t do</p>
         <h2 className="g-h2 !text-[clamp(46px,5.83vw,84px)]">
           The token is{" "}
           <span
@@ -27,8 +27,8 @@ export function WontDo() {
           the share.
         </h2>
         <p className="g-lede mt-8 max-w-[640px]">
-          GAUGE reads the token as a price. It never treats it as the stock, and it never acts on
-          its own.
+          The token tracks the stock, but it isn&apos;t the stock. GAUGE only uses its price as a
+          signal, and it never acts on its own.
         </p>
       </div>
       <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

@@ -12,12 +12,13 @@ export const site = {
   name: "GAUGE",
   title: "GAUGE · Two prices. One gap.",
   description:
-    "GAUGE watches the Robinhood stock and the Robinhood Chain stock token for the same name, and emits a 75-second card only when the net gap clears. You tap. The model does not place.",
+    "Some stocks now trade in two places, at two prices. GAUGE watches both and pings you only when the difference is still worth it after every cost. You decide. Nothing happens unless you tap.",
   disclaimer:
     "GAUGE is not affiliated with Robinhood. Signals, not advice. Paper by default. The token is not the share.",
 } as const;
 
 export const navLinks: NavLink[] = [
+  { label: "Overview", href: "#overview" },
   { label: "How it works", href: "#how" },
   { label: "The card", href: "#card" },
   { label: "FAQ", href: "#faq" },
@@ -25,10 +26,10 @@ export const navLinks: NavLink[] = [
 ];
 
 export const footerProduct: NavLink[] = [
+  { label: "Overview", href: "#overview" },
   { label: "How it works", href: "#how" },
-  { label: "The card", href: "#card" },
-  { label: "Reason codes", href: "#reasons" },
-  { label: "Paper vs live", href: "#paper" },
+  { label: "The prompt", href: "#card" },
+  { label: "Practice or real", href: "#paper" },
 ];
 
 export const footerResources: NavLink[] = [
@@ -67,51 +68,63 @@ export const ticker: TickerItem[] = [
 
 export const wontDo: WontDoItem[] = [
   {
-    title: "Hold your funds",
-    body: "Your money stays in your account. GAUGE never takes custody.",
+    title: "Hold your money",
+    body: "Your money stays in your own Robinhood account. GAUGE never takes custody.",
   },
   {
     title: "Go past 3 a day",
-    body: "The cap is a gate, not a suggestion. The fourth card never exists.",
+    body: "The daily limit is a rule, not a suggestion. A fourth prompt never exists.",
   },
   {
-    title: "Hedge both legs",
-    body: "Live is one cash-equity order. No paired trade on chain.",
+    title: "Trade both sides",
+    body: "Live is one order for the stock. GAUGE never also trades the token.",
   },
   {
-    title: "Place without Do it",
-    body: "No tap, no order. The model proposes. You decide.",
+    title: "Trade without your tap",
+    body: "No tap, no order. GAUGE suggests. You decide.",
   },
 ];
 
+/** design.md §5.11 (rev 2): eight plain-language questions. */
 export const faq: FaqItem[] = [
   {
-    question: "Does GAUGE place trades on its own?",
+    question: "What is GAUGE, in one sentence?",
     answer:
-      "No. GAUGE proposes a card. Nothing is placed until you tap Do it, and confirm re-quotes both prices first. The model does not place.",
+      "GAUGE watches a stock on Robinhood and its token on Robinhood Chain, and tells you when their prices drift far enough apart to be worth acting on after costs.",
   },
   {
-    question: "What happens when there is no gap?",
+    question: "Does GAUGE trade on its own?",
     answer:
-      "Nothing. If the net gap does not clear fees, slippage and the buffer, there is no card. You get a reason code instead.",
+      "No. GAUGE only suggests. An order is placed only after you tap Do it, and only if the prices still hold up when it checks again.",
   },
   {
-    question: "Does GAUGE hold my funds?",
-    answer: "No. Your money stays in your account. GAUGE never takes custody.",
+    question: "Why am I not getting any prompts?",
+    answer:
+      "Usually because nothing is worth it after costs. GAUGE shows you one word saying why: STALE (price too old), CLOSED (market closed), THIN (not enough shares on offer) or DUST (too small after costs).",
   },
   {
-    question: "Is the token the same as the share?",
+    question: "Does GAUGE hold my money?",
     answer:
-      "No. The token is not the share. GAUGE reads the chain token only as a price, and the multiplier only touches the chain feed.",
+      "No. Your money stays in your own Robinhood account. GAUGE never takes custody and never trades the token.",
   },
   {
-    question: "Why only 3 cards a day?",
+    question: "What is a basis point (bps)?",
     answer:
-      "Fewer, better prompts beat a feed that trains you to tap. After the third card the cap locks until tomorrow.",
+      "One hundredth of one percent. A 17 bps difference is 0.17%. GAUGE uses bps because the differences it looks for are small.",
   },
   {
-    question: "What is the difference between paper and live?",
+    question: "Is the token the same as the stock?",
     answer:
-      "Paper fills at the confirm mid with no broker and no money moving. Live places one cash-equity order through the Robinhood Trading MCP on your Agentic Account, only after you tap.",
+      "No. The token tracks the stock, but it is not the share. GAUGE uses the token only as a price to compare against.",
+  },
+  {
+    question: "Why only 3 prompts a day?",
+    answer:
+      "Fewer, better prompts. The limit is built in so GAUGE never turns into a feed you tap out of habit.",
+  },
+  {
+    question: "Paper or live: which should I start with?",
+    answer:
+      "Paper. It is practice with pretend money and is on by default. Switch to live when your record says so, on a Robinhood Agentic Account.",
   },
 ];

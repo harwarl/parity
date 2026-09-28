@@ -33,3 +33,11 @@ export function formatBps(bps: number): string {
   const s = Math.abs(r).toFixed(1);
   return r < 0 ? `${MINUS}${s}` : s;
 }
+
+/** Basis points as a percent, two decimals: 17 → "0.17%", −7.6 → "−0.08%". Landing rev 2 shows % first. */
+export function formatPct(bps: number, { signed = false }: { signed?: boolean } = {}): string {
+  const r = Math.round(bps) / 100;
+  const abs = `${Math.abs(r).toFixed(2)}%`;
+  if (r < 0) return `${MINUS}${abs}`;
+  return signed && r > 0 ? `+${abs}` : abs;
+}

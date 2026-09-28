@@ -30,11 +30,13 @@ export function TickerStrip() {
   return (
     <section
       data-motion
-      aria-label="Robinhood Chain stock tokens, gross gap, illustrative"
-      className="relative border-y border-ink/6 pt-[26px] pb-[30px]"
+      aria-label="Stocks GAUGE watches, price difference in basis points, illustrative"
+      className="relative mt-[150px] border-y border-ink/6 pt-[26px] pb-[30px]"
     >
       <div className="g-wrap mb-5 flex items-center justify-between gap-4 font-mono text-[12px] tracking-[0.22em] text-dim">
-        <span>ROBINHOOD CHAIN STOCK TOKENS · GROSS GAP</span>
+        <span>
+          STOCKS GAUGE WATCHES · PRICE DIFFERENCE <span className="text-dead">(BPS = 1/100 OF 1%)</span>
+        </span>
         <span className="max-sm:hidden">ILLUSTRATIVE</span>
       </div>
       <div className="overflow-hidden" style={{ maskImage: mask, WebkitMaskImage: mask }}>
