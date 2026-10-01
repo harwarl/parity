@@ -5,7 +5,6 @@ export const urls = {
   /** In-app route; swap for [APP_URL] if the app ships on its own domain. */
   app: "/dashboard",
   docs: "/docs",
-  contactEmail: "[CONTACT_EMAIL]",
 } as const;
 
 export const site = {

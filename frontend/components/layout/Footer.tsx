@@ -1,4 +1,4 @@
-import { footerProduct, footerResources, site, urls } from "@/config/site";
+import { footerProduct, footerResources, site } from "@/config/site";
 import { Wordmark } from "@/components/shared/Wordmark";
 import { Pill } from "@/components/ui/Pill";
 import type { NavLink } from "@/types/content";
@@ -38,12 +38,6 @@ export function Footer() {
           <Pill size="sm" dot="live">
             Watches Robinhood Chain
           </Pill>
-          <a
-            href={`mailto:${urls.contactEmail}`}
-            className="font-mono text-[13px] text-dim transition-colors hover:text-ink"
-          >
-            {urls.contactEmail}
-          </a>
         </div>
       </div>
       <div className="flex flex-col justify-between gap-4 pt-9 sm:flex-row sm:items-center">

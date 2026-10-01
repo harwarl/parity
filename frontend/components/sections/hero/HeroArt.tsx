@@ -14,7 +14,13 @@ const TOKEN_D =
 
 const mono = { fontFamily: "var(--font-mono)" } as const;
 
-export function HeroArt({ compact = false, className = "" }: { compact?: boolean; className?: string }) {
+export function HeroArt({
+  compact = false,
+  className = "",
+}: {
+  compact?: boolean;
+  className?: string;
+}) {
   // Unique ids per instance: gradients inside a display:none SVG don't resolve.
   const p = compact ? "gm" : "gd";
   const url = (id: string) => `url(#${p}${id})`;
@@ -28,7 +34,13 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
       aria-label="Two price lines: the token price rides above the stock price. The bracket between them at the right edge is the difference, widening and narrowing."
     >
       <defs>
-        <radialGradient id={`${p}Atm`} cx="980" cy="1640" r="1260" gradientUnits="userSpaceOnUse">
+        <radialGradient
+          id={`${p}Atm`}
+          cx="980"
+          cy="1640"
+          r="1260"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop offset=".84" stopColor="#B2D450" stopOpacity="0" />
           <stop offset=".95" stopColor="#B2D450" stopOpacity=".22" />
           <stop offset="1" stopColor="#B2D450" stopOpacity="0" />
@@ -55,7 +67,13 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
         </linearGradient>
         {!compact && (
           <>
-            <filter id={`${p}Blur`} x="-10%" y="-10%" width="120%" height="120%">
+            <filter
+              id={`${p}Blur`}
+              x="-10%"
+              y="-10%"
+              width="120%"
+              height="120%"
+            >
               <feGaussianBlur stdDeviation="18" />
             </filter>
             <filter id={`${p}Soft`}>
@@ -63,8 +81,18 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
             </filter>
           </>
         )}
-        <pattern id={`${p}Grid`} width="48" height="48" patternUnits="userSpaceOnUse">
-          <path d="M48 0H0V48" fill="none" stroke="#F9F7F4" strokeOpacity=".035" />
+        <pattern
+          id={`${p}Grid`}
+          width="48"
+          height="48"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M48 0H0V48"
+            fill="none"
+            stroke="#F9F7F4"
+            strokeOpacity=".035"
+          />
         </pattern>
       </defs>
 
@@ -77,11 +105,23 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
         cy="1640"
         r="1260"
         fill={url("Atm")}
-        style={compact ? undefined : { animation: "g-breathe 9s ease-in-out infinite" }}
+        style={
+          compact
+            ? undefined
+            : { animation: "g-breathe 9s ease-in-out infinite" }
+        }
       />
       <circle cx="980" cy="1640" r="1200" fill="#07080A" />
       {compact ? (
-        <circle cx="980" cy="1640" r="1200" fill="none" stroke={url("Rim")} strokeWidth="8" opacity=".22" />
+        <circle
+          cx="980"
+          cy="1640"
+          r="1200"
+          fill="none"
+          stroke={url("Rim")}
+          strokeWidth="8"
+          opacity=".22"
+        />
       ) : (
         <circle
           cx="980"
@@ -95,12 +135,40 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
           style={{ animation: "g-breathe 9s ease-in-out infinite" }}
         />
       )}
-      <circle cx="980" cy="1640" r="1200" fill="none" stroke={url("Rim")} strokeWidth="1.5" />
+      <circle
+        cx="980"
+        cy="1640"
+        r="1200"
+        fill="none"
+        stroke={url("Rim")}
+        strokeWidth="1.5"
+      />
 
       {/* 5 · light shafts */}
-      <rect x="1012" y="0" width="1" height="980" fill={url("Shaft")} opacity=".2" />
-      <rect x="1184" y="0" width="1" height="980" fill={url("Shaft")} opacity=".1" />
-      <rect x="842" y="0" width="1" height="980" fill={url("Shaft")} opacity=".05" />
+      <rect
+        x="1012"
+        y="0"
+        width="1"
+        height="980"
+        fill={url("Shaft")}
+        opacity=".2"
+      />
+      <rect
+        x="1184"
+        y="0"
+        width="1"
+        height="980"
+        fill={url("Shaft")}
+        opacity=".1"
+      />
+      <rect
+        x="842"
+        y="0"
+        width="1"
+        height="980"
+        fill={url("Shaft")}
+        opacity=".05"
+      />
 
       {/* 6 · cash line (A1) + flow overlay (A4) */}
       <path
@@ -123,9 +191,30 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
       />
 
       {/* 7 · gap bracket (A2b), scales from the cash end */}
-      <g style={{ transformOrigin: "1200px 448px", animation: "g-brk 6s ease-in-out infinite" }}>
-        <rect x="1195" y="364" width="10" height="84" rx="5" fill="#B2D450" opacity=".18" />
-        <line x1="1200" y1="366" x2="1200" y2="446" stroke="#B2D450" strokeWidth="1.5" strokeDasharray="3 4" />
+      <g
+        style={{
+          transformOrigin: "1200px 448px",
+          animation: "g-brk 6s ease-in-out infinite",
+        }}
+      >
+        <rect
+          x="1195"
+          y="364"
+          width="10"
+          height="84"
+          rx="5"
+          fill="#B2D450"
+          opacity=".18"
+        />
+        <line
+          x1="1200"
+          y1="366"
+          x2="1200"
+          y2="446"
+          stroke="#B2D450"
+          strokeWidth="1.5"
+          strokeDasharray="3 4"
+        />
       </g>
 
       {/* 8 · cash end marker */}
@@ -171,7 +260,14 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
           style={{ animation: "g-gap 1.6s ease-in-out infinite" }}
         />
         <circle cx="1200" cy="364" r="5" fill="#B2D450" />
-        <text x="1222" y="352" fontSize={compact ? 14 : 12} letterSpacing="2" fill="#B2D450" style={mono}>
+        <text
+          x="1222"
+          y="352"
+          fontSize={compact ? 14 : 12}
+          letterSpacing="2"
+          fill="#B2D450"
+          style={mono}
+        >
           TOKEN PRICE
         </text>
       </g>
@@ -186,9 +282,17 @@ export function HeroArt({ compact = false, className = "" }: { compact?: boolean
         fill="#B2D450"
         style={{ ...mono, animation: "g-gap 3s ease-in-out infinite" }}
       >
-        THE DIFFERENCE
+        THE GAP
       </text>
-      <text x="1222" y="468" fontSize={compact ? 14 : 12} letterSpacing="2" fill="#F9F7F4" fillOpacity=".7" style={mono}>
+      <text
+        x="1222"
+        y="468"
+        fontSize={compact ? 14 : 12}
+        letterSpacing="2"
+        fill="#F9F7F4"
+        fillOpacity=".7"
+        style={mono}
+      >
         STOCK PRICE
       </text>
     </svg>

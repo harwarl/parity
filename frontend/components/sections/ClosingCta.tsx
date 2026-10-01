@@ -13,7 +13,7 @@ const LINE_D =
 
 export function ClosingCta() {
   return (
-    <section data-motion className="pt-[150px]">
+    <section id="close" data-motion className="pt-[150px]">
       <div
         style={reveal({ y: 60 })}
         className="g-reveal relative flex w-full flex-col items-center gap-9 overflow-hidden bg-accent px-10 pt-[120px] pb-[110px] text-center max-sm:px-5 max-sm:pt-20 max-sm:pb-16">

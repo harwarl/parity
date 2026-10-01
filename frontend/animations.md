@@ -1,11 +1,11 @@
 # GAUGE: animations.md
 
-|            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rev        | 6 · 2026-09-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Changelog  | r6: landing rev 2. Added L1–L6 (logo, overview, glossary, personas, trust strip, reason words); retired E1–E4 (the reason panels were removed); C2/C3 labels changed to plain words, timing unchanged. r5: added docs motion K1–K7 (§6C); removed an unused flicker keyframe from the Reason codes screen. r4: added app motion J1–J12 (§6B). r3: G1 back to 4 crosses (cap refusal added). r2: G1 drew 3 crosses (token refusal removed). r1: 28 animations across 10 sections (lively intensity) |
-| Companions | `design.md` (IDs A1–I2, L1–L6, J1–J12 and K1–K7 match its §9), `assets/css/animations.css` (every keyframe, copy-paste)                                                                                                                                                                                                                                                                                                                                                                            |
-| Source     | Design canvas "GAUGE": `Main.dc.html` + the 6 app artboards + the 4 docs artboards                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rev        | 7 · 2026-10-01                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Changelog  | r7: added the dot-matrix scroll field P1–P10 (§6D). It reverses on scroll-up, and there is one lit pattern per section. r6: landing rev 2. Added L1–L6 (logo, overview, glossary, personas, trust strip, reason words); retired E1–E4 (the reason panels were removed); C2/C3 labels changed to plain words, timing unchanged. r5: added docs motion K1–K7 (§6C); removed an unused flicker keyframe from the Reason codes screen. r4: added app motion J1–J12 (§6B). r3: G1 back to 4 crosses (cap refusal added). r2: G1 drew 3 crosses (token refusal removed). r1: 28 animations across 10 sections (lively intensity) |
+| Companions | `design.md` (IDs A1–I2, L1–L6, P1–P10, J1–J12 and K1–K7 match its §9), `assets/css/animations.css` (every keyframe, copy-paste), `assets/js/dot-field.js` (P field)                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Source     | Design canvas "GAUGE": `Main.dc.html` + the 6 app artboards + the 4 docs artboards                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ## 1. Rules
 
@@ -1386,6 +1386,260 @@ State is kept per block (`c1`, `c2`). There is no animation, only the label swap
 
 The docs define no entrance animation for page load or text, and don't use `g-rise` on text.
 
+## 6D. Landing: dot-matrix scroll field (P1–P10)
+
+One fixed `<canvas>` sits behind every landing section after the hero. It draws a faint dot grid; in each section a lime **pattern** lights up in the grid. Scroll position drives it, not a clock, so scrolling down plays it forward and scrolling up plays it back exactly. The only time-based parts are the persona turn-taking (P3), the dust twinkle (P6) and the FAQ twinkle (P9).
+
+**Intensity:** subtle (approved). The field is felt, not read. It never sits on top of text, because panels are opaque and the canvas is at `z-index:-1`.
+
+### Grid
+
+| Property            | Value                                                                                                                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pitch               | 26px, centred in the viewport (`ox = (W % 26)/2`, `oy = (H % 26)/2`)                                                                                                                         |
+| Base dot            | cream `#F9F7F4`, r 1px, alpha .085                                                                                                                                                           |
+| Lit dot (`v > .08`) | lime `#B2D450`, r `1.3 + v·.9`, alpha `.085 + v·.62`                                                                                                                                         |
+| DPR                 | `min(2, devicePixelRatio)`                                                                                                                                                                   |
+| Fade in / out       | `on` eases toward 1 (sections 01–08) or 0 (hero, closing CTA) by 8% a frame                                                                                                                  |
+| Section switch      | the new pattern cross-fades in over 700ms, mixed with the previous one                                                                                                                       |
+| Scroll band         | each value × `.5 + .5·exp(−(y/H − band)² / .06)`, with `band = .1 + .8·lp`. A brighter horizontal band walks down the viewport as you scroll through a section, and back up as you scroll up |
+
+The **active section** is the last one whose top is above 50% of the viewport. `lp` is that section's local progress, `(H/2 − top) / height`, clamped to 0–1.
+
+### Patterns
+
+Every pattern returns 0–1 per dot. `W` and `H` are the viewport size.
+
+| ID  | Section             | Pattern                                                                  | Formula (summary)                                        | Meaning                                                     |
+| --- | ------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- | ----------------------------------------------------------- |
+| P1  | Field               | Grid, fade, scroll band, cross-fade                                      | see above                                                | –                                                           |
+| P2  | 01 Overview         | Ripple rings from (80% W, 50% H)                                         | `max(0, cos(d/34 − lp·14 − t·.5))³ · e^(−d/460)`         | The gap spreading out; rings travel outward as you scroll   |
+| P3  | 02 Who it's for     | 3 gaussian clusters at x 20 / 50 / 80%, y 78%, σ 110                     | the cluster `floor(t/3) % 3` at 1, others at .3          | Three kinds of user, taking turns (matches the 9s L4 cycle) |
+| P4  | 03 How it works     | 3 columns 80px wide at x 20 / 50 / 80%                                   | column n is on once `lp > n/3`; a pulse falls through it | Watch → Subtract → Prompt, in order                         |
+| P5  | 04 The card         | Ring r 210 (±16) at (80%, 52%)                                           | lit while angle `< 1 − lp·.85`, else .22                 | The 75s countdown draining                                  |
+| P6  | 05 No prompt?       | Sparse random dots (hash > .965)                                         | `.5 + .5·sin(t·1.3 + h·40)`                              | Dust: gaps that round to nothing                            |
+| P7  | 06 Practice or real | Vertical line at `x = W(.15 + .7·lp)`, 28px wide, soft wake to its right | 1 on the line, `.22·e^(−dx/300)` after it                | Moving from practice to live                                |
+| P8  | 07 Won't do         | ✕ in a 380px box at (80%, 50%)                                           | first stroke draws over lp 0–.5, second over .5–1        | Refusal                                                     |
+| P9  | 08 FAQ              | Glow rising from the bottom, 20% of dots twinkle                         | `max(0, (y/H − .55)·1.6)` × twinkle                      | Settling down                                               |
+| P10 | Closing CTA         | none                                                                     | field fades out                                          | The lime CTA takes over                                     |
+
+The hash is `fract(sin(i·127.1 + j·311.7)·43758.5453)`, which gives each dot a stable random number.
+
+### Stacking (required)
+
+- `.g-page{isolation:isolate}` and `.g-dfx{position:fixed;inset:0;z-index:-1}`. The canvas paints above the page background but under all content.
+- No ancestor of the canvas may have `transform`, `filter` or `perspective`, or `fixed` breaks.
+- The closing CTA needs `id="close"`.
+
+### CSS
+
+```css
+.g-page {
+  isolation: isolate;
+}
+.g-dfx {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+} /* JS sets opacity 1 on first draw */
+```
+
+### Markup
+
+```html
+<canvas class="g-dfx" aria-hidden="true"></canvas>
+<!-- first child of .g-page -->
+```
+
+### Logic (as on the canvas, in `componentDidMount`)
+
+- A rAF loop runs only while the field is visible. Scroll and resize events restart it.
+- The scroll listener uses `capture:true`, so it hears whichever element scrolls.
+- Nothing calls `setState`, so the component never re-renders on scroll.
+- A framework-free copy is in `assets/js/dot-field.js`.
+
+```js
+// P · dot-matrix field: fixed canvas behind content, scroll-driven, no re-renders
+const D = (this.dfx = {
+  ids: [
+    "overview",
+    "who",
+    "how",
+    "card",
+    "reasons",
+    "paper",
+    "wont",
+    "faq",
+    "close",
+  ],
+  sec: -1,
+  prev: -1,
+  changed: 0,
+  lp: 0,
+  raf: 0,
+  on: 0,
+});
+D.rm =
+  window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const GAP = 26,
+  hash = (i, j) => {
+    const s = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
+    return s - Math.floor(s);
+  };
+const gauss = (dx, dy, r) => Math.exp(-(dx * dx + dy * dy) / (2 * r * r));
+// each pattern: (x, y, W, H, lp, t, i, j) -> 0..1
+const P = [
+  (x, y, W, H, lp, t) => {
+    const d = Math.hypot(x - W * 0.8, y - H * 0.5);
+    return (
+      Math.max(0, Math.cos(d / 34 - lp * 14 - t * 0.5)) ** 3 *
+      Math.exp(-d / 460)
+    );
+  },
+  (x, y, W, H, lp, t) => {
+    const k = Math.floor(t / 3) % 3;
+    return [0.2, 0.5, 0.8].reduce(
+      (m, u, n) =>
+        Math.max(m, gauss(x - W * u, y - H * 0.78, 110) * (n === k ? 1 : 0.3)),
+      0,
+    );
+  },
+  (x, y, W, H, lp) =>
+    [0.2, 0.5, 0.8].reduce(
+      (m, u, n) =>
+        Math.max(
+          m,
+          Math.abs(x - W * u) < 40 && lp > n / 3
+            ? Math.exp(-Math.abs(y - H * (1 - ((lp * 3 - n) % 1))) / 160)
+            : 0,
+        ),
+      0,
+    ),
+  (x, y, W, H, lp) => {
+    const dx = x - W * 0.8,
+      dy = y - H * 0.52,
+      d = Math.hypot(dx, dy);
+    const a = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
+    return Math.abs(d - 210) < 16 ? (a < 1 - lp * 0.85 ? 1 : 0.22) : 0;
+  },
+  (x, y, W, H, lp, t, i, j) => {
+    const h = hash(i, j);
+    return h > 0.965 ? 0.5 + 0.5 * Math.sin(t * 1.3 + h * 40) : 0;
+  },
+  (x, y, W, H, lp) => {
+    const sx = W * (0.15 + 0.7 * lp);
+    return Math.abs(x - sx) < 14
+      ? 1
+      : x > sx
+        ? 0.22 * Math.exp(-(x - sx) / 300)
+        : 0;
+  },
+  (x, y, W, H, lp) => {
+    const cx = W * 0.8,
+      cy = H * 0.5,
+      s = 190,
+      u = (x - cx) / s,
+      v = (y - cy) / s;
+    if (Math.abs(u) > 1 || Math.abs(v) > 1) return 0;
+    const a = Math.abs(u - v) < 0.09 && (u + 1) / 2 < lp * 2,
+      b = Math.abs(u + v) < 0.09 && (u + 1) / 2 < lp * 2 - 1;
+    return a || b ? 1 : 0;
+  },
+  (x, y, W, H, lp, t, i, j) => {
+    const h = hash(i, j);
+    return (
+      Math.max(0, (y / H - 0.55) * 1.6) *
+      (h > 0.8 ? 0.5 + 0.5 * Math.sin(t * 0.9 + h * 30) : 0.25)
+    );
+  },
+  () => 0,
+];
+D.draw = (now) => {
+  D.raf = 0;
+  const cv = document.querySelector(".g-dfx");
+  const page = document.querySelector(".g-page");
+  if (!cv || !page) return;
+  const W = window.innerWidth,
+    H = window.innerHeight,
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+  }
+  let sec = -1,
+    lp = 0;
+  D.ids.forEach((id, n) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.top < H * 0.5) {
+      sec = n;
+      lp = Math.min(1, Math.max(0, (H * 0.5 - r.top) / Math.max(1, r.height)));
+    }
+  });
+  if (sec !== D.sec) {
+    D.prev = D.sec;
+    D.sec = sec;
+    D.changed = now;
+  }
+  const t = D.rm ? 0 : now / 1000,
+    mix = D.rm ? 1 : Math.min(1, (now - D.changed) / 700);
+  const target = sec >= 0 && sec < 8 ? 1 : 0;
+  D.on += (target - D.on) * (D.rm ? 1 : 0.08);
+  const band = 0.1 + 0.8 * lp;
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  if (D.on > 0.01) {
+    const ox = (W % GAP) / 2,
+      oy = (H % GAP) / 2;
+    for (let j = 0, y = oy; y < H; j++, y += GAP)
+      for (let i = 0, x = ox; x < W; i++, x += GAP) {
+        let v = sec >= 0 ? P[sec](x, y, W, H, lp, t, i, j) * mix : 0;
+        if (mix < 1 && D.prev >= 0)
+          v += P[D.prev](x, y, W, H, lp, t, i, j) * (1 - mix);
+        v *= 0.5 + 0.5 * Math.exp(-((y / H - band) ** 2) / 0.06);
+        ctx.globalAlpha = D.on * (0.085 + v * 0.62);
+        ctx.fillStyle = v > 0.08 ? "#B2D450" : "#F9F7F4";
+        ctx.beginPath();
+        ctx.arc(x, y, v > 0.08 ? 1.3 + v * 0.9 : 1, 0, 6.2832);
+        ctx.fill();
+      }
+  }
+  cv.style.opacity = "1";
+  if (!D.rm && (D.on > 0.01 || target)) D.raf = requestAnimationFrame(D.draw);
+};
+D.kick = () => {
+  if (!D.raf) D.raf = requestAnimationFrame(D.draw);
+};
+window.addEventListener("scroll", D.kick, { capture: true, passive: true });
+window.addEventListener("resize", D.kick);
+setTimeout(D.kick, 60);
+// componentWillUnmount: remove both listeners, cancel this.dfx.raf
+```
+
+### Reduced motion
+
+- `t` is fixed at 0, so there is no twinkle or turn-taking, and the cross-fade and fade-in are instant.
+- The loop draws only on scroll (one frame per scroll event), so patterns still follow the section statically.
+
+### Performance
+
+- About 1,900 dots per frame at 1440 × 900, which is cheap on canvas 2D.
+- The loop stops on the hero and the closing CTA.
+- For long sessions, also pause on `document.hidden`. rAF already throttles background tabs.
+
+### Tuning
+
+- **Quieter:** base .085 → .06, lit `.62` → `.45`.
+- **Livelier:** lit `.62` → `.85`, lit radius `+v·.9` → `+v·1.4`.
+- **Denser:** pitch 26 → 22. This is about 1.4× more dots.
+
 ## 7. Page background and nav
 
 - **Edge glows:**
@@ -1427,15 +1681,16 @@ The docs define no entrance animation for page load or text, and don't use `g-ri
 
 ## 8. Product motifs (reuse across GAUGE surfaces)
 
-| Motif                  | Meaning                | Source |
-| ---------------------- | ---------------------- | ------ |
-| Two lines + bracket    | Cash vs token, the gap | A2, I1 |
-| Peeling bar            | Gross → net haircut    | C2     |
-| Sequential gates       | All must pass          | C3     |
-| 75s ring               | Card lifetime          | D1     |
-| Three pips             | Daily cap              | D3     |
-| Packet held at confirm | You tap, it doesn't    | F2     |
-| Dot-matrix dissolve    | Dust                   | E4     |
+| Motif                  | Meaning                           | Source |
+| ---------------------- | --------------------------------- | ------ |
+| Two lines + bracket    | Cash vs token, the gap            | A2, I1 |
+| Peeling bar            | Gross → net haircut               | C2     |
+| Sequential gates       | All must pass                     | C3     |
+| 75s ring               | Card lifetime                     | D1     |
+| Three pips             | Daily cap                         | D3     |
+| Packet held at confirm | You tap, it doesn't               | F2     |
+| Dot-matrix dissolve    | Dust                              | E4     |
+| Dot-matrix field       | The page story, drawn in lit dots | P1–P10 |
 
 ## 9. Reduced motion
 
@@ -1479,59 +1734,62 @@ These overrides are in `assets/css/animations.css`. They are not yet in the canv
 
 ## 11. Index
 
-| ID  | Keyframes                                | Period                  | Easing                   | Section                               |
-| --- | ---------------------------------------- | ----------------------- | ------------------------ | ------------------------------------- |
-| A1  | g-draw                                   | 2.4s once               | .2,.7,.2,1               | Hero                                  |
-| A2  | g-lime, g-brk                            | 6s                      | ease-in-out              | Hero                                  |
-| A3  | SMIL animateMotion                       | 4s                      | linear                   | Hero                                  |
-| A4  | g-flow                                   | 2.2s                    | linear                   | Hero                                  |
-| A5  | g-gap                                    | 1.6s / 3s               | ease-in-out              | Hero                                  |
-| A6  | g-rise                                   | 1s once                 | .2,.7,.2,1               | Hero                                  |
-| –   | g-breathe                                | 9s                      | ease-in-out              | Hero atmosphere                       |
-| B1  | g-marq                                   | 48s                     | linear                   | Ticker                                |
-| B2  | g-flash                                  | 4.2s                    | ease-in-out              | Ticker                                |
-| C1  | g-meas, g-span                           | 4s                      | ease-in-out              | How / Measure                         |
-| C2  | g-peel, g-netc                           | 5s                      | ease-in-out              | How / Haircut                         |
-| C3  | g-gate, g-mini                           | 5.4s                    | ease-in-out              | How / Emit                            |
-| D1  | JS + transition                          | 75s                     | linear                   | Card                                  |
-| D2  | g-shimmer                                | 1.1s once               | ease-out                 | Card                                  |
-| D3  | g-capfill, g-lock                        | 6s                      | ease-in-out              | Card / cap                            |
-| D4  | g-scan                                   | 5s                      | linear                   | Card panel                            |
-| E1  | g-age, g-stalet                          | 4.4s                    | ease-in                  | STALE · retired                       |
-| E2  | g-sess, g-sessin                         | 6.6s                    | linear                   | CLOSED · retired                      |
-| E3  | g-drain                                  | 3.6s                    | ease-in-out              | THIN · retired                        |
-| E4  | g-dust, g-dustnum                        | 3.2s                    | ease-out / ease-in-out   | DUST · retired                        |
-| F1  | g-stamp                                  | 4.8s                    | .3,1.4,.5,1              | Paper                                 |
-| F2  | g-packet, g-tap                          | 5.2s                    | .6,0,.3,1 / ease-out     | Live                                  |
-| G1  | g-xdraw                                  | 6s                      | ease-in-out              | Won't do                              |
-| G2  | g-flicker                                | 5.6s                    | linear                   | Won't do                              |
-| H1  | g-rise                                   | .6s once                | .2,.7,.2,1               | FAQ                                   |
-| H2  | g-scan                                   | 3.4s                    | linear                   | FAQ                                   |
-| I1  | g-conA, g-conB                           | 6.4s                    | ease-in-out              | Closing                               |
-| I2  | g-snap                                   | 6.4s                    | ease-out                 | Closing                               |
-| Z   | g-drift, g-ping                          | 38–46s / 2.4s           | ease-in-out              | Global                                |
-| J1  | ping                                     | 2.4s                    | ease-in-out              | App · live dots                       |
-| J2  | scan                                     | 4.6s                    | linear                   | App · active card                     |
-| J3  | glowrow                                  | 3s                      | ease-in-out              | Home · CARD row                       |
-| J4  | blink                                    | 2s                      | ease-in-out              | Home · pending pip                    |
-| J5  | JS + transition                          | 1s tick / 75s           | linear                   | Home, Card · ring                     |
-| J6  | JS timeouts                              | 0 / .7 / 1.4 / 2.1s     | –                        | Card · confirm                        |
-| J7  | shimmer                                  | 1.1s once               | ease-out                 | Home, Card                            |
-| J8  | grow                                     | .5–.6s staggered        | ease-out                 | Card · waterfall                      |
-| J9  | draw, rise                               | 1.2s / .4s              | ease-out                 | Watchlist · detail                    |
-| J10 | rise                                     | .35s                    | ease-out                 | History · drawer                      |
-| J11 | orbit, breathe, dash                     | 40 / 26 / 5 / 3s        | linear / ease-in-out     | Token · mark                          |
-| J12 | transitions                              | .15–1s                  | ease                     | App · tooltip, switch, hover, arc     |
-| K1  | ping                                     | 2.4s                    | ease-in-out              | Docs · Quickstart live strip          |
-| K2  | flow                                     | 1.6s / 1.4s             | linear                   | Docs home lifecycle · Card gate order |
-| K3  | flow                                     | 1.2s                    | linear                   | Docs home · architecture              |
-| K4  | grow                                     | .5–.6s staggered, once  | ease-out                 | Docs · Card waterfall                 |
-| K5  | dust                                     | 3.2s                    | ease-in-out              | Docs · Reasons DUST                   |
-| K6  | JS timeout                               | 1.6s                    | –                        | Docs · Copy buttons                   |
-| K7  | transitions                              | .3s                     | ease                     | Docs · tiles, links                   |
-| L1  | g-barin, g-barglow                       | .9s once, then 7s       | .2,.7,.2,1 / ease-in-out | Landing · logo (nav, footer)          |
-| L2  | g-rise (view), g-barA/B, g-fall, g-lockp | scroll / 4.2 / 3 / 2.6s | mixed                    | Landing · Overview                    |
-| L3  | g-hl, g-term                             | 6s                      | ease-in-out              | Landing · glossary                    |
-| L4  | g-persona, g-plet                        | 9s                      | ease-in-out              | Landing · Who it's for                |
-| L5  | g-trace, g-tick                          | 8s                      | ease-in-out              | Landing · trust strip                 |
-| L6  | g-rStale, g-rClosed, g-rThin, g-rDust    | 8s                      | ease-in-out              | Landing · No prompt?                  |
+| ID    | Keyframes                                | Period                             | Easing                   | Section                               |
+| ----- | ---------------------------------------- | ---------------------------------- | ------------------------ | ------------------------------------- |
+| A1    | g-draw                                   | 2.4s once                          | .2,.7,.2,1               | Hero                                  |
+| A2    | g-lime, g-brk                            | 6s                                 | ease-in-out              | Hero                                  |
+| A3    | SMIL animateMotion                       | 4s                                 | linear                   | Hero                                  |
+| A4    | g-flow                                   | 2.2s                               | linear                   | Hero                                  |
+| A5    | g-gap                                    | 1.6s / 3s                          | ease-in-out              | Hero                                  |
+| A6    | g-rise                                   | 1s once                            | .2,.7,.2,1               | Hero                                  |
+| –     | g-breathe                                | 9s                                 | ease-in-out              | Hero atmosphere                       |
+| B1    | g-marq                                   | 48s                                | linear                   | Ticker                                |
+| B2    | g-flash                                  | 4.2s                               | ease-in-out              | Ticker                                |
+| C1    | g-meas, g-span                           | 4s                                 | ease-in-out              | How / Measure                         |
+| C2    | g-peel, g-netc                           | 5s                                 | ease-in-out              | How / Haircut                         |
+| C3    | g-gate, g-mini                           | 5.4s                               | ease-in-out              | How / Emit                            |
+| D1    | JS + transition                          | 75s                                | linear                   | Card                                  |
+| D2    | g-shimmer                                | 1.1s once                          | ease-out                 | Card                                  |
+| D3    | g-capfill, g-lock                        | 6s                                 | ease-in-out              | Card / cap                            |
+| D4    | g-scan                                   | 5s                                 | linear                   | Card panel                            |
+| E1    | g-age, g-stalet                          | 4.4s                               | ease-in                  | STALE · retired                       |
+| E2    | g-sess, g-sessin                         | 6.6s                               | linear                   | CLOSED · retired                      |
+| E3    | g-drain                                  | 3.6s                               | ease-in-out              | THIN · retired                        |
+| E4    | g-dust, g-dustnum                        | 3.2s                               | ease-out / ease-in-out   | DUST · retired                        |
+| F1    | g-stamp                                  | 4.8s                               | .3,1.4,.5,1              | Paper                                 |
+| F2    | g-packet, g-tap                          | 5.2s                               | .6,0,.3,1 / ease-out     | Live                                  |
+| G1    | g-xdraw                                  | 6s                                 | ease-in-out              | Won't do                              |
+| G2    | g-flicker                                | 5.6s                               | linear                   | Won't do                              |
+| H1    | g-rise                                   | .6s once                           | .2,.7,.2,1               | FAQ                                   |
+| H2    | g-scan                                   | 3.4s                               | linear                   | FAQ                                   |
+| I1    | g-conA, g-conB                           | 6.4s                               | ease-in-out              | Closing                               |
+| I2    | g-snap                                   | 6.4s                               | ease-out                 | Closing                               |
+| Z     | g-drift, g-ping                          | 38–46s / 2.4s                      | ease-in-out              | Global                                |
+| J1    | ping                                     | 2.4s                               | ease-in-out              | App · live dots                       |
+| J2    | scan                                     | 4.6s                               | linear                   | App · active card                     |
+| J3    | glowrow                                  | 3s                                 | ease-in-out              | Home · CARD row                       |
+| J4    | blink                                    | 2s                                 | ease-in-out              | Home · pending pip                    |
+| J5    | JS + transition                          | 1s tick / 75s                      | linear                   | Home, Card · ring                     |
+| J6    | JS timeouts                              | 0 / .7 / 1.4 / 2.1s                | –                        | Card · confirm                        |
+| J7    | shimmer                                  | 1.1s once                          | ease-out                 | Home, Card                            |
+| J8    | grow                                     | .5–.6s staggered                   | ease-out                 | Card · waterfall                      |
+| J9    | draw, rise                               | 1.2s / .4s                         | ease-out                 | Watchlist · detail                    |
+| J10   | rise                                     | .35s                               | ease-out                 | History · drawer                      |
+| J11   | orbit, breathe, dash                     | 40 / 26 / 5 / 3s                   | linear / ease-in-out     | Token · mark                          |
+| J12   | transitions                              | .15–1s                             | ease                     | App · tooltip, switch, hover, arc     |
+| K1    | ping                                     | 2.4s                               | ease-in-out              | Docs · Quickstart live strip          |
+| K2    | flow                                     | 1.6s / 1.4s                        | linear                   | Docs home lifecycle · Card gate order |
+| K3    | flow                                     | 1.2s                               | linear                   | Docs home · architecture              |
+| K4    | grow                                     | .5–.6s staggered, once             | ease-out                 | Docs · Card waterfall                 |
+| K5    | dust                                     | 3.2s                               | ease-in-out              | Docs · Reasons DUST                   |
+| K6    | JS timeout                               | 1.6s                               | –                        | Docs · Copy buttons                   |
+| K7    | transitions                              | .3s                                | ease                     | Docs · tiles, links                   |
+| L1    | g-barin, g-barglow                       | .9s once, then 7s                  | .2,.7,.2,1 / ease-in-out | Landing · logo (nav, footer)          |
+| L2    | g-rise (view), g-barA/B, g-fall, g-lockp | scroll / 4.2 / 3 / 2.6s            | mixed                    | Landing · Overview                    |
+| L3    | g-hl, g-term                             | 6s                                 | ease-in-out              | Landing · glossary                    |
+| L4    | g-persona, g-plet                        | 9s                                 | ease-in-out              | Landing · Who it's for                |
+| L5    | g-trace, g-tick                          | 8s                                 | ease-in-out              | Landing · trust strip                 |
+| L6    | g-rStale, g-rClosed, g-rThin, g-rDust    | 8s                                 | ease-in-out              | Landing · No prompt?                  |
+| P1    | canvas (scroll-linked)                   | scroll + 700ms cross-fade          | –                        | Landing background field              |
+| P2–P9 | canvas patterns                          | scroll; P3 3s turns, P6/P9 twinkle | –                        | One per section 01–08                 |
+| P10   | –                                        | fade out                           | 8%/frame                 | Closing CTA                           |
