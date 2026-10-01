@@ -1,6 +1,7 @@
 import { sample, ticker } from "@/config/site";
 import { formatSignedBps } from "@/lib/format";
 import type { TickerItem } from "@/types/content";
+import { TickerLogo } from "@/components/shared/TickerLogo";
 
 function Chip({ item, index }: { item: TickerItem; index: number }) {
   // Lime and flashing only when the gross gap clears total cost (7.6 bps).
@@ -12,8 +13,11 @@ function Chip({ item, index }: { item: TickerItem; index: number }) {
         clears ? { animation: `g-flash 4.2s ease-in-out ${index * 0.9}s infinite` } : undefined
       }
     >
-      <span className="grid size-9 place-items-center rounded-full border border-ink/10 bg-bg font-mono text-[9px] tracking-tight text-dim">
-        {item.symbol}
+      <span
+        aria-hidden
+        className="grid size-9 place-items-center rounded-full border border-ink/10 bg-bg font-mono text-[9px] tracking-tight text-ink-2"
+      >
+        <TickerLogo sym={item.symbol} size={36} />
       </span>
       <span className="font-mono text-[15px] font-semibold text-ink">{item.symbol}</span>
       <span className="text-[14px] text-dim">{item.name}</span>
